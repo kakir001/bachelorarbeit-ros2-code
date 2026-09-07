@@ -1,0 +1,16 @@
+# Kartesische Limits für den Pilz-Industrial-Motion-Planner (PTP/LIN/CIRC).
+# Diese Grenzen begrenzen die Geschwindigkeit/Beschleunigung des End-Effektors
+# im kartesischen Raum (Translation und Rotation), nicht in Gelenkkoordinaten.
+# Auch wenn Pilz in diesem Projekt nicht aktiv verwendet wird, lädt
+# MoveItConfigsBuilder.to_moveit_configs() diese Datei implizit — fehlt sie,
+# schlägt der Konfigurationsaufbau fehl. Daher vorerst sinnvolle Standardwerte.
+cartesian_limits:
+  # max_trans_vel: maximale translatorische Geschwindigkeit des TCP in m/s.
+  max_trans_vel: 1.0
+  # max_trans_acc: maximale translatorische Beschleunigung in m/s^2.
+  max_trans_acc: 2.25
+  # max_trans_dec: maximale translatorische Verzögerung (Bremsen) in m/s^2;
+  # negativ, da der Beschleunigungsvektor der Bewegung entgegengerichtet ist.
+  max_trans_dec: -5.0
+  # max_rot_vel: maximale rotatorische Geschwindigkeit der Orientierung in rad/s.
+  max_rot_vel: 1.57

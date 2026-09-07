@@ -1,0 +1,73 @@
+# ros2_control controllers (fake execution mit mock components).
+# arm: joint_trajectory_controller (FollowJointTrajectory-Anbindung von MoveIt)
+# gripper: joint_trajectory_controller (einfache Positionskontrolle, könnte auch gripper_action_controller sein)
+
+controller_manager:
+  ros__parameters:
+    # update_rate: Regeltakt des controller_manager in Hz. 100 Hz = alle 10 ms
+    # werden Zustände gelesen und Kommandos an die (mock-)Hardware geschrieben.
+    update_rate: 100  # Hz
+
+    # joint_state_broadcaster: liest die Gelenkzustände aus der Hardware/Mock
+    # und publiziert sie auf /joint_states (kein Regler, nur Zustands-Ausgabe).
+    joint_state_broadcaster:
+      type: joint_state_broadcaster/JointStateBroadcaster
+
+    # arm_controller: JointTrajectoryController für die 6-DoF-Armkette;
+    # empfängt die FollowJointTrajectory-Actions von MoveIt.
+    arm_controller:
+      type: joint_trajectory_controller/JointTrajectoryController
+
+    # gripper_controller: JointTrajectoryController für das Greifergelenk.
+    gripper_controller:
+      type: joint_trajectory_controller/JointTrajectoryController
+
+# Parametrierung des Arm-Trajektorienreglers.
+arm_controller:
+  ros__parameters:
+    # joints: die sechs geregelten Armgelenke (Reihenfolge = Index in der Trajektorie).
+    joints:
+      - joint2_to_joint1
+      - joint3_to_joint2
+      - joint4_to_joint3
+      - joint5_to_joint4
+      - joint6_to_joint5
+      - joint6output_to_joint6
+    # command_interfaces: an die Hardware geschriebene Größen — hier reine
+    # Positionsvorgabe (der Mock-Hardware genügt Position).
+    command_interfaces:
+      - position
+    # state_interfaces: von der Hardware gelesene Größen (Position + Geschwindigkeit),
+    # die zur Regelung und zur Zustandsrückmeldung genutzt werden.
+    state_interfaces:
+      - position
+      - velocity
+    # state_publish_rate: Rate (Hz), mit der der Controller seinen Zustand publiziert.
+    state_publish_rate: 50.0
+    # action_monitor_rate: Rate (Hz), mit der der Fortschritt einer laufenden
+    # FollowJointTrajectory-Action überwacht/rückgemeldet wird.
+    action_monitor_rate: 20.0
+    # allow_partial_joints_goal: false = ein Ziel muss ALLE obigen Gelenke enthalten;
+    # Teilziele werden abgelehnt.
+    allow_partial_joints_goal: false
+    constraints:
+      # stopped_velocity_tolerance: max. Restgeschwindigkeit (rad/s), bei der ein
+      # Gelenk am Zielpunkt noch als "gestoppt" gilt.
+      stopped_velocity_tolerance: 0.05
+      # goal_time: erlaubte Überschreitung der geplanten Endzeit (s), bevor das
+      # Ziel als nicht erreicht gewertet wird.
+      goal_time: 0.6
+
+# Parametrierung des Greifer-Trajektorienreglers (analog zum Arm, nur 1 Gelenk).
+gripper_controller:
+  ros__parameters:
+    joints:
+      - gripper_controller
+    command_interfaces:
+      - position
+    state_interfaces:
+      - position
+      - velocity
+    state_publish_rate: 50.0
+    action_monitor_rate: 20.0
+    allow_partial_joints_goal: false

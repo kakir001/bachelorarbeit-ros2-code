@@ -1,0 +1,224 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  SRDF für myCobot 280 JN + adaptive gripper.
+  Planning groups: arm (6 DoF), gripper (1 active DoF + Mimics).
+  End effector tip frame: tcp (Master-Plan vorgeschrieben).
+-->
+<robot name="mycobot_world">
+
+  <!-- =========================================================
+       Planning groups
+       ========================================================= -->
+
+  <!-- 6 DoF arm chain (robot_base → joint6_flange).
+       Tip frame tcp (Greifer-Spitze) wird als Ziel genommen. -->
+  <group name="arm">
+    <chain base_link="robot_base" tip_link="tcp"/>
+  </group>
+
+  <!-- Greifer-Gruppe: aktives Gelenk + Mimic-Finger -->
+  <group name="gripper">
+    <joint name="gripper_controller"/>
+    <joint name="gripper_base_to_gripper_left2"/>
+    <joint name="gripper_left3_to_gripper_left1"/>
+    <joint name="gripper_base_to_gripper_right3"/>
+    <joint name="gripper_base_to_gripper_right2"/>
+    <joint name="gripper_right3_to_gripper_right1"/>
+  </group>
+
+  <!-- =========================================================
+       End-Effector-Definition
+       ========================================================= -->
+  <end_effector name="gripper_ee"
+                parent_link="tcp"
+                group="gripper"
+                parent_group="arm"/>
+
+  <!-- =========================================================
+       Passive (Mimic-) Gelenke — markiert, damit der MoveIt-Planner
+       sie nicht aktiv berechnet.
+       ========================================================= -->
+  <passive_joint name="gripper_base_to_gripper_left2"/>
+  <passive_joint name="gripper_left3_to_gripper_left1"/>
+  <passive_joint name="gripper_base_to_gripper_right3"/>
+  <passive_joint name="gripper_base_to_gripper_right2"/>
+  <passive_joint name="gripper_right3_to_gripper_right1"/>
+
+  <!-- =========================================================
+       Named states (vordefinierte Positionen)
+       ========================================================= -->
+  <group_state name="home" group="arm">
+    <joint name="joint2_to_joint1" value="0"/>
+    <joint name="joint3_to_joint2" value="0"/>
+    <joint name="joint4_to_joint3" value="0"/>
+    <joint name="joint5_to_joint4" value="0"/>
+    <joint name="joint6_to_joint5" value="0"/>
+    <joint name="joint6output_to_joint6" value="0"/>
+  </group_state>
+
+  <group_state name="ready" group="arm">
+    <joint name="joint2_to_joint1" value="0"/>
+    <joint name="joint3_to_joint2" value="-0.5"/>
+    <joint name="joint4_to_joint3" value="-1.0"/>
+    <joint name="joint5_to_joint4" value="0"/>
+    <joint name="joint6_to_joint5" value="0"/>
+    <joint name="joint6output_to_joint6" value="0"/>
+  </group_state>
+
+  <group_state name="open" group="gripper">
+    <joint name="gripper_controller" value="0.15"/>
+  </group_state>
+
+  <group_state name="closed" group="gripper">
+    <joint name="gripper_controller" value="-0.74"/>
+  </group_state>
+
+  <!-- =========================================================
+       Komfort-Kollisions-Disables zwischen benachbarten Links.
+       Ohne Setup Assistant geben wir diese manuell an; im Baum
+       ist jedes direkt miteinander verbundene Link-Paar ohnehin
+       automatisch vom Kollisions-Check ausgenommen — hier nur
+       Mimic-Finger im Greifer und ferne Kamera-Arm-Paare.
+       ========================================================= -->
+
+  <!-- Nachbarschaft innerhalb des Arms (nicht zwingend, aber explizit notiert) -->
+  <disable_collisions link1="joint1" link2="joint2" reason="Adjacent"/>
+  <disable_collisions link1="joint2" link2="joint3" reason="Adjacent"/>
+  <disable_collisions link1="joint3" link2="joint4" reason="Adjacent"/>
+  <disable_collisions link1="joint4" link2="joint5" reason="Adjacent"/>
+  <disable_collisions link1="joint5" link2="joint6" reason="Adjacent"/>
+  <disable_collisions link1="joint6" link2="joint6_flange" reason="Adjacent"/>
+
+  <!-- Flange ↔ Greifer-Verbindung -->
+  <disable_collisions link1="joint6_flange" link2="gripper_base" reason="Adjacent"/>
+  <disable_collisions link1="joint6" link2="gripper_base" reason="Never"/>
+
+  <!-- joint6 und joint6_flange ↔ alle Greifer-Finger-Links — Finger unter joint6, keine Kollision -->
+  <disable_collisions link1="joint6" link2="gripper_left1" reason="Never"/>
+  <disable_collisions link1="joint6" link2="gripper_left2" reason="Never"/>
+  <disable_collisions link1="joint6" link2="gripper_left3" reason="Never"/>
+  <disable_collisions link1="joint6" link2="gripper_right1" reason="Never"/>
+  <disable_collisions link1="joint6" link2="gripper_right2" reason="Never"/>
+  <disable_collisions link1="joint6" link2="gripper_right3" reason="Never"/>
+  <disable_collisions link1="joint6_flange" link2="gripper_left1" reason="Never"/>
+  <disable_collisions link1="joint6_flange" link2="gripper_left2" reason="Never"/>
+  <disable_collisions link1="joint6_flange" link2="gripper_left3" reason="Never"/>
+  <disable_collisions link1="joint6_flange" link2="gripper_right1" reason="Never"/>
+  <disable_collisions link1="joint6_flange" link2="gripper_right2" reason="Never"/>
+  <disable_collisions link1="joint6_flange" link2="gripper_right3" reason="Never"/>
+
+  <!-- Mimic-Finger im Greifer — können sich ständig gegenseitig berühren -->
+  <disable_collisions link1="gripper_base" link2="gripper_left1" reason="Adjacent"/>
+  <disable_collisions link1="gripper_base" link2="gripper_left2" reason="Adjacent"/>
+  <disable_collisions link1="gripper_base" link2="gripper_left3" reason="Adjacent"/>
+  <disable_collisions link1="gripper_base" link2="gripper_right1" reason="Adjacent"/>
+  <disable_collisions link1="gripper_base" link2="gripper_right2" reason="Adjacent"/>
+  <disable_collisions link1="gripper_base" link2="gripper_right3" reason="Adjacent"/>
+  <disable_collisions link1="gripper_left3" link2="gripper_left1" reason="Adjacent"/>
+  <disable_collisions link1="gripper_right3" link2="gripper_right1" reason="Adjacent"/>
+  <disable_collisions link1="gripper_left1" link2="gripper_left2" reason="Never"/>
+  <disable_collisions link1="gripper_right1" link2="gripper_right2" reason="Never"/>
+  <!-- 4-Gelenk-Geschwister-Links: in OFFENER (0.15) Greifer-Pose überlappen die Kollisions-Boxen
+       konstruktionsbedingt (Sitzung-29-Sim-Befund: left2×left3-Berührung sperrte nach dem
+       Öffnen des Greifers die GESAMTE Planung mit "invalid start state"). -->
+  <disable_collisions link1="gripper_left2" link2="gripper_left3" reason="Never"/>
+  <disable_collisions link1="gripper_right2" link2="gripper_right3" reason="Never"/>
+  <disable_collisions link1="gripper_left1" link2="gripper_right1" reason="Never"/>
+  <disable_collisions link1="gripper_left2" link2="gripper_right2" reason="Never"/>
+  <disable_collisions link1="gripper_left3" link2="gripper_right3" reason="Never"/>
+  <disable_collisions link1="gripper_left1" link2="gripper_right2" reason="Never"/>
+  <disable_collisions link1="gripper_left2" link2="gripper_right1" reason="Never"/>
+  <disable_collisions link1="gripper_left1" link2="gripper_right3" reason="Never"/>
+  <disable_collisions link1="gripper_left3" link2="gripper_right1" reason="Never"/>
+  <disable_collisions link1="gripper_left2" link2="gripper_right3" reason="Never"/>
+  <disable_collisions link1="gripper_left3" link2="gripper_right2" reason="Never"/>
+
+  <!-- Kamera weit vom Roboter-Körper entfernt (eye-to-hand statisch) — Kollisions-Check unnötig -->
+  <disable_collisions link1="camera_link" link2="robot_base" reason="Never"/>
+  <disable_collisions link1="camera_link" link2="joint1" reason="Never"/>
+  <disable_collisions link1="camera_link" link2="joint2" reason="Never"/>
+  <disable_collisions link1="camera_link" link2="joint3" reason="Never"/>
+  <disable_collisions link1="camera_link" link2="joint4" reason="Never"/>
+  <disable_collisions link1="camera_link" link2="joint5" reason="Never"/>
+  <disable_collisions link1="camera_link" link2="joint6" reason="Never"/>
+  <disable_collisions link1="camera_link" link2="joint6_flange" reason="Never"/>
+  <disable_collisions link1="camera_link" link2="gripper_base" reason="Never"/>
+  <disable_collisions link1="camera_link" link2="gripper_left1" reason="Never"/>
+  <disable_collisions link1="camera_link" link2="gripper_left2" reason="Never"/>
+  <disable_collisions link1="camera_link" link2="gripper_left3" reason="Never"/>
+  <disable_collisions link1="camera_link" link2="gripper_right1" reason="Never"/>
+  <disable_collisions link1="camera_link" link2="gripper_right2" reason="Never"/>
+  <disable_collisions link1="camera_link" link2="gripper_right3" reason="Never"/>
+  <disable_collisions link1="camera_link" link2="tcp" reason="Never"/>
+
+  <!-- Greifer ↔ alle Arm-Links — myCobot 280 sehr klein, beim Falten des Arms ist naher Durchgang normal -->
+  <disable_collisions link1="gripper_base" link2="joint1" reason="Never"/>
+  <disable_collisions link1="gripper_base" link2="joint5" reason="Never"/>
+  <disable_collisions link1="gripper_base" link2="robot_base" reason="Never"/>
+  <disable_collisions link1="gripper_left1" link2="joint1" reason="Never"/>
+  <disable_collisions link1="gripper_left2" link2="joint1" reason="Never"/>
+  <disable_collisions link1="gripper_left3" link2="joint1" reason="Never"/>
+  <disable_collisions link1="gripper_right1" link2="joint1" reason="Never"/>
+  <disable_collisions link1="gripper_right2" link2="joint1" reason="Never"/>
+  <disable_collisions link1="gripper_right3" link2="joint1" reason="Never"/>
+  <disable_collisions link1="tcp" link2="joint1" reason="Never"/>
+  <disable_collisions link1="tcp" link2="joint2" reason="Never"/>
+  <disable_collisions link1="tcp" link2="joint3" reason="Never"/>
+  <disable_collisions link1="tcp" link2="joint4" reason="Never"/>
+
+  <!-- Roboter-Basis — Annahme, dass der Arm sich nicht selbst berührt -->
+  <disable_collisions link1="robot_base" link2="joint1" reason="Adjacent"/>
+  <!-- joint1×joint3: WIEDER HINZUGEFUEGT (2026-06-15). Zuerst wegen Basis-Kollision gelöscht, aber
+       check_state_validity zeigte, dass der joint1-Kollisions-ZYLINDER (r=4.5cm, 15.6cm lang)
+       sich mit dem forearm(joint3) in FAST JEDER Vorwärts-Reichweiten-Pose schneidet → der Roboter
+       konnte keine Schraube erreichen. "Never" war korrekt (Geometrie überlappt, aber keine physische
+       Kollision). Echte Basis-Gehäuse-Kollision wird nun durch die zu robot_base hinzugefügte ECHT-MASS-Box
+       (15×11×11cm) erfasst (robot_base×joint3 löst nur bei hartem Falten aus). -->
+  <disable_collisions link1="joint1" link2="joint3" reason="Never"/>
+  <disable_collisions link1="joint2" link2="joint4" reason="Never"/>
+  <disable_collisions link1="joint3" link2="joint5" reason="Never"/>
+  <disable_collisions link1="joint4" link2="joint6" reason="Never"/>
+
+  <!-- =========================================================
+       Dauerhafte Infrastruktur: Plattform + Kaiser RS 2 XA Stand (in URDF definiert).
+       - platform_top: Baseboard, Roboter-Basis immer darauf
+       - tutucu_kelepce: an die Plattform geschraubte Halte-Klemme des Stands
+       - column: vertikale Aluminium-Säule
+       - camera_arm: horizontaler Arm, der von column zur Kamera reicht
+       Zwischen direkt miteinander verbundenen Teilen ist ein Kollisions-Check sinnlos —
+       alle sind fix und in der Realität ständig in Berührung.
+       ========================================================= -->
+  <disable_collisions link1="platform_top"  link2="robot_base"    reason="Adjacent"/>
+  <disable_collisions link1="platform_top"  link2="joint1"        reason="Adjacent"/>
+  <disable_collisions link1="platform_top"  link2="tutucu_kelepce"  reason="Adjacent"/>
+  <disable_collisions link1="tutucu_kelepce"  link2="column"        reason="Adjacent"/>
+  <disable_collisions link1="tutucu_kelepce"  link2="robot_base"    reason="Never"/>
+  <disable_collisions link1="column"        link2="camera_arm"    reason="Adjacent"/>
+  <disable_collisions link1="column"        link2="robot_base"    reason="Never"/>
+
+  <!-- column statisch, geometrisch weit von Roboter-Links entfernt (>30 cm) — FCL-Mesh-
+       Bounding liefert False-Positive (besonders gripper_base ↔ column). Alle Roboter-
+       Links von column trennen. Physisches Kollisionsrisiko bleibt Verantwortung des Benutzers. -->
+  <disable_collisions link1="camera_arm"    link2="camera_link"   reason="Adjacent"/>
+  <disable_collisions link1="camera_arm"    link2="robot_base"    reason="Never"/>
+
+  <!-- Stand-Teile (platform_top Baseboard, tutucu_kelepce, camera_arm) ↔ Arm/Greifer.
+       Gleicher Grund wie bei column: das ist statische Stand-Geometrie; da der Greifer volle .dä-Mesh-
+       Kollision nutzt, liefert FCL-Bounding beim Nach-unten/Nach-innen-Reichen des Arms False-Positive
+       (Links rot). Alle von beweglichen Links trennen. HINWEIS: die physische Anstoß-Prüfung des
+       Greifers ans Baseboard entfällt damit → Verantwortung des Benutzers. -->
+  <disable_collisions link1="platform_top" link2="joint2" reason="Never"/>
+  <disable_collisions link1="platform_top" link2="joint3" reason="Never"/>
+  <disable_collisions link1="platform_top" link2="joint4" reason="Never"/>
+  <disable_collisions link1="platform_top" link2="joint5" reason="Never"/>
+  <disable_collisions link1="platform_top" link2="joint6" reason="Never"/>
+  <disable_collisions link1="platform_top" link2="joint6_flange" reason="Never"/>
+  <disable_collisions link1="platform_top" link2="gripper_base" reason="Never"/>
+  <disable_collisions link1="platform_top" link2="gripper_left1" reason="Never"/>
+  <disable_collisions link1="platform_top" link2="gripper_left2" reason="Never"/>
+  <disable_collisions link1="platform_top" link2="gripper_left3" reason="Never"/>
+  <disable_collisions link1="platform_top" link2="gripper_right1" reason="Never"/>
+  <disable_collisions link1="platform_top" link2="gripper_right2" reason="Never"/>
+  <disable_collisions link1="platform_top" link2="gripper_right3" reason="Never"/>
+
+</robot>

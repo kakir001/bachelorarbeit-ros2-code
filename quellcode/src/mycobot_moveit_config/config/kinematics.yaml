@@ -1,0 +1,23 @@
+# Inverse-Kinematik-(IK-)Konfiguration für die Planungsgruppe "arm".
+# MoveIt lädt hier den Kinematik-Solver, der aus einer kartesischen Ziel-Pose
+# (Position + Orientierung des tcp) die zugehörigen Gelenkwinkel berechnet.
+arm:
+  # kinematics_solver: verwendeter IK-Plugin. TRAC-IK löst die IK numerisch
+  # und ist robuster/schneller als der Standard-KDL-Solver, besonders nahe
+  # Singularitäten. Für Galactic manuell portiert (siehe Projekt-Memory).
+  kinematics_solver: trac_ik_kinematics_plugin/TRAC_IKKinematicsPlugin
+  # kinematics_solver_search_resolution: Schrittweite der internen Suche (rad).
+  # Kleinere Werte = feiner, aber langsamer.
+  kinematics_solver_search_resolution: !!float 0.005
+  # kinematics_solver_timeout: max. Rechenzeit pro IK-Aufruf in Sekunden.
+  # Wird die Lösung nicht rechtzeitig gefunden, gilt der Aufruf als Fehlschlag.
+  kinematics_solver_timeout: !!float 0.5
+  # position_only_ik: false = Position UND Orientierung werden gelöst.
+  # true würde nur die Position berücksichtigen (für diesen 6-DoF-Arm nicht gewünscht).
+  position_only_ik: false
+  # solve_type: TRAC-IK-Optimierungsmodus. "Distance" minimiert die Gelenk-
+  # bewegung gegenüber dem Startzustand und liefert damit ruhige, natürliche
+  # Lösungen (Alternativen wären z. B. "Speed" oder "Manip1").
+  solve_type: Distance
+  # epsilon: Konvergenztoleranz der numerischen Lösung. Kleiner = genauer.
+  epsilon: !!float 1e-5

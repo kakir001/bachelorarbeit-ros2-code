@@ -1,0 +1,10 @@
+<library path="mycobot_hardware">
+  <class
+      name="mycobot_hardware/MyCobotHardware"
+      type="mycobot_hardware::MyCobotHardware"
+      base_class_type="hardware_interface::SystemInterface">
+    <description>
+      myCobot 280 JN ros2_control SystemInterface — pymycobot via pybind11.
+    </description>
+  </class>
+</library>

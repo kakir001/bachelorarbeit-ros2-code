@@ -1,0 +1,32 @@
+# ChArUco-Board-Parameter — muss mit dem physischen Board des Benutzers übereinstimmen.
+#
+# Diese Datei beschreibt die Geometrie des gedruckten ChArUco-Kalibriermusters.
+# Der charuco_detector-Node rekonstruiert daraus per solvePnP die 6-DoF-Pose
+# des Boards relativ zur Kamera. Sind die Maße hier falsch, ist die geschätzte
+# Pose maßstäblich verzerrt und die gesamte Hand-Auge-Kalibrierung wird ungenau.
+#
+# Board (vom Benutzer am 2026-05-22 mit dem Messschieber vermessen):
+#   - 5 x 5 ChArUco (Anzahl der Schachbrettfelder in X- und Y-Richtung)
+#   - Feldkantenlänge (Schachbrettfeld): 18 mm
+#   - Markerkantenlänge (schwarzes Bitfeld des ArUco): 12 mm  -> Verhältnis 0.667
+#   - Außenmaß: ~90 x 89 mm
+#   - Wörterbuch: DICT_4X4_50 (per bildbasierter Detektion 12 Marker, IDs 0-11)
+#
+# WENN DU AENDERST: diese Datei und der (ggf.) neue Board-Ausdruck müssen synchron sein.
+# Falsche Feld-/Markerlänge = maßstäblich fehlerhafte Kalibrierung.
+
+/**:
+  ros__parameters:
+    # squares_x / squares_y: Anzahl der Schachbrettfelder je Achse. Bestimmt zusammen
+    # mit square_length die physische Boardgröße und die Zahl der inneren Ecken.
+    squares_x: 5
+    squares_y: 5
+    # square_length_m: Kantenlänge eines Schachbrettfeldes in Metern. Setzt den
+    # absoluten Maßstab der PnP-Pose — der wichtigste Wert für die Genauigkeit.
+    square_length_m: 0.018
+    # marker_length_m: Kantenlänge des schwarzen ArUco-Markers innerhalb der
+    # weißen Felder. Muss < square_length_m sein (hier Verhältnis 12/18 = 0.667).
+    marker_length_m: 0.012
+    # aruco_dict: verwendetes ArUco-Wörterbuch. Muss exakt dem Wörterbuch
+    # entsprechen, mit dem das Board generiert/gedruckt wurde, sonst keine Detektion.
+    aruco_dict: DICT_4X4_50

@@ -1,0 +1,53 @@
+# MoveIt → ros2_control Brücke.
+# moveit_simple_controller_manager sendet die von MoveIt geplante Trajectory
+# an den FollowJointTrajectory-Action-Server des joint_trajectory_controller.
+# ros2_control läuft mit mock_components als fake execution.
+
+moveit_simple_controller_manager:
+  # controller_names: Liste aller Controller, die MoveIt ansteuern darf.
+  controller_names:
+    - arm_controller
+    - gripper_controller
+
+  # arm_controller: führt die geplante Armtrajektorie aus.
+  #   type: FollowJointTrajectory-Action-Interface.
+  #   action_ns: Namespace des Action-Servers (voller Name: arm_controller/follow_joint_trajectory).
+  #   default: true = Standard-Controller für die Armgruppe.
+  #   joints: exakt die sechs Armgelenke in Trajektorien-Reihenfolge — muss mit
+  #   den in ros2_controllers.yaml definierten Gelenken übereinstimmen.
+  arm_controller:
+    type: FollowJointTrajectory
+    action_ns: follow_joint_trajectory
+    default: true
+    joints:
+      - joint2_to_joint1
+      - joint3_to_joint2
+      - joint4_to_joint3
+      - joint5_to_joint4
+      - joint6_to_joint5
+      - joint6output_to_joint6
+
+  # gripper_controller: führt die Greiferbewegung aus (ebenfalls FollowJointTrajectory).
+  gripper_controller:
+    type: FollowJointTrajectory
+    action_ns: follow_joint_trajectory
+    default: true
+    joints:
+      - gripper_controller
+
+# moveit_controller_manager: wählt die Simple-Controller-Manager-Implementierung,
+# die obige controller_names auf ros2_control-Action-Server abbildet.
+moveit_controller_manager: moveit_simple_controller_manager/MoveItSimpleControllerManager
+
+# trajectory_execution: Toleranzen der Ausführungsüberwachung von MoveIt.
+trajectory_execution:
+  # allowed_execution_duration_scaling: erlaubter Faktor, um den die reale
+  # Ausführung länger dauern darf als geplant, bevor abgebrochen wird (1.2 = 20% Puffer).
+  allowed_execution_duration_scaling: 1.2
+  # allowed_goal_duration_margin: zusätzlicher absoluter Zeitpuffer (s) am Trajektorienende.
+  allowed_goal_duration_margin: 0.5
+  # allowed_start_tolerance: erlaubte Abweichung zwischen aktuellem Ist-Zustand und
+  # geplantem Startzustand. MUSS hier 0.0 sein — andernfalls verwirft der
+  # joint_trajectory_controller die Trajektorie mit "time not strictly increasing"
+  # (siehe Projekt-Memory "Trajectory timestamp fix").
+  allowed_start_tolerance: 0.0

@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>mycobot_demo</name>
+  <version>0.1.0</version>
+  <description>
+    MoveIt-2-basierte Demo-Nodes fuer den myCobot 280 JN.
+    Erste Demo: Pick &amp; Place — mit kartesischem Anfahren (Approach) und Rueckzug (Retreat).
+  </description>
+  <maintainer email="ekinciorhandijvar@gmail.com">er</maintainer>
+  <license>MIT</license>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <depend>rclcpp</depend>
+  <depend>moveit_ros_planning_interface</depend>
+  <depend>moveit_msgs</depend>
+  <depend>geometry_msgs</depend>
+  <depend>tf2_geometry_msgs</depend>
+  <depend>visualization_msgs</depend>
+  <depend>rclcpp_action</depend>
+  <depend>control_msgs</depend>
+  <depend>trajectory_msgs</depend>
+  <depend>std_msgs</depend>
+
+  <exec_depend>mycobot_world</exec_depend>
+  <exec_depend>mycobot_moveit_config</exec_depend>
+  <exec_depend>moveit_configs_utils</exec_depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>

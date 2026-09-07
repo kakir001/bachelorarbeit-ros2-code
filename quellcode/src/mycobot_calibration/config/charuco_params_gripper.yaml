@@ -1,0 +1,26 @@
+# ChArUco 6x3 Greifer-Board-Parameter — muss mit dem gedruckten PDF übereinstimmen.
+#
+# Dieses kleinere, längliche 6x3-Board wird am Greifer angebracht und dient der
+# eye-in-hand-artigen Nachkalibrierung bzw. der Verifikation der Greifer-Spitze.
+# Erzeugt von generate_charuco_gripper.py. Ändert sich ein Wert, muss das Board
+# neu generiert und ausgedruckt werden.
+# Bei einer Nachkalibrierung den Detector mit DIESER Datei starten (statt des alten 5x5).
+
+/**:
+  ros__parameters:
+    # squares_x / squares_y: 6 Felder in X-, 3 in Y-Richtung — längliches Format,
+    # das flach auf die schmale Greifer-Oberfläche passt.
+    squares_x: 6
+    squares_y: 3
+    # square_length_m: Kantenlänge eines Schachbrettfeldes in Metern (setzt den Maßstab).
+    # 2026-08-30: Neuer Ausdruck auf 3D-gedruckter Halteplatte vermessen (Messschieber):
+    # lange Kante 96.5mm/6 = 16.08mm, kurze Kante 47mm/3 = 15.67mm — Druck leicht
+    # anisotrop, Drucker liess sich nicht auf 100% zwingen (Nutzer-Entscheid: so verwenden).
+    # OpenCV erlaubt nur EINEN Wert -> Mittelwert 15.875mm; Rest-Fehler max ~1.3%/Achse,
+    # wird in der Verifikationsphase (calib_check + Offset-Messung) aufgefangen.
+    square_length_m: 0.015875
+    # marker_length_m: Kantenlänge des ArUco-Markers innerhalb der Felder (< square_length_m).
+    # Mit dem gleichen Druck-Massstab skaliert: 12mm * (15.875/16) = 11.9mm.
+    marker_length_m: 0.0119
+    # aruco_dict: ArUco-Wörterbuch; muss dem beim Generieren verwendeten entsprechen.
+    aruco_dict: DICT_4X4_50

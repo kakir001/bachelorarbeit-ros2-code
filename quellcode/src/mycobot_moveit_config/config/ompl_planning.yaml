@@ -1,0 +1,69 @@
+# OMPL-Planungskonfiguration (Open Motion Planning Library).
+# Definiert das Planungs-Plugin, die Vor-/Nachbearbeitungs-Adapter der
+# Planungsanfrage sowie die verfügbaren Sampling-basierten Planer je Gruppe.
+# HINWEIS: Der Galactic-MoveItConfigsBuilder ergänzt planning_plugin und
+# request_adapters NICHT automatisch, daher werden sie hier manuell gesetzt
+# (siehe Projekt-Memory "OMPL request adapters").
+
+# planning_plugin: die OMPL-Schnittstelle als aktives Planungs-Plugin für MoveIt.
+planning_plugin: ompl_interface/OMPLPlanner
+# request_adapters: Kette von Adaptern, die VOR/NACH der Planung laufen.
+#   AddTimeOptimalParameterization: erzeugt aus dem geometrischen Pfad ein
+#     zeitoptimales Geschwindigkeits-/Beschleunigungsprofil (Zeitparametrisierung).
+#   FixWorkspaceBounds: setzt sinnvolle Arbeitsraumgrenzen, falls nicht angegeben.
+#   FixStartStateBounds: klemmt einen leicht außerhalb der Limits liegenden
+#     Startzustand zurück in die Gelenkgrenzen.
+#   FixStartStateCollision: versucht, einen kollidierenden Startzustand minimal
+#     zu verschieben, damit die Planung überhaupt starten kann.
+#   FixStartStatePathConstraints: passt den Start an, wenn er Pfad-Constraints verletzt.
+request_adapters: >-
+  default_planner_request_adapters/AddTimeOptimalParameterization
+  default_planner_request_adapters/FixWorkspaceBounds
+  default_planner_request_adapters/FixStartStateBounds
+  default_planner_request_adapters/FixStartStateCollision
+  default_planner_request_adapters/FixStartStatePathConstraints
+
+# planner_configs: Katalog konfigurierter OMPL-Planer, auf die die Gruppen
+# weiter unten per Namen verweisen.
+planner_configs:
+  # RRTConnect: bidirektionaler RRT, sehr schnell für Freiraum-Planung —
+  # der Standardplaner dieses Projekts. range=0.0 lässt OMPL die Schrittweite
+  # automatisch aus dem Zustandsraum bestimmen.
+  RRTConnectkConfigDefault:
+    type: geometric::RRTConnect
+    range: 0.0
+  # RRTstar: asymptotisch optimaler RRT (kürzere/glattere Pfade), aber langsamer.
+  RRTstarkConfigDefault:
+    type: geometric::RRTstar
+    range: 0.0
+    goal_bias: 0.05             # Wahrscheinlichkeit, direkt zum Ziel zu sampeln
+    delay_collision_checking: 1 # Kollisionsprüfung verzögern -> schneller
+  # PRM: Probabilistic Roadmap, gut für mehrfache Anfragen im selben Umfeld.
+  PRMkConfigDefault:
+    type: geometric::PRM
+  # BiTRRT: bidirektionaler Transition-RRT, nützlich bei Kosten-/Constraint-Landschaften.
+  BiTRRTkConfigDefault:
+    type: geometric::BiTRRT
+
+# arm: Planer-Zuordnung für die 6-DoF-Armgruppe.
+arm:
+  default_planner_config: RRTConnectkConfigDefault
+  planner_configs:
+    - RRTConnectkConfigDefault
+    - RRTstarkConfigDefault
+    - PRMkConfigDefault
+    - BiTRRTkConfigDefault
+  # projection_evaluator: definiert die Projektion des Zustandsraums (hier die
+  # ersten beiden Gelenke), mit der einige Planer den Raum abdecken/diskretisieren.
+  projection_evaluator: joints(joint2_to_joint1,joint3_to_joint2)
+  # longest_valid_segment_fraction: Anteil des Zustandsraums, der beim Kollisions-
+  # Check als ein Segment geprüft wird. Kleiner = feinere Prüfung, weniger Gefahr
+  # eines "durchtunnelten" Hindernisses, aber höhere Rechenlast.
+  longest_valid_segment_fraction: 0.005
+
+# gripper: Planer-Zuordnung für die 1-DoF-Greifergruppe (nur RRTConnect nötig).
+gripper:
+  default_planner_config: RRTConnectkConfigDefault
+  planner_configs:
+    - RRTConnectkConfigDefault
+  longest_valid_segment_fraction: 0.005

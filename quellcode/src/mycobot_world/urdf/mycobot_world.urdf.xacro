@@ -1,0 +1,273 @@
+<?xml version="1.0"?>
+<robot name="mycobot_world" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <!--
+    mycobot_280 JN + adaptive gripper + eye-to-hand RealSense D435i.
+
+    Frame-Hierarchie (Phase 1 stabilisiert):
+        robot_base  (URDF-Wurzel, MoveIt-Planung Haupt-Referenzframe)
+          ├── joint1 → ... → joint6_flange  (Arm-Kette, upstream URDF)
+          │       └── gripper_base → fingers
+          │                └── tcp  (Greifer-Spitze, Pick-&-Place-Zielframe)
+          └── camera_link  (D435i, realsense2_description-Makro)
+
+    - tcp-Pose ungefähr (~9 cm gripper_base z+) — später mit präziser Messung justierbar.
+    - Kamera-Pose Platzhalter, nach Hand-Eye-Kalibrierung (Phase 5) überschrieben.
+  -->
+
+  <xacro:property name="PI" value="3.14159265358979323846"/>
+
+  <!-- Haupt-Referenzframe (Master-Plan vorgeschrieben) +
+       physisches Basis-Gehäuse des Roboters (Box mit USB/HMI-Anschluss, zwischen Arm und Boden).
+       ~15×11×11 cm, auf Armachse zentriert, sitzt auf der Plattform (z=0) auf → z=0..0.11.
+       HINZUGEFUEGT 2026-06-15: zuvor war robot_base ein leeres Link → Gehäuse fehlte im
+       Kollisionsmodell → bei sehr naher Schraube faltet sich der Arm und stößt an dieses
+       Gehäuse, MoveIt sah es nicht. Nur-Kollision (Visual ist bereits im joint1-Mesh). -->
+  <link name="robot_base">
+    <collision>
+      <origin xyz="0 0 0.055" rpy="0 0 0"/>
+      <geometry><box size="0.15 0.11 0.11"/></geometry>
+    </collision>
+  </link>
+
+  <!--
+    Physische Infrastruktur: Plattform auf der der Roboter steht + vertikale Kamera-Stütze.
+    Diese Primitive sind Teil des dauerhaften Aufbaus (kein temporäres Debug) — müssen für
+    Kollision aktiv bleiben, damit die Planung nicht an Boden/Säule stößt. Visual halbtransparent,
+    sodass die Roboter-Meshes dominant erscheinen.
+  -->
+
+  <!-- Plattform: 50×40×2.5 cm. Obere Fläche z=0 (Roboter-Basis sitzt hier auf). -->
+  <link name="platform_top">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry><box size="0.50 0.40 0.025"/></geometry>
+      <material name="platform_color">
+        <color rgba="0.35 0.35 0.40 0.55"/>
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry><box size="0.50 0.40 0.025"/></geometry>
+    </collision>
+  </link>
+  <joint name="robot_base_to_platform" type="fixed">
+    <parent link="robot_base"/>
+    <child  link="platform_top"/>
+    <origin xyz="0.15 -0.125 -0.0125" rpy="0 0 0"/>
+  </joint>
+
+  <!--
+    Kaiser RS 2 XA Repro-Stand (Baseboard ist platform_top oben).
+    Drei Teile: Halte-Klemme (tutucu_kelepce), vertikale Säule (column),
+    von column zum Roboter reichender horizontaler Kamera-Arm (camera_arm).
+
+    Geometrie (robot_base frame):
+      - Halter: an der gegenüberliegenden Kante des Roboters (+X), 11 cm lang in Y-Richtung
+      - Stab: 2.5 × 3.5 cm rechteckiger Querschnitt, 76 cm Länge, tritt aus dem Halter aus
+      - Kamera-Arm: 12.5 cm (2026-06-07), ein Ende berührt die Kamera (~0.21),
+        das andere Ende verbindet sich mit column (~0.335). Kamera-Pose aus Kalibrierung fix;
+        column+Klemme ~5cm näher an Roboter gebracht, sodass der Stab an beide Enden anschließt.
+  -->
+
+  <link name="tutucu_kelepce">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry><box size="0.05 0.11 0.07"/></geometry>
+      <material name="mount_color">
+        <color rgba="0.15 0.15 0.18 0.85"/>
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry><box size="0.05 0.11 0.07"/></geometry>
+    </collision>
+  </link>
+  <joint name="robot_base_to_tutucu_kelepce" type="fixed">
+    <parent link="robot_base"/>
+    <child  link="tutucu_kelepce"/>
+    <!-- 2026-06-25: zur Mitte der fernen Kante der Platte zurückgesetzt (0.3225 -> 0.3725).
+         Die vorherige Position vom 2026-06-07 hatte den Stab ~5cm vor die Plattenkante verschoben. -->
+    <origin xyz="0.3725 -0.125 0.035" rpy="0 0 0"/>
+  </joint>
+
+  <link name="column">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry><box size="0.025 0.035 0.76"/></geometry>
+      <material name="column_color">
+        <color rgba="0.20 0.20 0.25 0.85"/>
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry><box size="0.025 0.035 0.76"/></geometry>
+    </collision>
+  </link>
+  <joint name="robot_base_to_column" type="fixed">
+    <parent link="robot_base"/>
+    <child  link="column"/>
+    <!-- 2026-06-25: zur Mitte der fernen Kante der Platte zurückgesetzt (0.335 -> 0.385);
+         Außenfläche x=0.3975 ≈ Plattenkante 0.40. Y=-0.125 = Platten-Y-Mitte.
+         (Das vorherige 0.335 hatte den Stab ~5cm vor die Kante verschoben; der Kamera-Arm
+         war deshalb auf 12.5cm verkürzt worden — jetzt ist der Arm wieder verlängert.) -->
+    <origin xyz="0.385 -0.125 0.38" rpy="0 0 0"/>
+  </joint>
+
+  <link name="camera_arm">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry><box size="0.229 0.025 0.025"/></geometry>
+      <material name="arm_color">
+        <color rgba="0.20 0.20 0.25 0.85"/>
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry><box size="0.229 0.025 0.025"/></geometry>
+    </collision>
+  </link>
+  <joint name="robot_base_to_camera_arm" type="fixed">
+    <parent link="robot_base"/>
+    <child  link="camera_arm"/>
+    <!-- 2026-07-14: nach Neukalibrierung (Kamera ~48cm -> ~66cm angehoben + näher an den Roboter)
+         wurde der Arm an die neue Kamera-Aufhängung angepasst, damit KEINE Lücke zwischen Stab
+         und Kamera bleibt.
+         z auf die neue Kamera-Aufhängehöhe: 0.486 -> 0.670 (= neues camera_bottom_screw z=0.66987).
+         2026-08-31: Kamera vom Benutzer auf 45 cm HERUNTERGESETZT -> z 0.670 -> 0.450
+         (= neues camera_bottom_screw z=0.45000). x/Länge unverändert (rein vertikale
+         Verschiebung entlang der column); column (0->0.76 m) weiterhin hoch genug.
+         x: nahes Ende = neue Kamera x=0.156 (früher 0.21, Kamera näher gerückt), fernes Ende
+         berührt bei 0.385 die column. Länge=0.385-0.156=0.229. Mitte=(0.156+0.385)/2=0.2705.
+         column (0->0.76m) ist hoch genug, unverändert. -->
+    <origin xyz="0.2705 -0.125 0.450" rpy="0 0 0"/>
+  </joint>
+
+  <!-- mycobot-Arm + adaptive gripper: upstream-URDF-Inhalt -->
+  <xacro:include filename="$(find mycobot_description)/urdf/mycobot_280_jn/mycobot_280_jn_adaptive_gripper.urdf"/>
+
+  <!-- Wurzel des Roboterarms (joint1) mit robot_base verbunden -->
+  <joint name="robot_base_to_joint1" type="fixed">
+    <parent link="robot_base"/>
+    <child  link="joint1"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </joint>
+
+  <!--
+    TCP (Tool Center Point) — Mittelpunkt zwischen den beiden Greifer-Fingern.
+    Pose etwa 9 cm voraus in z-Achsen-Richtung von gripper_base.
+    Master-Plan: Pick/Place-Bewegungen werden vom tcp-Frame aus gesteuert.
+  -->
+  <link name="tcp"/>
+  <joint name="gripper_base_to_tcp" type="fixed">
+    <parent link="gripper_base"/>
+    <child  link="tcp"/>
+    <!-- Greifer-Körper gemessen = 110mm (2026-06-07): 0.105 -> 0.110. -->
+    <origin xyz="0 0.110 -0.01" rpy="0 0 0"/>
+  </joint>
+
+  <!-- IntelRealSense offizielles D435i-URDF-Makro -->
+  <xacro:include filename="$(find realsense2_description)/urdf/_d435i.urdf.xacro"/>
+
+  <!--
+    Eye-to-hand-Kamera-Pose (Platzhalter — wird nach Phase 5 Hand-Eye aktualisiert):
+      x = 0.40 m (40 cm vor dem Roboter)
+      y = 0.00 m (Mitte)
+      z = 0.50 m (50 cm über dem Roboter)
+      pitch = pi/2 rad (Linse genau nach unten — realer Aufbau: Kamera an der Decke, senkrecht zum Boden)
+      yaw = pi (Bildoberseite zeigt zur Rückseite des Roboters — bei Bedarf angepasst)
+  -->
+  <!-- KALIBRIERUNG (2026-07-14, easy_handeye2 eye-on-base, OpenCV/Park, 16 Posen, 6x3 Greifer-Board):
+       robot_base->camera_color_optical_frame = trans(0.14406,-0.14646,0.65809)
+       quat(0.70446,0.70947,0.01973,0.00212). Kamera höher gesetzt: ~47cm -> ~66cm.
+       Der untenstehende Makro-Origin (robot_base->camera_bottom_screw_frame) wurde aus diesem
+       Ergebnis abgeleitet: T_origin = T_calib ∘ (bottom_screw->optical)^-1 (numerisch, gegen
+       die alte Kalibrierung verifiziert: reproduziert altes Origin auf ~0.3mm/0.4deg).
+       Park/Horaud/Daniilidis stimmen auf ~1cm überein -> z GUT bestimmt, kein Kollaps.
+       Tsai-Lenz weiterhin unzuverlässig (z/Rotation abweichend) -> NICHT verwendet.
+       Früher (2026-06-02): trans(0.197,-0.143,0.475), Origin 0.20961/-0.11021/0.48567, ~47cm.
+
+       *** 2026-08-31 — KAMERA AUF 45 cm HERUNTERGESETZT (GEOMETRISCHE NACHFÜHRUNG, KEINE
+       NEUE KALIBRIERUNG) ***
+       Der Benutzer hat die Kamera von ~66 cm auf 45 cm abgesenkt. Angenommen wurde eine
+       REIN VERTIKALE Verschiebung entlang der column: x, y und rpy bleiben unverändert,
+       nur z: 0.66987 -> 0.45000 (Delta -0.21987 m).
+       Daraus folgt robot_base->camera_color_optical_frame z: 0.65809 -> 0.43822
+       (x=0.14406, y=-0.14646 unverändert).
+       ⚠️ Das ist eine GEOMETRISCHE SCHÄTZUNG, kein Hand-Auge-Ergebnis. Reale Neigungs-
+       und XY-Änderungen der Halterung sind darin NICHT erfasst. Vor Präzisions-Picks:
+       easy_handeye2-Neukalibrierung (Park/Horaud, Tsai-Lenz verboten) fahren und diesen
+       Origin ersetzen. Ebenfalls veraltet: .place_offset.json, GRASP_Z_OFFSET,
+       calib_check_points.json (am 66-cm-Extrinsic gemessen). -->
+  <xacro:sensor_d435i parent="robot_base" use_nominal_extrinsics="true" name="camera" use_mesh="true">
+    <origin xyz="0.15598 -0.11415 0.45000" rpy="-2.46695 1.53111 0.68173"/>
+  </xacro:sensor_d435i>
+
+  <!--
+    ros2_control hardware interface.
+    Phase 6: mycobot_hardware/MyCobotHardware (C++ + pybind11 + pymycobot).
+    Mit use_fake_hardware:=true wird auf fake_components/GenericSystem zurückgegriffen.
+  -->
+  <xacro:arg name="use_fake_hardware" default="false"/>
+  <xacro:arg name="robot_port" default="/dev/ttyTHS1"/>
+  <xacro:arg name="robot_baud" default="1000000"/>
+  <!-- command_speed: Servo-Geschwindigkeit, die die Bridge jedem send_radians gibt (0-100, offene Schleife).
+       Freiraum (home/hover/Rückkehr-zu-Null) wird real durch DIESEN Wert begrenzt (nicht MoveIt-velocity-
+       scaling). 15→30: Freiraum ~2× schneller; descend bleibt großteils erhalten, da er durch langsames
+       MoveIt-scaling zusätzlich begrenzt ist. Wenn descend ruckelt, auf 20-25 reduzieren. -->
+  <xacro:arg name="command_speed" default="30"/>
+
+  <ros2_control name="mycobot_hardware" type="system">
+    <hardware>
+      <xacro:if value="$(arg use_fake_hardware)">
+        <plugin>fake_components/GenericSystem</plugin>
+      </xacro:if>
+      <xacro:unless value="$(arg use_fake_hardware)">
+        <plugin>mycobot_hardware/MyCobotHardware</plugin>
+        <param name="port">$(arg robot_port)</param>
+        <param name="baud">$(arg robot_baud)</param>
+        <param name="command_speed">$(arg command_speed)</param>
+      </xacro:unless>
+    </hardware>
+
+    <!-- Arm 6 DoF -->
+    <joint name="joint2_to_joint1">
+      <command_interface name="position"/>
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+    </joint>
+    <joint name="joint3_to_joint2">
+      <command_interface name="position"/>
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+    </joint>
+    <joint name="joint4_to_joint3">
+      <command_interface name="position"/>
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+    </joint>
+    <joint name="joint5_to_joint4">
+      <command_interface name="position"/>
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+    </joint>
+    <joint name="joint6_to_joint5">
+      <command_interface name="position"/>
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+    </joint>
+    <joint name="joint6output_to_joint6">
+      <command_interface name="position"/>
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+    </joint>
+
+    <!-- Greifer aktives Gelenk (Mimics in URDF definiert) -->
+    <joint name="gripper_controller">
+      <command_interface name="position"/>
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+    </joint>
+  </ros2_control>
+
+</robot>

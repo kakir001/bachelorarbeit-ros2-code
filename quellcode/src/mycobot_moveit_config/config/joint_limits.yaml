@@ -1,0 +1,48 @@
+# Gelenk-Geschwindigkeits- und Beschleunigungslimits für die Zeitparametrisierung.
+# MoveIt nutzt diese Grenzen, um dem geometrisch geplanten Pfad ein zulässiges
+# Geschwindigkeits-/Beschleunigungsprofil zu geben (siehe AddTimeOptimalParameterization).
+# Hintergrund: Das <limit velocity="0"/> in der URDF wurde upstream auf 0 gelassen
+# (für den echten Roboter nicht angegeben); ein Limit von 0 würde jede Bewegung
+# unmöglich machen, daher überschreiben wir es hier. Werte ungefähr aus dem
+# myCobot-280-Datenblatt. Einheiten: rad/s (Geschwindigkeit), rad/s^2 (Beschleunigung).
+joint_limits:
+  # joint2_to_joint1 bis joint6output_to_joint6: die sechs aktiven Armgelenke.
+  # Alle mit identischen konservativen Limits belegt (1.5 rad/s, 2.0 rad/s^2),
+  # um ruckfreie, sichere Bewegungen des kleinen myCobot 280 zu gewährleisten.
+  joint2_to_joint1:
+    has_velocity_limits: true
+    max_velocity: 1.5           # rad/s
+    has_acceleration_limits: true
+    max_acceleration: 2.0       # rad/s^2
+  joint3_to_joint2:
+    has_velocity_limits: true
+    max_velocity: 1.5
+    has_acceleration_limits: true
+    max_acceleration: 2.0
+  joint4_to_joint3:
+    has_velocity_limits: true
+    max_velocity: 1.5
+    has_acceleration_limits: true
+    max_acceleration: 2.0
+  joint5_to_joint4:
+    has_velocity_limits: true
+    max_velocity: 1.5
+    has_acceleration_limits: true
+    max_acceleration: 2.0
+  joint6_to_joint5:
+    has_velocity_limits: true
+    max_velocity: 1.5
+    has_acceleration_limits: true
+    max_acceleration: 2.0
+  joint6output_to_joint6:
+    has_velocity_limits: true
+    max_velocity: 1.5
+    has_acceleration_limits: true
+    max_acceleration: 2.0
+  # gripper_controller: das aktive Greifergelenk. Etwas langsamere Geschwindigkeit
+  # (1.0 rad/s), da das Öffnen/Schließen keine schnelle Bewegung erfordert.
+  gripper_controller:
+    has_velocity_limits: true
+    max_velocity: 1.0           # rad/s
+    has_acceleration_limits: true
+    max_acceleration: 2.0       # rad/s^2
