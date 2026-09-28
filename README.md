@@ -104,4 +104,4 @@ Sicherheitsregeln des Projekts (Abschnitt 6.4): Bewegungen nur über MoveIt 2 (k
 
 ## 8. Zugriff
 
-Das Repository ist wegen des Sperrvermerks der Arbeit **privat**; Prüfer erhalten Lesezugriff per GitHub-Einladung (Repository → Settings → Collaborators). Der vollständige Workspace mit Versionsgeschichte liegt zusätzlich unter `github.com/kakir001/ros2_ws` (privat).
+Das Repository ist **öffentlich** lesbar (kein Sperrvermerk). Der vollständige Workspace mit Versionsgeschichte liegt zusätzlich unter `github.com/kakir001/ros2_ws` (privat).
