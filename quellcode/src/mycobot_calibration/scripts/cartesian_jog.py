@@ -2,9 +2,24 @@
 """Kartesischer Jog GUI — myCobot 280 JN.
 
 Bewegt tcp im base frame in X/Y/Z-Schritten, während der Greifer SENKRECHT
-(top-down) fixiert bleibt. Jeder Schritt: Ziel = aktuelles_tcp + delta -> numerical IK (gripper_down)
+(top-down) fixiert bleibt. Jeder Schritt: Ziel = SOLL-tcp + delta -> numerical IK (gripper_down)
 -> FollowJointTrajectory /arm_controller. KEIN send_coords; nutzt MoveIt compute_ik.
 Für senkrechtes Berühren / präzise Positionierung.
+
+WARUM SOLL UND NICHT IST (Fehler gefunden 2026-09-08)
+-----------------------------------------------------
+Frueher rechnete jeder Schritt "Ziel = GEMESSENES tcp + delta". Unter Last gibt
+Achse 2 aber nach: der Arm steht ein Stueck TIEFER, als er soll. Damit wanderte
+dieser Fehler in das naechste Ziel — und beim naechsten Schritt kam der naechste
+dazu. Ergebnis: bei jedem Tastendruck sackte der Arm ein Stueck weiter Richtung
+Tisch, obwohl nur seitwaerts gefahren werden sollte. Je weiter der Arm
+ausgestreckt war (mehr Moment auf Achse 2), desto staerker.
+Jetzt fuehrt das Programm eine eigene SOLL-Position und rechnet die Schritte auf
+diese. Das Nachgeben bleibt damit ein GLEICHBLEIBENDER Versatz statt sich
+aufzuaddieren. Die Anzeige zeigt Soll, Ist und die Differenz — dieser Wert IST
+das Nachgeben unter Last und laesst sich so direkt ablesen.
+"SOLL = IST" uebernimmt die gemessene Lage wieder als Soll (z.B. nach dem
+Verfahren von Hand oder aus einem anderen Programm).
 
 Verwendung:
     python3 ~/ros2_ws/src/mycobot_calibration/scripts/cartesian_jog.py
@@ -77,6 +92,9 @@ class App:
         self.root = root
         self.node = node
         self.busy = False
+        # Kommandierte SOLL-Lage des TCP. Bleibt vom Nachgeben unter Last
+        # unberuehrt, damit sich der Fehler nicht ueber die Schritte aufsummiert.
+        self.soll = None
         root.title('myCobot Kartesischer Jog (SENKRECHT)')
 
         top = ttk.Frame(root, padding=8); top.pack(fill='x')
@@ -92,6 +110,9 @@ class App:
         cur = ttk.Frame(root, padding=8); cur.pack(fill='x')
         self.cur_lbl = ttk.Label(cur, text='TCP: --', font=('TkDefaultFont', 11, 'bold'))
         self.cur_lbl.pack(side='left')
+        self.abw_lbl = ttk.Label(cur, text='', font=('TkDefaultFont', 10))
+        self.abw_lbl.pack(side='left', padx=12)
+        ttk.Button(cur, text='SOLL = IST', command=self.sync_soll).pack(side='right')
 
         # Jog-Buttons: +X/-X vorwärts/rückwärts, +Y/-Y links/rechts, +Z/-Z hoch/runter
         grid = ttk.Frame(root, padding=8); grid.pack()
@@ -123,17 +144,42 @@ class App:
     def _refresh(self):
         p = self.node.tcp_xyz()
         if p:
-            self.cur_lbl.config(
-                text=f'TCP:  x={p[0]*1000:.0f}  y={p[1]*1000:.0f}  z={p[2]*1000:.0f} mm')
+            if self.soll is None:
+                self.cur_lbl.config(
+                    text=f'IST:  x={p[0]*1000:.0f}  y={p[1]*1000:.0f}  z={p[2]*1000:.0f} mm')
+                self.abw_lbl.config(text='(Soll wird beim ersten Schritt gesetzt)',
+                                    foreground='gray')
+            else:
+                d = [(p[i] - self.soll[i]) * 1000 for i in range(3)]
+                betrag = (d[0] ** 2 + d[1] ** 2 + d[2] ** 2) ** 0.5
+                self.cur_lbl.config(
+                    text=(f'SOLL x={self.soll[0]*1000:.0f} y={self.soll[1]*1000:.0f} '
+                          f'z={self.soll[2]*1000:.0f}   |   '
+                          f'IST x={p[0]*1000:.0f} y={p[1]*1000:.0f} z={p[2]*1000:.0f} mm'))
+                # dz negativ = der Arm haengt unter der Sollhoehe (Nachgeben an Achse 2)
+                self.abw_lbl.config(
+                    text=f'Nachgeben: dx {d[0]:+.1f}  dy {d[1]:+.1f}  dz {d[2]:+.1f} mm  ({betrag:.1f})',
+                    foreground=('red' if betrag > 8 else 'orange' if betrag > 3 else 'green'))
         self.root.after(200, self._refresh)
 
-    def jog(self, axis, sgn):
+    def sync_soll(self):
         p = self.node.tcp_xyz()
         if p is None:
             self.status.config(text='kein TF', foreground='red'); return
+        self.soll = list(p)
+        self.status.config(text='SOLL auf die gemessene Lage gesetzt', foreground='blue')
+
+    def jog(self, axis, sgn):
+        if self.soll is None:                     # erster Schritt: Soll von der Messung uebernehmen
+            p = self.node.tcp_xyz()
+            if p is None:
+                self.status.config(text='kein TF', foreground='red'); return
+            self.soll = list(p)
         step = max(0.5, float(self.step_var.get())) / 1000.0 * sgn
-        target = list(p); target[axis] += step
-        self._move(target, f'jog {"XYZ"[axis]}{"+" if sgn>0 else "-"}')
+        # AUF DIE SOLL-LAGE rechnen, nicht auf die gemessene — sonst summiert sich
+        # das Nachgeben unter Last ueber die Schritte auf.
+        self.soll[axis] += step
+        self._move(list(self.soll), f'jog {"XYZ"[axis]}{"+" if sgn>0 else "-"}')
 
     def goto_abs(self):
         try:
@@ -141,6 +187,7 @@ class App:
                       float(self.gz.get())/1000.0]
         except ValueError:
             self.status.config(text='ungueltige xyz', foreground='red'); return
+        self.soll = list(target)
         self._move(target, 'absolut anfahren')
 
     def _move(self, target, label):

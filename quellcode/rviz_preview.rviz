@@ -110,13 +110,13 @@ Visualization Manager:
     Velocity_Scaling_Factor: 0.1
   - Class: rviz_default_plugins/Marker
     Enabled: true
-    Name: Vida Hedef (preview)
+    Name: Welle Ziel (Vorschau)
     Topic:
       Depth: 5
       Durability Policy: Volatile
       History Policy: Keep Last
       Reliability Policy: Reliable
-      Value: /vida/preview_marker
+      Value: /welle/vorschau_marker
     Namespaces: {}
     Value: true
   Enabled: true

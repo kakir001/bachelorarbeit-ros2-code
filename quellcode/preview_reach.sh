@@ -2,15 +2,15 @@
 # =====================================================================
 #  preview_reach.sh — NUR BILD-Vorschau (RUEHRT DEN ROBOTER NICHT AN, KEIN IK).
 #
-#  Zweck: ohne das pick-Skript zu starten sehen, WOHIN man die Schraube legen soll.
+#  Zweck: ohne das pick-Skript zu starten sehen, WOHIN man die Welle legen soll.
 #  Kamera + statisches TF (vo_rsp) + detector + cam_viewer werden geöffnet; Roboter/move_group/
 #  serieller Port (/dev/ttyTHS1) werden GAR NICHT genutzt → der Arm bewegt sich nicht, nichts wird geplant.
 #
-#  Im Kamerafenster (linkes Panel /vida/overlay):
+#  Im Kamerafenster (linkes Panel /welle/overlay):
 #    GRUENER Kreis = sichere Senkrecht-Griff-Zone (r < 200mm) → IK löst im ersten Versuch.
 #    AMBER Kreis  = kinematisches Senkrecht-Limit (200-260mm) → erreichbar, aber langsam/angestrengt.
-#    Neben jeder Schraube r=XXX (mm) + Ringfarbe: grün/amber/rot.
-#  Lege die Schraube so, dass ihr Ring GRUEN ist → belastet das IK nicht.
+#    Neben jeder Welle r=XXX (mm) + Ringfarbe: grün/amber/rot.
+#  Lege die Welle so, dass ihr Ring GRUEN ist → belastet das IK nicht.
 #
 #  Verwendung:  cd ~/ros2_ws && ./preview_reach.sh      (Ctrl+C = beenden)
 # =====================================================================
@@ -51,7 +51,7 @@ cleanup() {
   kill_group "$TF_PID"   "vo_rsp(TF)"
   kill_group "$CAM_PID"  "kamera"
   pkill -f "cam_viewer.py" 2>/dev/null
-  pkill -f "vida_detector" 2>/dev/null
+  pkill -f "wellen_detektor" 2>/dev/null
   pkill -f "robot_state_publisher" 2>/dev/null
   pkill -f "realsense2_camera" 2>/dev/null
   sleep 1
@@ -87,8 +87,8 @@ setsid bash -c "exec ros2 launch '$WS/vo_rsp.launch.py'" >"$TF_LOG" 2>&1 &
 TF_PID=$!
 
 # ---- 3) Detector (YOLO + Reach-Kreis-Overlay) ----
-log "vida_detector wird gestartet → $DET_LOG"
-setsid bash -c "exec ros2 run vida_vision vida_detector --ros-args -p conf:=$CONF" >"$DET_LOG" 2>&1 &
+log "wellen_detektor wird gestartet → $DET_LOG"
+setsid bash -c "exec ros2 run wellenerkennung wellen_detektor --ros-args -p conf:=$CONF" >"$DET_LOG" 2>&1 &
 DET_PID=$!
 
 log "Auf Modell warten ('Modell bereit', max 120s)..."
@@ -106,11 +106,11 @@ if [ -n "${DISPLAY:-}" ]; then
   setsid bash -c "exec python3 '$WS/cam_viewer.py'" >"$CAMV_LOG" 2>&1 &
   CAMV_PID=$!
 else
-  warn "Kein DISPLAY — Fenster konnte nicht geoeffnet werden. Overlay-Topic: /vida/overlay"
+  warn "Kein DISPLAY — Fenster konnte nicht geoeffnet werden. Overlay-Topic: /welle/overlay"
 fi
 
 log "=============================================="
-log " VORSCHAU BEREIT. Die Schraube naeher zum Roboter bringen, bis ihr Ring GRUEN ist."
+log " VORSCHAU BEREIT. Die Welle naeher zum Roboter bringen, bis ihr Ring GRUEN ist."
 log " GRUEN = belastet IK nicht | AMBER = angestrengt | ROT = nicht erreichbar"
 log " Beenden: Ctrl+C"
 log "=============================================="

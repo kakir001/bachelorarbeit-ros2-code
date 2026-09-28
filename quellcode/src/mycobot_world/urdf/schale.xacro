@@ -1,0 +1,168 @@
+<?xml version="1.0"?>
+<!--
+  ================== BEREITSTELLUNGSSCHALE (Kollisionsmodell) ==================
+
+  Die Schale, aus der die Wellen entnommen werden. Sie ist KEIN Quader, sondern ein
+  KREISRINGAUSSCHNITT - das steht seit dem 2026-09-09 fest, weil drei am Bauteil
+  genommene Masse nur eine einzige Form zulassen:
+
+      innerer Bogen   130 mm  |  aeusserer Bogen  210 mm  |  radiale Breite 115 mm
+      => Bogenwinkel  39.9 Grad
+      => Innenradius 186.9 mm , Aussenradius 301.9 mm   (Probe: 301.9-186.9 = 115.0)
+  NACHTRAG 2026-09-12: an der OBERKANTE (Kamera, tools/schale_finden_kontur.py, 848x480,
+  5 Frames) ist der Sektor 45.3 Grad weit, die Radien stimmen (rms 4 mm). Die Lineal-
+  Boegen 130/210 gehoeren also zum Innenboden; oben sind es rund 148/239 mm. Der Winkel
+  steht in mycobot_world.urdf.xacro (schale_winkel) und ist dort auf 45.3 gesetzt.
+
+  Die beiden zuletzt fehlenden Masse hat der Benutzer am 2026-09-09 nachgereicht:
+      Wandhoehe (Innenboden bis Oberkante)  17 mm
+      Wandstaerke                            2 mm
+
+  WARUM ueberhaupt ins Modell: liegt eine Welle dicht am Schalenrand, ist der GRIFF
+  selbst loesbar, aber die Finger stossen an die Wand. Ohne die Schale im Modell sieht
+  MoveIt das nicht und meldet Erfolg. Mit ihr verwirft die Planung solche Stellungen
+  von selbst - genau der Wunsch aus der Greifstrategie ("Wellen am Rand nicht anbieten").
+
+  AUFBAU: alles sitzt in EINEM Link (`schale`) mit vielen <collision>-Kaesteren.
+  Absicht - ein Link heisst EINE Zeile in der Kollisionsmatrix des SRDF. Als
+  26 Einzel-Links waeren es ueber 300 Paare, die von Hand zu pflegen waeren.
+  Innerhalb eines Links prueft MoveIt nichts gegeneinander, was hier richtig ist:
+  die Kaesten beruehren und ueberlappen sich absichtlich.
+
+  DIE BOEGEN sind aus Sehnen-Kaesten aufgebaut (Vorgabe 6 je Bogen). Der Fehler ist
+  der Stichbogen R*(1-cos(dphi/2)): bei 6 Segmenten 0.51 mm aussen, 0.31 mm innen -
+  weit unter allem, was dieser Aufbau sonst an Genauigkeit hergibt (Modellfehler
+  3.28 mm, TCP-Versatz rund 25 mm). Die Sehnenlaenge wird am AEUSSEREN Rand des
+  jeweiligen Bandes gerechnet, damit die Kaesten sich ueberlappen und keine Luecke
+  entsteht.
+
+  FRAME `schale`:
+      Ursprung = MITTELPUNKT des Kreisrings (liegt also NEBEN der Schale, 187 mm
+                 vor ihrem inneren Bogen - das ist die Natur eines Ringausschnitts)
+      z = 0    = INNENBODEN, die Flaeche auf der die Wellen liegen
+      +X       = Winkelhalbierende des Sektors (45.3 Grad), zeigt zur Schalenmitte
+  Die Lage von robot_base aus steht in schale_pose.xacro (erzeugte Datei).
+
+  DER BODEN ist standardmaessig AUS (`schale_boden:=false`). Grund: er waere nur 2 mm
+  dick und liegt genau dort, wohin die Fingerspitzen beim Greifen muessen - eine
+  liegende Welle ist an der dicksten Stelle 13.5 mm, ihre Mitte also rund 7 mm ueber
+  dem Boden. Zusammen mit dem Griff-Versatz (GRASP_Z_OFFSET) wuerde ein Bodenkasten
+  gueltige Griffe verwerfen, ohne nennenswerten Schutz zu bringen: unter der Schale
+  liegt bereits platform_top im Modell. Wer ihn will, schaltet ihn ein.
+  ==============================================================================
+-->
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <!-- Halbtransparent, damit die Wellen und der Greifer darin sichtbar bleiben. -->
+  <material name="schale_farbe">
+    <color rgba="0.75 0.70 0.55 0.45"/>
+  </material>
+  <!-- Boden: deckend und kuehler als die Waende, damit er sich von der Grundplatte abhebt -->
+  <material name="schale_boden_farbe">
+    <color rgba="0.55 0.62 0.75 0.9"/>
+  </material>
+
+  <!--
+    Ein Bogenband (innere Wand, aeussere Wand oder Bodenstreifen), aus n Sehnen-Kaesten.
+      k        Zaehler der Rekursion (Aufruf mit 0)
+      n        Anzahl Segmente
+      r_mitte  mittlerer Radius des Bandes
+      r_dicke  radiale Dicke des Bandes
+      hoehe    Hoehe in z
+      z_mitte  z-Mitte des Kastens
+      phi0     Anfangswinkel des Sektors (rad, negativ)
+      dphi     Winkel je Segment (rad)
+  -->
+  <xacro:macro name="schale_bogenband"
+               params="k n r_mitte r_dicke hoehe z_mitte phi0 dphi nur_visual:=false material:=schale_farbe">
+    <xacro:if value="${k &lt; n}">
+      <xacro:property name="phi"   value="${phi0 + (k + 0.5) * dphi}"/>
+      <xacro:property name="sehne" value="${2.0 * (r_mitte + r_dicke / 2.0) * sin(dphi / 2.0)}"/>
+      <xacro:property name="px"    value="${r_mitte * cos(phi)}"/>
+      <xacro:property name="py"    value="${r_mitte * sin(phi)}"/>
+
+      <xacro:unless value="${nur_visual}">
+        <collision>
+          <origin xyz="${px} ${py} ${z_mitte}" rpy="0 0 ${phi}"/>
+          <geometry><box size="${r_dicke} ${sehne} ${hoehe}"/></geometry>
+        </collision>
+      </xacro:unless>
+      <visual>
+        <origin xyz="${px} ${py} ${z_mitte}" rpy="0 0 ${phi}"/>
+        <geometry><box size="${r_dicke} ${sehne} ${hoehe}"/></geometry>
+        <material name="${material}"/>
+      </visual>
+
+      <xacro:schale_bogenband k="${k + 1}" n="${n}" r_mitte="${r_mitte}"
+                              r_dicke="${r_dicke}" hoehe="${hoehe}" z_mitte="${z_mitte}"
+                              phi0="${phi0}" dphi="${dphi}" nur_visual="${nur_visual}" material="${material}"/>
+    </xacro:if>
+  </xacro:macro>
+
+  <!--
+    Eine der beiden radialen Seitenwaende. Sie steht mittig auf dem Strahl phi,
+    ragt also je 1 mm ueber den Sektor hinaus und 1 mm hinein - bei 2 mm Wand ist
+    das die ehrlichste einfache Loesung.
+  -->
+  <xacro:macro name="schale_seitenwand" params="phi r_innen r_aussen wand hoehe z_mitte">
+    <xacro:property name="rm" value="${(r_innen + r_aussen) / 2.0}"/>
+    <collision>
+      <origin xyz="${rm * cos(phi)} ${rm * sin(phi)} ${z_mitte}" rpy="0 0 ${phi}"/>
+      <geometry><box size="${r_aussen - r_innen} ${wand} ${hoehe}"/></geometry>
+    </collision>
+    <visual>
+      <origin xyz="${rm * cos(phi)} ${rm * sin(phi)} ${z_mitte}" rpy="0 0 ${phi}"/>
+      <geometry><box size="${r_aussen - r_innen} ${wand} ${hoehe}"/></geometry>
+      <material name="schale_farbe"/>
+    </visual>
+  </xacro:macro>
+
+  <!--
+    Die ganze Schale. Wird INNERHALB von <link name="schale"> aufgerufen.
+      r_innen/r_aussen  Innen- und Aussenflaeche (nicht Mittelradien)
+      winkel            Oeffnungswinkel des Sektors (rad)
+      wand              Wandstaerke
+      hoehe             Wandhoehe ab Innenboden
+      segmente          Sehnen-Kaesten je Bogen
+      mit_boden         Bodenplatte mitzeichnen?
+      boden             Bodenstaerke
+  -->
+  <xacro:macro name="schale_ringausschnitt"
+               params="r_innen r_aussen winkel wand hoehe segmente mit_boden boden">
+    <xacro:property name="phi0" value="${-winkel / 2.0}"/>
+    <xacro:property name="dphi" value="${winkel / segmente}"/>
+
+    <!-- innere Wand: r_innen .. r_innen+wand -->
+    <xacro:schale_bogenband k="0" n="${segmente}" r_mitte="${r_innen + wand / 2.0}"
+                            r_dicke="${wand}" hoehe="${hoehe}" z_mitte="${hoehe / 2.0}"
+                            phi0="${phi0}" dphi="${dphi}"/>
+
+    <!-- aeussere Wand: r_aussen-wand .. r_aussen -->
+    <xacro:schale_bogenband k="0" n="${segmente}" r_mitte="${r_aussen - wand / 2.0}"
+                            r_dicke="${wand}" hoehe="${hoehe}" z_mitte="${hoehe / 2.0}"
+                            phi0="${phi0}" dphi="${dphi}"/>
+
+    <!-- beide radialen Seitenwaende -->
+    <xacro:schale_seitenwand phi="${phi0}" r_innen="${r_innen}" r_aussen="${r_aussen}"
+                             wand="${wand}" hoehe="${hoehe}" z_mitte="${hoehe / 2.0}"/>
+    <xacro:schale_seitenwand phi="${-phi0}" r_innen="${r_innen}" r_aussen="${r_aussen}"
+                             wand="${wand}" hoehe="${hoehe}" z_mitte="${hoehe / 2.0}"/>
+
+    <!-- Boden: als KOLLISION standardmaessig aus (Begruendung im Kopf der Datei) ... -->
+    <xacro:if value="${mit_boden}">
+      <xacro:schale_bogenband k="0" n="${segmente}" r_mitte="${(r_innen + r_aussen) / 2.0}"
+                              r_dicke="${r_aussen - r_innen}" hoehe="${boden}"
+                              z_mitte="${-boden / 2.0}" phi0="${phi0}" dphi="${dphi}"/>
+    </xacro:if>
+    <!-- ... aber IMMER als VISUAL (Benutzer 2026-09-12): in RViz soll der Schalenboden zu sehen
+         sein und sich von der Kaiser-Grundplatte darunter abheben - eigene Farbe, 12 Segmente
+         (feiner als die Waende, damit der Sektor rund wirkt). Nur Visual, keine Kollision. -->
+    <xacro:unless value="${mit_boden}">
+      <xacro:schale_bogenband k="0" n="${segmente * 2}" r_mitte="${(r_innen + r_aussen) / 2.0}"
+                              r_dicke="${r_aussen - r_innen}" hoehe="${boden}"
+                              z_mitte="${-boden / 2.0}" phi0="${phi0}" dphi="${dphi / 2.0}"
+                              nur_visual="true" material="schale_boden_farbe"/>
+    </xacro:unless>
+  </xacro:macro>
+
+</robot>

@@ -1,0 +1,103 @@
+{
+ "_hinweis": "Angelernte Farbreferenzen (OpenCV-HSV-Median) fuer welle_farbe.py. Koerper: je Farbe eine; streifen[koerper][farbe] = Median der Ringpunkte auf dieser Koerperfarbe. Anlernen: welle_farbe.py --lernen <farbe> [--streifen].",
+ "streifen": {
+  "gelb": {
+   "gruen": {
+    "hsv": [
+     31.6,
+     158.0,
+     158.0
+    ],
+    "quelle": "frame2.npz Welle 3"
+   }
+  },
+  "rot": {
+   "gelb": {
+    "hsv": [
+     12.1,
+     154.0,
+     180.5
+    ],
+    "quelle": "frame2.npz Welle 1"
+   },
+   "weiss": {
+    "hsv": [
+     174.9,
+     52.0,
+     213.0
+    ],
+    "quelle": "frame4.npz Welle 12"
+   },
+   "gruen": {
+    "hsv": [
+     9.0,
+     152.0,
+     132.0
+    ],
+    "quelle": "frame7 Welle 9 (Benutzer: rot/gruen), Bins 10-16 mm; gruen auf rot sieht die Kamera als dunkles Orange (H~9), gelb auf rot heller (V 180)"
+   }
+  },
+  "schwarz": {
+   "weiss": {
+    "hsv": [
+     102.2,
+     10.0,
+     221.0
+    ],
+    "quelle": "frame4.npz Welle 6"
+   },
+   "rot": {
+    "hsv": [
+     179.3,
+     171.0,
+     108.0
+    ],
+    "quelle": "frame4.npz Welle 4"
+   },
+   "gruen": {
+    "hsv": [
+     41.9,
+     91.0,
+     114.0
+    ],
+    "quelle": "frame6.npz Welle 4"
+   }
+  },
+  "weiss": {
+   "rot": {
+    "hsv": [
+     175.7,
+     123.0,
+     153.0
+    ],
+    "quelle": "frame4.npz Welle 2"
+   },
+   "gelb": {
+    "hsv": [
+     26.1,
+     79.0,
+     209.0
+    ],
+    "quelle": "frame4.npz Welle 5"
+   },
+   "schwarz": {
+    "hsv": [
+     137.6,
+     33.0,
+     65.0
+    ],
+    "quelle": "frame4.npz Welle 7"
+   }
+  },
+  "gruen": {
+   "weiss": {
+    "hsv": [
+     48.8,
+     32.0,
+     222.0
+    ],
+    "quelle": "frame6.npz Welle 8"
+   }
+  }
+ }
+}

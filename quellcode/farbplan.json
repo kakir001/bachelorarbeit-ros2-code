@@ -1,0 +1,26 @@
+{
+  "_hinweis": "Ablageplatte 5 Zeilen x 4 Spalten (nest_JI). Zeile = Koerperfarbe der Welle, Spalte = Farbe der zwei Streifen. Benutzer 2026-09-12. Es gibt KEINE Welle gruen/gruen. Streifenfarbe unbekannt -> irgendein freies Nest der Koerperfarben-Zeile, mit WARNUNG; Belegung vorher pruefen, sonst fragen.",
+  "zeilen": {"1": "schwarz", "2": "gelb", "3": "weiss", "4": "gruen", "5": "rot"},
+  "nester": {
+    "nest_11": {"koerper": "schwarz", "streifen": "rot"},
+    "nest_12": {"koerper": "schwarz", "streifen": "gruen"},
+    "nest_13": {"koerper": "schwarz", "streifen": "weiss"},
+    "nest_14": {"koerper": "schwarz", "streifen": "gelb"},
+    "nest_21": {"koerper": "gelb", "streifen": "schwarz"},
+    "nest_22": {"koerper": "gelb", "streifen": "rot"},
+    "nest_23": {"koerper": "gelb", "streifen": "gruen"},
+    "nest_24": {"koerper": "gelb", "streifen": "weiss"},
+    "nest_31": {"koerper": "weiss", "streifen": "gelb"},
+    "nest_32": {"koerper": "weiss", "streifen": "schwarz"},
+    "nest_33": {"koerper": "weiss", "streifen": "rot"},
+    "nest_34": {"koerper": "weiss", "streifen": "gruen"},
+    "nest_41": {"koerper": "gruen", "streifen": "weiss"},
+    "nest_42": {"koerper": "gruen", "streifen": "gelb"},
+    "nest_43": {"koerper": "gruen", "streifen": "schwarz"},
+    "nest_44": {"koerper": "gruen", "streifen": "rot"},
+    "nest_51": {"koerper": "rot", "streifen": "gruen"},
+    "nest_52": {"koerper": "rot", "streifen": "weiss"},
+    "nest_53": {"koerper": "rot", "streifen": "gelb"},
+    "nest_54": {"koerper": "rot", "streifen": "schwarz"}
+  }
+}

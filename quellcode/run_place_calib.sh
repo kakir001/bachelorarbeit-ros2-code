@@ -1,11 +1,11 @@
 #!/bin/bash
 # =====================================================================
-#  run_place_calib.sh — PLACE (Schraube senkrecht einsetzen) XY-Offset-KALIBRIERUNG.
+#  run_place_calib.sh — PLACE (Welle senkrecht einsetzen) XY-Offset-KALIBRIERUNG.
 #
-#  Zweck (Sitzung 35→36): click_place_moveit.py läuft live, aber die Schraube
+#  Zweck (Sitzung 35→36): click_place_moveit.py läuft live, aber die Welle
 #  fällt "hinter" das Loch (TCP ~2.5cm + Seitengriff-Geometrie → XY-Offset).
 #  Dieses Skript baut den Kalibrier-Stack auf; der Benutzer richtet im Werkzeug per nudge (8/2/4/6,+/-)
-#  die Schraube über das Loch aus, der funktionierende Offset wird gefunden → als PERMANENTER
+#  die Welle über das Loch aus, der funktionierende Offset wird gefunden → als PERMANENTER
 #  Standard (DEFAULT_OFF) ins Werkzeug eingebettet.
 #
 #  ARCHITEKTUR (DEVLOG Sitzung 35): Stack FAKE hardware → ros2_control RUEHRT DEN PORT NICHT AN;
@@ -101,7 +101,14 @@ try:
         time.sleep(1.0)
         if mc.is_moving() == 0: break
     try:
-        mc.set_gripper_value(100, 50, 1)   # beim Park Finger OFFEN (gehaltene Schraube loslassen)
+        # Beim Park erst OEFFNEN (eine gehaltene Welle muss fallen koennen), dann
+        # wieder SCHLIESSEN. Grund fuer das Schliessen (Benutzer, 2026-09-09): in der
+        # Nullstellung haengt der Greifer direkt unter der Kamera; offene Finger
+        # verdecken die Arbeitsflaeche und werden vom Detektor sogar selbst als Welle
+        # erkannt. 100 = offen, 0 = zu, die 1 waehlt den adaptiven Greifer.
+        mc.set_gripper_value(100, 50, 1)
+        time.sleep(1.5)
+        mc.set_gripper_value(0, 50, 1)
         time.sleep(1.0)
     except Exception as ge: print("Greifer-Oeffnen Warnung:", ge)
     a = mc.get_radians()
@@ -219,12 +226,12 @@ done
 
 log "=============================================="
 log " KALIBRIER-SCHLEIFE — Werkzeug wird FOREGROUND geoeffnet."
-log " 1) Auf das Fixture-Loch (wo die Schraube eingesetzt wird) klicken."
-log " 2) Mit O Greifer auf → Schraube horizontal laden → mit C greifen."
-log " 3) P = planen (in RViz kollisionsfreier Weg + Schraube SENKRECHT Vorschau)."
-log " 4) E = ausfuehren → in der Kamera die Lage der Schraube zum Loch ansehen."
+log " 1) Auf das Fixture-Loch (wo die Welle eingesetzt wird) klicken."
+log " 2) Mit O Greifer auf → Welle horizontal laden → mit C greifen."
+log " 3) P = planen (in RViz kollisionsfreier Weg + Welle SENKRECHT Vorschau)."
+log " 4) E = ausfuehren → in der Kamera die Lage der Welle zum Loch ansehen."
 log " 5) Mit 8/2/4/6 (xy 1cm), +/- (z 1cm) NUDGE → jeder nudge plant neu."
-log "    Wiederholen, bis die Schraube genau ueber dem Loch ist, den FUNKTIONIERENDEN Offset NOTIEREN."
+log "    Wiederholen, bis die Welle genau ueber dem Loch ist, den FUNKTIONIERENDEN Offset NOTIEREN."
 log "    (im Terminal-Log erscheint die Zeile 'offset x=.. y=.. z=..cm')"
 log " 6) Q = beenden. Den funktionierenden Offset mir sagen → ich bette ihn PERMANENT ins Werkzeug ein."
 log " Ctrl+C / Q = alles beenden + Roboter zu 0 parken."

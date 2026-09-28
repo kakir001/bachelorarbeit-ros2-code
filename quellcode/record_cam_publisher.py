@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 # record_cam_publisher.py — die USB-2.0-Kamera neben der Plattform (/dev/video3)
 # auf ein ROS-Image-Topic veröffentlichen. Zweck: Aufnahme + Beobachtung in RViz,
-# während der Roboter die Schraube hält.
+# während der Roboter die Welle hält.
 #
 # Kamera 90° seitlich montiert → Korrektur per ROTATE env (cw/ccw/180/none).
-# Ohne cv_bridge (wie das vida_detector-Muster), in Galactic wenig Abhängigkeiten.
+# Ohne cv_bridge (wie das wellen_detektor-Muster), in Galactic wenig Abhängigkeiten.
 #
 # Verwendung (separates Terminal):
 #   source /opt/ros/galactic/setup.bash && source ~/ros2_ws/install/setup.bash

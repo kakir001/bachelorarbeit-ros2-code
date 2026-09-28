@@ -2,8 +2,8 @@
 # =====================================================================
 #  teach_boxes.py — die 5 Box-Koordinaten für das SORTIEREN nach Farbe anlernen (teach).
 #
-#  Zweck: nachdem pick_tilt die Schraube gegriffen hat und nach Home zurückgekehrt
-#  ist, fährt es UEBER die zur FARBE der Schraube gehörende Box und lässt sie aus
+#  Zweck: nachdem pick_tilt die Welle gegriffen hat und nach Home zurückgekehrt
+#  ist, fährt es UEBER die zur FARBE der Welle gehörende Box und lässt sie aus
 #  der Luft fallen (SCHRITT 8). Dafür wird das (x,y,z)-Zentrum der Box jeder Farbe
 #  in robot_base benötigt. Dieses Skript lernt sie an.
 #
@@ -15,8 +15,8 @@
 #  ZWEI MODI:
 #    (interaktiv)  python3 teach_boxes.py
 #        Fragt für jede Farbe der Reihe nach per ENTER (vom Terminal).
-#    (einmalig) python3 teach_boxes.py --once kirmizi
-#        Speichert NUR die aktuelle TCP-Pose von 'kirmizi', behält die anderen.
+#    (einmalig) python3 teach_boxes.py --once rot
+#        Speichert NUR die aktuelle TCP-Pose von 'rot', behält die anderen.
 #        (Damit Claude es aufruft, wenn du "speichern" sagst — du musst nicht ins Terminal tippen.)
 #
 #  VORBEDINGUNG: der Stack (move_group + controllers + TF) muss LAUFEN, damit
@@ -28,7 +28,7 @@
 #
 #  Verwendung:
 #    python3 teach_boxes.py                 # interaktiv, 5 Farben
-#    python3 teach_boxes.py --once yesil    # nur yesil speichern
+#    python3 teach_boxes.py --once gruen    # nur gruen speichern
 #    python3 teach_boxes.py --list          # vorhandene Einträge zeigen
 # =====================================================================
 import argparse
@@ -40,7 +40,7 @@ from rclpy.node import Node
 import tf2_ros
 
 # EXAKT dieselbe Reihenfolge wie detection.py (model.names): class_id 0..4
-CLASS_NAMES = ["sari", "beyaz", "siyah", "yesil", "kirmizi"]
+CLASS_NAMES = ["gelb", "weiss", "schwarz", "gruen", "rot"]
 ROBOT_BASE = "robot_base"
 TCP = "tcp"
 

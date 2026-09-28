@@ -1,12 +1,12 @@
-// myCobot 280 JN — Schrauben-/Ziel-ANNAEHERUNG (nur pre-grasp, KEIN descend/greifen).
+// myCobot 280 JN — Wellen-/Ziel-ANNAEHERUNG (nur pre-grasp, KEIN descend/greifen).
 //
 // Benutzerwunsch (2026-06-07):
 //   1) Roboter startet IMMER vom Punkt 0 (SRDF "home" = alle Gelenke 0).
-//   2) Genau über die vom YOLO-Detector gewählte Schraube/Ziel, Greifer 90° SENKRECHT
+//   2) Genau über die vom YOLO-Detector gewählte Welle/Ziel, Greifer 90° SENKRECHT
 //      (top-down), 10 cm über dem Ziel anhalten und den Greifer OEFFNEN.
 //   Hier wird angehalten — KEIN Abstieg / Schließen / Place. (pick_place_cartesian macht das.)
 //
-// RViz: Ziel wird mit /approach/target_marker (grüne Kugel) + dem /vida/target_marker
+// RViz: Ziel wird mit /approach/target_marker (grüne Kugel) + dem /welle/ziel_marker
 //   des Detectors angezeigt; die Planungs-Vorschau ist über /display_planned_path sichtbar.
 //
 // Frame: robot_base (planning), tcp (end-effector). Greifer direkt über Controller.
@@ -41,7 +41,7 @@ namespace
 constexpr double EEF_STEP        = 0.005;
 constexpr double VEL_SCALE       = 0.20;   // Sicherheit: 20% Geschwindigkeit
 constexpr double ACC_SCALE       = 0.20;
-constexpr double TARGET_WAIT_SEC = 30.0;   // Warten auf /vida/target
+constexpr double TARGET_WAIT_SEC = 30.0;   // Warten auf /welle/ziel
 }
 
 // Greifer schaut nach unten: tcp +Y -> Welt -Z. yaw = Azimut, tilt = Abweichung von der Senkrechten.
@@ -55,7 +55,7 @@ static geometry_msgs::msg::Quaternion gripperOrientation(double yaw, double tilt
 }
 
 // Versucht die Pre-grasp Pose mit einem yaw-Raster (tilt=0, direkt nach unten); wendet den ersten planbaren+
-// ausführbaren an. Wenn die Schraube armnah/fern ist, ist die reine senkrechte Einzel-Pose in der IK evtl. nicht lösbar;
+// ausführbaren an. Wenn die Welle armnah/fern ist, ist die reine senkrechte Einzel-Pose in der IK evtl. nicht lösbar;
 // durch yaw-Drehen suchen wir eine erreichbare Konfiguration (KEIN descend — Ausrichtung wird nicht weitergegeben).
 static bool approachTopDown(
     MoveGroupInterface& arm, const Pose& pre_pos,
@@ -156,13 +156,13 @@ int main(int argc, char** argv)
   auto marker_pub = node->create_publisher<Marker>("/approach/target_marker",
                                                    rclcpp::QoS(1).transient_local());
 
-  // --- Zielposition vom Detector holen (/vida/target, robot_base Frame) ---
-  geometry_msgs::msg::Point screw;
+  // --- Zielposition vom Detector holen (/welle/ziel, robot_base Frame) ---
+  geometry_msgs::msg::Point welle;
   std::atomic<bool> have_target{false};
   auto target_sub = node->create_subscription<PoseStamped>(
-      "/vida/target", rclcpp::QoS(1),
+      "/welle/ziel", rclcpp::QoS(1),
       [&](PoseStamped::SharedPtr m) {
-        screw = m->pose.position; have_target = true;  // immer das AKTUELLSTE Ziel
+        welle = m->pose.position; have_target = true;  // immer das AKTUELLSTE Ziel
       });
 
   MoveGroupInterface arm(node, "arm");
@@ -184,7 +184,7 @@ int main(int argc, char** argv)
   }
 
   // --- Auf erstes Ziel warten ---
-  RCLCPP_INFO(log, "warte auf /vida/target (Detector muss laufen)...");
+  RCLCPP_INFO(log, "warte auf /welle/ziel (Detector muss laufen)...");
   {
     auto t0 = node->now();
     while (rclcpp::ok() && !have_target &&
@@ -193,17 +193,17 @@ int main(int argc, char** argv)
     }
   }
   if (!have_target) {
-    RCLCPP_ERROR(log, "innerhalb von %.0f s kein /vida/target gekommen — laeuft Detector/Kamera?",
+    RCLCPP_ERROR(log, "innerhalb von %.0f s kein /welle/ziel gekommen — laeuft Detector/Kamera?",
                  TARGET_WAIT_SEC);
     rclcpp::shutdown(); spinner.join(); return 1;
   }
 
-  // --- SCHRITT 2: erneut versuchen BIS ERREICHT (wenn Schraube fern ist, nähert der Benutzer sie an) ---
+  // --- SCHRITT 2: erneut versuchen BIS ERREICHT (wenn Welle fern ist, nähert der Benutzer sie an) ---
   // Bei jedem Versuch wird das AKTUELLSTE Ziel gelesen; wenn unerreichbar, wartet der Roboter bei home und fährt
-  // automatisch, sobald die Schraube in die grüne Zone gebracht wird. Bei Erfolg öffnet er den Greifer und wartet dort.
+  // automatisch, sobald die Welle in die grüne Zone gebracht wird. Bei Erfolg öffnet er den Greifer und wartet dort.
   bool reached = false;
   while (rclcpp::ok() && !reached) {
-    geometry_msgs::msg::Point t = screw;          // aktuellstes Ziel
+    geometry_msgs::msg::Point t = welle;          // aktuellstes Ziel
     marker_pub->publish(makeTargetMarker(t));     // Ziel in Kamera/RViz anzeigen
     const double r = std::sqrt(t.x * t.x + t.y * t.y) * 1000.0;
     RCLCPP_INFO(log, "Ziel: x=%.3f y=%.3f z=%.3f  (r=%.0fmm)", t.x, t.y, t.z, r);
@@ -223,7 +223,7 @@ int main(int argc, char** argv)
       reached = true;
       break;
     }
-    RCLCPP_WARN(log, "⚠ Ziel UNERREICHBAR (r=%.0fmm; ~265mm Senkrecht-Limit). Schraube NAEHER an den Roboter "
+    RCLCPP_WARN(log, "⚠ Ziel UNERREICHBAR (r=%.0fmm; ~265mm Senkrecht-Limit). Welle NAEHER an den Roboter "
                 "legen (in den GRUENEN Kreis in der Kamera, r<220mm). In 5s erneut...", r);
     for (int k = 0; k < 50 && rclcpp::ok(); ++k)  // 5 s warten, Marker am Leben halten
       std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -232,7 +232,7 @@ int main(int argc, char** argv)
   // Nach Erfolg den Marker am Leben halten + den Node am Laufen halten. Beenden mit Ctrl+C.
   rclcpp::Rate rate(2.0);
   while (rclcpp::ok()) {
-    marker_pub->publish(makeTargetMarker(screw));
+    marker_pub->publish(makeTargetMarker(welle));
     rate.sleep();
   }
 

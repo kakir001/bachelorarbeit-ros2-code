@@ -19,6 +19,55 @@ from launch_ros.parameter_descriptions import ParameterValue
 from launch_ros.substitutions import FindPackageShare
 
 
+def _schale_montiert() -> str:
+    """Bereitstellungsschale im Modell? Quelle ist die Umgebung (SCHALE_MONTIERT).
+
+    Die Schale ist ein Kreisringausschnitt (39.9 Grad, R 186.9..301.9 mm, Wand 2 mm,
+    Wandhoehe 17 mm). Sie steht als Kollisionskoerper im Modell, damit MoveIt Griffe
+    dicht am Schalenrand von selbst verwirft, statt Erfolg zu melden und die Finger
+    an die Wand zu fahren.
+
+    Default "false" = xacro-Default. Solange die LAGE der Schale nicht gemessen ist
+    (tools/schale_pose_klicken.py schreibt sie nach urdf/schale_pose.xacro), waere sie
+    ein Kollisionskasten an der falschen Stelle - und der ist schlimmer als gar keiner,
+    weil MoveIt dann gueltige Griffe stillschweigend verwirft. Akzeptiert 0/1/false/true.
+    """
+    v = os.environ.get("SCHALE_MONTIERT", "false").strip().lower()
+    return "true" if v in ("1", "true", "yes", "ja", "on") else "false"
+
+
+def _trichter_montiert() -> str:
+    """Trichter im Modell? Quelle ist die Umgebung (TRICHTER_MONTIERT).
+
+    Schraeger Hohlkegel mit Auslaufrohr und Fussplatte (mycobot_world/urdf/trichter.xacro).
+    Am 2026-09-10 hat sich der Greifer am Trichter verbogen, weil er im Modell fehlte;
+    mit ihm verwirft MoveIt Stellungen, die in den Kegel fahren.
+
+    Default "false" = xacro-Default, solange die Neigungsrichtung (yaw in
+    urdf/trichter_pose.xacro) nicht gemessen ist - ein Kegel, der nach der falschen Seite
+    kippt, ist schlimmer als keiner. Akzeptiert 0/1/false/true wie SCHALE_MONTIERT.
+    """
+    v = os.environ.get("TRICHTER_MONTIERT", "false").strip().lower()
+    return "true" if v in ("1", "true", "yes", "ja", "on") else "false"
+
+
+def _charuco_montiert() -> str:
+    """ChArUco-Platte im Modell? Quelle ist die Umgebung (CHARUCO_MONTIERT).
+
+    Die Platte sitzt nur waehrend der Hand-Auge-Kalibrierung am Greifer. Ist sie
+    abgeschraubt, muss sie auch aus dem Modell verschwinden - sonst plant MoveIt um
+    einen Kollisionskasten herum, den es gar nicht mehr gibt. Genau das ist am
+    2026-09-09 passiert: pick_tilt bekam die Platte weiterhin ins Modell, und JEDE
+    Hover-Stellung wurde verworfen ("Unable to sample any valid states for goal
+    tree") - gemeldet wurde aber "Ziel unerreichbar", was in die Irre fuehrt.
+    Deshalb MUSS jede Stelle, die ein robot_description baut, diese Funktion nutzen.
+
+    Default "true" = xacro-Default (Kalibrieraufbau). Akzeptiert 0/1/false/true.
+    """
+    v = os.environ.get("CHARUCO_MONTIERT", "true").strip().lower()
+    return "false" if v in ("0", "false", "no", "nein", "off") else "true"
+
+
 def generate_launch_description():
     pkg_world = FindPackageShare('mycobot_world')
 
@@ -28,7 +77,10 @@ def generate_launch_description():
     # robot_description: expandiertes URDF als geteilter String-Parameter (rsp + jsp_gui).
     robot_description = {
         'robot_description': ParameterValue(
-            Command(['xacro ', xacro_path]),
+            Command(['xacro ', xacro_path,
+                     ' charuco_montiert:=', _charuco_montiert(),
+                     ' schale_montiert:=', _schale_montiert(),
+                     ' trichter_montiert:=', _trichter_montiert()]),
             value_type=str,
         ),
     }

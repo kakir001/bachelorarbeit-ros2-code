@@ -171,7 +171,7 @@
   <!-- joint1×joint3: WIEDER HINZUGEFUEGT (2026-06-15). Zuerst wegen Basis-Kollision gelöscht, aber
        check_state_validity zeigte, dass der joint1-Kollisions-ZYLINDER (r=4.5cm, 15.6cm lang)
        sich mit dem forearm(joint3) in FAST JEDER Vorwärts-Reichweiten-Pose schneidet → der Roboter
-       konnte keine Schraube erreichen. "Never" war korrekt (Geometrie überlappt, aber keine physische
+       konnte keine Welle erreichen. "Never" war korrekt (Geometrie überlappt, aber keine physische
        Kollision). Echte Basis-Gehäuse-Kollision wird nun durch die zu robot_base hinzugefügte ECHT-MASS-Box
        (15×11×11cm) erfasst (robot_base×joint3 löst nur bei hartem Falten aus). -->
   <disable_collisions link1="joint1" link2="joint3" reason="Never"/>
@@ -182,7 +182,7 @@
   <!-- =========================================================
        Dauerhafte Infrastruktur: Plattform + Kaiser RS 2 XA Stand (in URDF definiert).
        - platform_top: Baseboard, Roboter-Basis immer darauf
-       - tutucu_kelepce: an die Plattform geschraubte Halte-Klemme des Stands
+       - halteklemme: an die Plattform geschraubte Halte-Klemme des Stands
        - column: vertikale Aluminium-Säule
        - camera_arm: horizontaler Arm, der von column zur Kamera reicht
        Zwischen direkt miteinander verbundenen Teilen ist ein Kollisions-Check sinnlos —
@@ -190,9 +190,9 @@
        ========================================================= -->
   <disable_collisions link1="platform_top"  link2="robot_base"    reason="Adjacent"/>
   <disable_collisions link1="platform_top"  link2="joint1"        reason="Adjacent"/>
-  <disable_collisions link1="platform_top"  link2="tutucu_kelepce"  reason="Adjacent"/>
-  <disable_collisions link1="tutucu_kelepce"  link2="column"        reason="Adjacent"/>
-  <disable_collisions link1="tutucu_kelepce"  link2="robot_base"    reason="Never"/>
+  <disable_collisions link1="platform_top"  link2="halteklemme"  reason="Adjacent"/>
+  <disable_collisions link1="halteklemme"  link2="column"        reason="Adjacent"/>
+  <disable_collisions link1="halteklemme"  link2="robot_base"    reason="Never"/>
   <disable_collisions link1="column"        link2="camera_arm"    reason="Adjacent"/>
   <disable_collisions link1="column"        link2="robot_base"    reason="Never"/>
 
@@ -202,7 +202,7 @@
   <disable_collisions link1="camera_arm"    link2="camera_link"   reason="Adjacent"/>
   <disable_collisions link1="camera_arm"    link2="robot_base"    reason="Never"/>
 
-  <!-- Stand-Teile (platform_top Baseboard, tutucu_kelepce, camera_arm) ↔ Arm/Greifer.
+  <!-- Stand-Teile (platform_top Baseboard, halteklemme, camera_arm) ↔ Arm/Greifer.
        Gleicher Grund wie bei column: das ist statische Stand-Geometrie; da der Greifer volle .dä-Mesh-
        Kollision nutzt, liefert FCL-Bounding beim Nach-unten/Nach-innen-Reichen des Arms False-Positive
        (Links rot). Alle von beweglichen Links trennen. HINWEIS: die physische Anstoß-Prüfung des
@@ -221,4 +221,207 @@
   <disable_collisions link1="platform_top" link2="gripper_right2" reason="Never"/>
   <disable_collisions link1="platform_top" link2="gripper_right3" reason="Never"/>
 
+
+  <!-- ==========================================================
+       Neue, laengere Greiferfinger (2026-09-09, in mycobot_world.urdf.xacro
+       modelliert). Sie sitzen starr an gripper_left1 bzw. gripper_right1 und
+       haben damit dieselben Nachbarn wie diese - die Ausnahmen sind von dort
+       uebernommen. Ohne sie meldet MoveIt Beruehrungen, die es gar nicht gibt.
+       Die Spitzen bleiben ausdruecklich gegen Umgebung und Werkstueck geprueft;
+       genau dafuer wurden sie modelliert.
+       ========================================================== -->
+  <disable_collisions link1="joint6"  link2="finger_links"  reason="Never"/>
+  <disable_collisions link1="joint6"  link2="finger_rechts"  reason="Never"/>
+  <disable_collisions link1="joint6_flange"  link2="finger_links"  reason="Never"/>
+  <disable_collisions link1="joint6_flange"  link2="finger_rechts"  reason="Never"/>
+  <disable_collisions link1="gripper_base"  link2="finger_links"  reason="Adjacent"/>
+  <disable_collisions link1="gripper_base"  link2="finger_rechts"  reason="Adjacent"/>
+  <disable_collisions link1="gripper_left3"  link2="finger_links"  reason="Adjacent"/>
+  <disable_collisions link1="gripper_right3"  link2="finger_rechts"  reason="Adjacent"/>
+  <disable_collisions link1="finger_links"  link2="gripper_left2"  reason="Never"/>
+  <disable_collisions link1="finger_rechts"  link2="gripper_right2"  reason="Never"/>
+  <disable_collisions link1="finger_links"  link2="gripper_right1"  reason="Never"/>
+  <disable_collisions link1="gripper_left1"  link2="finger_rechts"  reason="Never"/>
+  <disable_collisions link1="finger_links"  link2="gripper_right2"  reason="Never"/>
+  <disable_collisions link1="gripper_left2"  link2="finger_rechts"  reason="Never"/>
+  <disable_collisions link1="finger_links"  link2="gripper_right3"  reason="Never"/>
+  <disable_collisions link1="gripper_left3"  link2="finger_rechts"  reason="Never"/>
+  <disable_collisions link1="camera_link"  link2="finger_links"  reason="Never"/>
+  <disable_collisions link1="camera_link"  link2="finger_rechts"  reason="Never"/>
+  <disable_collisions link1="finger_links"  link2="joint1"  reason="Never"/>
+  <disable_collisions link1="finger_rechts"  link2="joint1"  reason="Never"/>
+  <disable_collisions link1="platform_top"  link2="finger_links"  reason="Never"/>
+  <disable_collisions link1="platform_top"  link2="finger_rechts"  reason="Never"/>
+  <disable_collisions link1="gripper_left1"  link2="finger_links"  reason="Adjacent"/>
+  <disable_collisions link1="gripper_right1"  link2="finger_rechts"  reason="Adjacent"/>
+  <disable_collisions link1="finger_links"  link2="finger_rechts"  reason="Never"/>
+
+  <!-- Schwarzer Kamerahalter oben auf dem Greifer (2026-09-09). Er sitzt starr
+       am gripper_base und hat dieselben Nachbarn - Ausnahmen von dort uebernommen.
+       Gegen Umgebung und Werkstueck bleibt er geprueft: er ragt heraus und ist
+       genau deshalb im Modell. -->
+
+  <!-- Huelle des Greiferkoerpers (2026-09-09): bringt den Querschnitt auf das
+       Mass vom Typenschild (90 x 60 statt 58 x 53.7). Sie umschliesst die
+       Fingertraeger, deshalb sind alle Greiferglieder ausgenommen - sonst
+       meldet MoveIt den Greifer als Kollision mit sich selbst. Gegen Umgebung
+       und Werkstueck bleibt sie geprueft. -->
+  <disable_collisions link1="joint6_flange"  link2="greifer_huelle"  reason="Adjacent"/>
+  <disable_collisions link1="joint6"  link2="greifer_huelle"  reason="Never"/>
+  <disable_collisions link1="greifer_huelle"  link2="gripper_left1"  reason="Adjacent"/>
+  <disable_collisions link1="greifer_huelle"  link2="gripper_left2"  reason="Adjacent"/>
+  <disable_collisions link1="greifer_huelle"  link2="gripper_left3"  reason="Adjacent"/>
+  <disable_collisions link1="greifer_huelle"  link2="gripper_right1"  reason="Adjacent"/>
+  <disable_collisions link1="greifer_huelle"  link2="gripper_right2"  reason="Adjacent"/>
+  <disable_collisions link1="greifer_huelle"  link2="gripper_right3"  reason="Adjacent"/>
+  <disable_collisions link1="camera_link"  link2="greifer_huelle"  reason="Never"/>
+  <disable_collisions link1="greifer_huelle"  link2="joint1"  reason="Never"/>
+  <disable_collisions link1="greifer_huelle"  link2="joint5"  reason="Never"/>
+  <disable_collisions link1="greifer_huelle"  link2="robot_base"  reason="Never"/>
+  <disable_collisions link1="platform_top"  link2="greifer_huelle"  reason="Never"/>
+  <disable_collisions link1="greifer_huelle"  link2="finger_links"  reason="Adjacent"/>
+  <disable_collisions link1="greifer_huelle"  link2="finger_rechts"  reason="Adjacent"/>
+  <disable_collisions link1="greifer_huelle"  link2="gripper_base"  reason="Adjacent"/>
+
+  <!-- Weisser Sockel unter dem Kamerahalter (2026-09-09) - gleiche Nachbarn
+       wie der Halter selbst. -->
+
+  <!-- Huelle der Viergelenkkette (2026-09-09): schliesst die 42.9-mm-Luecke
+       zwischen Koerper und Fingern. Sie liegt zwischen lauter Greiferteilen,
+       deshalb sind diese ausgenommen; gegen Umgebung und Werkstueck bleibt sie
+       geprueft - genau dafuer ist sie da. -->
+  <disable_collisions link1="joint6_flange"  link2="greifer_mechanik_breit"  reason="Adjacent"/>
+  <disable_collisions link1="joint6_flange"  link2="greifer_mechanik_schmal"  reason="Adjacent"/>
+  <disable_collisions link1="joint6"  link2="greifer_mechanik_breit"  reason="Never"/>
+  <disable_collisions link1="joint6"  link2="greifer_mechanik_schmal"  reason="Never"/>
+  <disable_collisions link1="greifer_mechanik_breit"  link2="gripper_left1"  reason="Adjacent"/>
+  <disable_collisions link1="greifer_mechanik_schmal"  link2="gripper_left1"  reason="Adjacent"/>
+  <disable_collisions link1="greifer_mechanik_breit"  link2="gripper_left2"  reason="Adjacent"/>
+  <disable_collisions link1="greifer_mechanik_schmal"  link2="gripper_left2"  reason="Adjacent"/>
+  <disable_collisions link1="greifer_mechanik_breit"  link2="gripper_left3"  reason="Adjacent"/>
+  <disable_collisions link1="greifer_mechanik_schmal"  link2="gripper_left3"  reason="Adjacent"/>
+  <disable_collisions link1="greifer_mechanik_breit"  link2="gripper_right1"  reason="Adjacent"/>
+  <disable_collisions link1="greifer_mechanik_schmal"  link2="gripper_right1"  reason="Adjacent"/>
+  <disable_collisions link1="greifer_mechanik_breit"  link2="gripper_right2"  reason="Adjacent"/>
+  <disable_collisions link1="greifer_mechanik_schmal"  link2="gripper_right2"  reason="Adjacent"/>
+  <disable_collisions link1="greifer_mechanik_breit"  link2="gripper_right3"  reason="Adjacent"/>
+  <disable_collisions link1="greifer_mechanik_schmal"  link2="gripper_right3"  reason="Adjacent"/>
+  <disable_collisions link1="camera_link"  link2="greifer_mechanik_breit"  reason="Never"/>
+  <disable_collisions link1="camera_link"  link2="greifer_mechanik_schmal"  reason="Never"/>
+  <disable_collisions link1="greifer_mechanik_breit"  link2="joint1"  reason="Never"/>
+  <disable_collisions link1="greifer_mechanik_schmal"  link2="joint1"  reason="Never"/>
+  <disable_collisions link1="greifer_mechanik_breit"  link2="joint5"  reason="Never"/>
+  <disable_collisions link1="greifer_mechanik_schmal"  link2="joint5"  reason="Never"/>
+  <disable_collisions link1="greifer_mechanik_breit"  link2="robot_base"  reason="Never"/>
+  <disable_collisions link1="greifer_mechanik_schmal"  link2="robot_base"  reason="Never"/>
+  <disable_collisions link1="platform_top"  link2="greifer_mechanik_breit"  reason="Never"/>
+  <disable_collisions link1="platform_top"  link2="greifer_mechanik_schmal"  reason="Never"/>
+  <disable_collisions link1="greifer_mechanik_breit"  link2="finger_links"  reason="Adjacent"/>
+  <disable_collisions link1="greifer_mechanik_schmal"  link2="finger_links"  reason="Adjacent"/>
+  <disable_collisions link1="greifer_mechanik_breit"  link2="finger_rechts"  reason="Adjacent"/>
+  <disable_collisions link1="greifer_mechanik_schmal"  link2="finger_rechts"  reason="Adjacent"/>
+  <disable_collisions link1="greifer_mechanik_breit"  link2="gripper_base"  reason="Adjacent"/>
+  <disable_collisions link1="greifer_mechanik_schmal"  link2="gripper_base"  reason="Adjacent"/>
+  <disable_collisions link1="greifer_mechanik_breit"  link2="greifer_huelle"  reason="Adjacent"/>
+  <disable_collisions link1="greifer_mechanik_schmal"  link2="greifer_huelle"  reason="Adjacent"/>
+  <disable_collisions link1="greifer_mechanik_breit"  link2="greifer_mechanik_schmal"  reason="Adjacent"/>
+
+  <!-- ChArUco-Platte am Greifer (2026-09-09). Sie sitzt starr am gripper_base und
+       hat dieselben Nachbarn; gegen Umgebung und Werkstueck bleibt sie geprueft, denn
+       sie ragt nach unten heraus. Wird sie abgenommen (charuco_montiert:=false),
+       laufen diese Ausnahmen ins Leere und stoeren nicht. -->
+  <!-- ⚠️ 2026-09-10: SECHS "Never"-Paare gegen charuco_board WIEDER ENTFERNT.
+       Sie stammten aus einem Modell, in dem die Platte 4 mm dick war und bei
+       z = -58 mm sass. Nachgemessen ist sie 20 mm dick und sitzt rund 30 mm tiefer.
+       "Never" heisst: der Generator hat in Stichproben nie eine Beruehrung gesehen -
+       das gilt fuer die DAMALIGE Geometrie und sagt ueber die heutige nichts.
+       Der Benutzer hat genau diese Beruehrung am echten Aufbau beobachtet: dreht sich
+       der Greifer, kommt die Ecke der Platte dem Arm der 4. Achse nahe. Solange das
+       Paar abgeschaltet ist, meldet /check_state_validity dazu NICHTS - dieselbe Falle
+       wie seinerzeit bei den Stand-Teilen.
+       Entfernt wurden die Paare gegen: joint1, joint5, joint6, robot_base,
+       platform_top, camera_link. Die "Adjacent"-Paare (Greiferteile, Flansch, Finger)
+       bleiben - die beruehren sich bauartbedingt. -->
+  <disable_collisions link1="joint6_flange"  link2="charuco_board"  reason="Adjacent"/>
+  <disable_collisions link1="charuco_board"  link2="gripper_left1"  reason="Adjacent"/>
+  <disable_collisions link1="charuco_board"  link2="gripper_left2"  reason="Adjacent"/>
+  <disable_collisions link1="charuco_board"  link2="gripper_left3"  reason="Adjacent"/>
+  <disable_collisions link1="charuco_board"  link2="gripper_right1"  reason="Adjacent"/>
+  <disable_collisions link1="charuco_board"  link2="gripper_right2"  reason="Adjacent"/>
+  <disable_collisions link1="charuco_board"  link2="gripper_right3"  reason="Adjacent"/>
+  <disable_collisions link1="charuco_board"  link2="finger_links"  reason="Adjacent"/>
+  <disable_collisions link1="charuco_board"  link2="finger_rechts"  reason="Adjacent"/>
+  <disable_collisions link1="charuco_board"  link2="gripper_base"  reason="Adjacent"/>
+  <disable_collisions link1="greifer_mechanik_breit"  link2="charuco_board"  reason="Adjacent"/>
+  <disable_collisions link1="greifer_mechanik_schmal"  link2="charuco_board"  reason="Adjacent"/>
+  <disable_collisions link1="charuco_board"  link2="greifer_huelle"  reason="Adjacent"/>
+
+  <!-- =========================================================
+       BEREITSTELLUNGSSCHALE (`schale`, Kreisringausschnitt aus mycobot_world/urdf/schale.xacro).
+       Steht nur im Modell, wenn schale_montiert:=true; sonst meldet MoveIt beim Start
+       "Link 'schale' is not known to URDF" - genauso wie bei charuco_board, harmlos.
+
+       ABSICHTLICH NICHT ABGESCHALTET: schale gegen Arm und Greifer. Das ist der ganze
+       Zweck der Uebung - liegt eine Welle dicht am Rand, sollen die Finger an der Wand
+       anstossen und MoveIt die Stellung verwerfen. Wer hier "Never"-Paare eintraegt,
+       nimmt die Schale wieder aus der Planung heraus, ohne dass es auffaellt.
+
+       ABGESCHALTET wird nur gegen die uebrige STATISCHE Geometrie: diese Teile koennen
+       sich zueinander nicht bewegen, ein Kollisions-Check zwischen ihnen kann also nie
+       etwas verhindern - er wuerde bei ungenauer Schalenlage nur die GANZE Szene
+       dauerhaft ungueltig machen und jeden Plan scheitern lassen.
+       ========================================================= -->
+  <disable_collisions link1="schale"  link2="platform_top"  reason="Adjacent"/>
+  <disable_collisions link1="schale"  link2="robot_base"    reason="Never"/>
+  <disable_collisions link1="schale"  link2="halteklemme"   reason="Never"/>
+  <disable_collisions link1="schale"  link2="column"        reason="Never"/>
+  <disable_collisions link1="schale"  link2="camera_arm"    reason="Never"/>
+  <disable_collisions link1="schale"  link2="camera_link"   reason="Never"/>
+
+  <!-- =========================================================
+       TRICHTER (`trichter`, schraeger Hohlkegel aus mycobot_world/urdf/trichter.xacro).
+       Steht nur im Modell, wenn trichter_montiert:=true; sonst "Link 'trichter' is not
+       known to URDF" - harmlos, wie bei schale und charuco_board.
+
+       ABSICHTLICH NICHT ABGESCHALTET: trichter gegen Arm und Greifer. Am 2026-09-10
+       hat sich der Greifer am Trichter verbogen, weil der Trichter im Modell fehlte -
+       genau diese Paare sollen kuenftig die Stellung verwerfen. Wer hier "Never"
+       eintraegt, nimmt den Trichter wieder aus der Planung, ohne dass es auffaellt.
+
+       ABGESCHALTET nur gegen die uebrige STATISCHE Geometrie (Begruendung wie bei der
+       Schale). trichter gegen schale ebenfalls: beide stehen fest; ueberlappen sie sich
+       im Modell, ist die LAGE falsch gemessen - das gehoert korrigiert, nicht durch
+       eine dauerhaft ungueltige Szene gemeldet.
+       ========================================================= -->
+  <!-- 2026-09-12: gripper_base (UPSTREAM-Kollisionsbox 58 x 71.5 x 53.7, um -20 mm versetzt)
+       ist DOPPELT so dick wie der echte Greiferkoerper (25 mm, nachgemessen 2026-09-10).
+       Am angelernten Griffpunkt trichter_greif ragte diese Box 4-6 mm in die hohe
+       Trichterwand (z 93-105), obwohl der Greifer dort real die Welle fasst. Der echte
+       Koerper ist durch greifer_huelle + greifer_mechanik_* abgedeckt - die bleiben gegen
+       den Trichter AKTIV. Nur die falsche Upstream-Box wird ausgeschaltet. -->
+  <disable_collisions link1="trichter"  link2="gripper_base"  reason="User"/>
+  <disable_collisions link1="trichter"  link2="platform_top"  reason="Adjacent"/>
+  <disable_collisions link1="trichter"  link2="robot_base"    reason="Never"/>
+  <disable_collisions link1="trichter"  link2="halteklemme"   reason="Never"/>
+  <disable_collisions link1="trichter"  link2="column"        reason="Never"/>
+  <disable_collisions link1="trichter"  link2="camera_arm"    reason="Never"/>
+  <disable_collisions link1="trichter"  link2="camera_link"   reason="Never"/>
+  <disable_collisions link1="trichter"  link2="schale"        reason="Never"/>
+
+  <!-- =========================================================
+       ABLAGEPLATTE (`ablageplatte`, 5x4 Nestbosse aus mycobot_world/urdf/ablageplatte.xacro,
+       Lage aus den angelernten Nestern). Standard im Modell (ablageplatte_montiert:=true).
+       NICHT abgeschaltet gegen Arm und Greifer: die Bosse (7 mm hoch) sollen verworfen werden,
+       wenn eine Bahn seitlich durch die Platte fuehrt. Beim Ablegen stehen die Fingerspitzen
+       >= 30 mm ueber den Bossen (Nestpunkt z ~55, Ablage -20, Tastprobe -6) - kein Konflikt.
+       Abgeschaltet nur gegen die uebrige statische Geometrie (wie schale/trichter).
+       ========================================================= -->
+  <disable_collisions link1="ablageplatte"  link2="platform_top"  reason="Adjacent"/>
+  <disable_collisions link1="ablageplatte"  link2="robot_base"    reason="Never"/>
+  <disable_collisions link1="ablageplatte"  link2="halteklemme"   reason="Never"/>
+  <disable_collisions link1="ablageplatte"  link2="column"        reason="Never"/>
+  <disable_collisions link1="ablageplatte"  link2="camera_arm"    reason="Never"/>
+  <disable_collisions link1="ablageplatte"  link2="camera_link"   reason="Never"/>
+  <disable_collisions link1="ablageplatte"  link2="schale"        reason="Never"/>
+  <disable_collisions link1="ablageplatte"  link2="trichter"      reason="Never"/>
 </robot>

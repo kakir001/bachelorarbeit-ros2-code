@@ -306,7 +306,7 @@ class ClickToGo(Node):
             z = 0.005
         # Optionaler Schwebe-Aufschlag (CLICK_HOVER_M, m): Ziel N cm ÜBER dem angeklickten
         # Punkt — für Kalibrier-Messungen (Feinausrichtung danach per cartesian_jog),
-        # damit der Greifer bei XY-Abweichung nicht seitlich gegen die Schraube fährt.
+        # damit der Greifer bei XY-Abweichung nicht seitlich gegen die Welle fährt.
         # Default 0.0 = bisheriges Verhalten unverändert.
         z += CLICK_HOVER_M
         return np.array([

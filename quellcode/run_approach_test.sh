@@ -1,11 +1,11 @@
 #!/bin/bash
 # =====================================================================
-#  run_approach_test.sh — Schrauben-ANNAEHERUNGSTEST (nur pre-grasp, KEIN Abstieg).
+#  run_approach_test.sh — Wellen-ANNAEHERUNGSTEST (nur pre-grasp, KEIN Abstieg).
 #  Identische Orchestrierung wie run_pick_test.sh; einziger Unterschied: statt pick_place
-#  läuft approach_target → der Roboter WARTET APPROACH_HEIGHT UEBER der Schraube,
+#  läuft approach_target → der Roboter WARTET APPROACH_HEIGHT UEBER der Welle,
 #  Greifer 90° senkrecht (top-down), Greifer offen. Steht bis Ctrl+C.
 #
-#  Zweck: per AUGE prüfen, ob der Greifer genau über der Schraube + genau 90° senkrecht ist.
+#  Zweck: per AUGE prüfen, ob der Greifer genau über der Welle + genau 90° senkrecht ist.
 #
 #  Verwendung:
 #    cd ~/ros2_ws && ./run_approach_test.sh            # 5 cm darüber (Standard)
@@ -18,7 +18,7 @@
 set -u
 
 # ---- Einstellbare Parameter ------------------------------------------
-APPROACH_HEIGHT="${APPROACH_HEIGHT:-0.05}"   # wie viele m ueber der Schraube er stehen wird
+APPROACH_HEIGHT="${APPROACH_HEIGHT:-0.05}"   # wie viele m ueber der Welle er stehen wird
 SIM="${SIM:-0}"
 VIEW="${VIEW:-1}"
 DETECTOR_WAIT="${DETECTOR_WAIT:-120}"
@@ -58,7 +58,7 @@ kill_group() {
 
 sweep_ros_ghosts() {
   pkill -f "view_overlay.py"          2>/dev/null
-  pkill -f "vida_detector"            2>/dev/null
+  pkill -f "wellen_detektor"            2>/dev/null
   pkill -f "approach_target"          2>/dev/null
   pkill -f "approach_target.launch"   2>/dev/null
   pkill -f "pick_place_cartesian"     2>/dev/null
@@ -144,8 +144,8 @@ done
 [ "$ok" = "1" ] || { err "Controller wurde nicht aktiv innerhalb ${CTRL_WAIT}s. Siehe $STACK_LOG"; exit 1; }
 
 # ---- 4) Detector starten ----------------------------------------------
-log "vida_detector wird gestartet → $DET_LOG"
-setsid bash -c "exec ros2 run vida_vision vida_detector" >"$DET_LOG" 2>&1 &
+log "wellen_detektor wird gestartet → $DET_LOG"
+setsid bash -c "exec ros2 run wellenerkennung wellen_detektor" >"$DET_LOG" 2>&1 &
 DET_PID=$!
 
 log "Auf Detector-Bereitschaft warten: 'Modell bereit' (max ${DETECTOR_WAIT}s)..."
@@ -166,21 +166,21 @@ elif [ "$VIEW" = "1" ]; then
   warn "Kein DISPLAY — Overlay-Fenster uebersprungen."
 fi
 
-log "Auf erstes Schrauben-Ziel ('ZIEL') warten (max 60s)..."
+log "Auf erstes Wellen-Ziel ('ZIEL') warten (max 60s)..."
 ok=0
 for i in $(seq 1 60); do
   kill -0 "$DET_PID" 2>/dev/null || { err "Detector gestorben!"; tail -n 25 "$DET_LOG"; exit 1; }
   if grep -q "ZIEL" "$DET_LOG" 2>/dev/null; then
-    ok=1; log "Schraube gefunden → $(grep 'ZIEL' "$DET_LOG" | tail -n1)"; break
+    ok=1; log "Welle gefunden → $(grep 'ZIEL' "$DET_LOG" | tail -n1)"; break
   fi
   [ $((i % 10)) -eq 0 ] && warn "  ...noch kein Ziel (${i}s). Letzte: $(tail -n1 "$DET_LOG")"
   sleep 1
 done
-[ "$ok" = "1" ] || warn "Innerhalb 60s keine Schraube — approach wird trotzdem versucht (hat eigenen 30s-Timeout)."
+[ "$ok" = "1" ] || warn "Innerhalb 60s keine Welle — approach wird trotzdem versucht (hat eigenen 30s-Timeout)."
 
 # ---- 5) approach_target AUSFUEHREN (Roboter fährt zur Position, WARTET dort) --
 log "=============================================="
-log " ANNAEHERUNG wird ausgefuehrt — ${APPROACH_HEIGHT}m (=$(awk "BEGIN{printf \"%.0f\", $APPROACH_HEIGHT*100}")cm) ueber der Schraube, 90° senkrecht"
+log " ANNAEHERUNG wird ausgefuehrt — ${APPROACH_HEIGHT}m (=$(awk "BEGIN{printf \"%.0f\", $APPROACH_HEIGHT*100}")cm) ueber der Welle, 90° senkrecht"
 log "  Wenn der Roboter die Position erreicht, WARTET er DORT. Pruefen; danach Ctrl+C."
 log "  log: $APP_LOG"
 log "=============================================="

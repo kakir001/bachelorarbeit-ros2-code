@@ -17,7 +17,9 @@ Protocol — newline-delimited, space-separated, both directions:
     send_radians <r1> <r2> <r3> <r4> <r5> <r6> <speed>
     set_gripper <value> <speed>
     power_on
-    release_all
+    release_all          (Servos stromlos - der Arm faellt!)
+    release_servo <1-6>  (EIN Servo stromlos, z.B. 6 = Greiferdrehung von Hand; Rest haelt)
+    focus_servo <1-6>    (Servo wieder unter Drehmoment)
     shutdown
     estop <0|1>   # NOT-AUS: 1 = mc.stop() + Bewegungs-Kommandos blockieren, 0 = Freigabe
 """
@@ -38,8 +40,25 @@ def log(msg):
     print(f'[mycobot_bridge] {msg}', file=sys.stderr, flush=True)
 
 
+def lade_versatz():
+    """Nullpunktversatz je Gelenk [rad] aus gelenk_nullpunkte.json ("_versatz_encoder_grad", 6 Werte).
+    Datei: $MYCOBOT_VERSATZ_DATEI oder ~/ros2_ws/gelenk_nullpunkte.json. Fehlt sie: 0 (altes Verhalten)."""
+    import json, math, os
+    pfad = os.environ.get('MYCOBOT_VERSATZ_DATEI', os.path.expanduser('~/ros2_ws/gelenk_nullpunkte.json'))
+    try:
+        v = json.load(open(pfad)).get('_versatz_encoder_grad', [0.0] * 6)
+        v = [math.radians(float(x)) for x in v][:6] + [0.0] * (6 - len(v))
+        log('Nullpunktversatz [Grad]: ' + ' '.join(f'{math.degrees(x):+.2f}' for x in v) + f'  ({pfad})')
+        return v
+    except Exception as e:
+        log(f'WARN Nullpunktversatz nicht lesbar ({pfad}: {e}) - 0')
+        return [0.0] * 6
+
+
 class Bridge:
-    def __init__(self, mc, speed, rate_hz, socket_path):
+    def __init__(self, mc, speed, rate_hz, socket_path, gripper_type=1,
+                 release_on_exit=False):
+        self.versatz = lade_versatz()
         self.mc = mc
         self.default_speed = speed
         self.period = 1.0 / rate_hz
@@ -52,6 +71,18 @@ class Bridge:
         # Greifer Open-Loop Reserve: wenn get_gripper_value() bei dieser Firmware oft
         # 255/-1 (ungültig) zurückgibt, melden wir den zuletzt kommandierten Wert.
         self.last_gripper_cmd = None
+        # Beim Beenden die Servos stromlos schalten? Vorgabe NEIN - sonst faellt
+        # der Arm bei jedem Beenden in sich zusammen.
+        self.release_on_exit = release_on_exit
+        # Greifertyp für die pymycobot-API: 1 = adaptiver Greifer (dieser Roboter),
+        # 3 = Parallelgreifer, 4 = flexibler Greifer.
+        # WICHTIG (Fehlerursache, gefunden 2026-09-07): set_gripper_value() wurde hier
+        # OHNE diesen dritten Parameter aufgerufen, während die Lesefunktion ihn schon
+        # mitgab. Ohne Typangabe bewegt die Firmware den adaptiven Greifer beim ÖFFNEN
+        # nicht — genau das Symptom aus dem DEVLOG: der ros2_control-Weg meldete
+        # "success", der Greifer blieb aber zu, während ein direkter Aufruf mit
+        # set_gripper_value(100, 50, 1) sofort öffnete.
+        self.gripper_type = int(gripper_type)
         self._grip_log_counter = 0
         # NOT-AUS-Zustand: solange True werden send_radians/set_gripper/release_all
         # verworfen. Gesetzt/gelöscht über das Wire-Kommando "estop <0|1>"
@@ -101,10 +132,22 @@ class Bridge:
             except FileNotFoundError:
                 pass
             worker.join(timeout=2.0)
-            try:
-                self.mc.release_all_servos()
-            except Exception:
-                pass
+            # Frueher wurde hier bedingungslos release_all_servos() gerufen. Damit
+            # faellt der Arm bei JEDEM Beenden in sich zusammen - am 2026-09-08
+            # ist er so aus der Nullstellung komplett umgekippt (dort steht er
+            # senkrecht nach oben, also der schlechteste Ausgangspunkt).
+            # Der NOT-AUS macht es laengst richtig und laesst die Servos unter
+            # Drehmoment; das normale Beenden war damit unsicherer als der Notfall.
+            # Zweiter Weg zum selben Ziel ist release_on_deactivate in
+            # mycobot_hardware.cpp - BEIDE muessen aus sein, sonst faellt er doch.
+            if self.release_on_exit:
+                try:
+                    self.mc.release_all_servos()
+                    log('servos released (release_on_exit)')
+                except Exception:
+                    pass
+            else:
+                log('exiting - Servos bleiben unter Drehmoment (--release-on-exit aus)')
 
     def _enqueue(self, line):
         """Einheitlicher Kommando-Eingang (beide Sockets laufen hier durch).
@@ -232,7 +275,10 @@ class Bridge:
                     if val is not None:
                         last_grip = val
                 parts = ['state', f'{time.time():.6f}']
-                parts.extend(f'{float(r):.6f}' for r in radians)
+                # Nullpunktversatz (20.9.): der Encoder von J2 steht bei real senkrechtem Arm auf +2.29 Grad,
+                # J3 +0.29, J4 -0.29 (gelenk_nullpunkte.json). Das Modell bekommt Encoder - Versatz, damit
+                # "0" im Modell = real senkrecht; send_radians rechnet den Versatz wieder hinzu.
+                parts.extend(f'{float(r) - self.versatz[i]:.6f}' for i, r in enumerate(radians[:6]))
                 parts.append(str(last_grip))
                 self._broadcast(' '.join(parts) + '\n')
             except Exception as e:
@@ -260,7 +306,7 @@ class Bridge:
         Wert 0-100 automatisch verwendet.
         """
         try:
-            g = self.mc.get_gripper_value(1)  # 1 = adaptive gripper
+            g = self.mc.get_gripper_value(self.gripper_type)
             if isinstance(g, int) and 0 <= g <= 100:
                 self._grip_log(f'firmware reported value={g}')
                 return g
@@ -282,7 +328,7 @@ class Bridge:
             return
         name = parts[0]
         # Zweite Verteidigungslinie (Race beim Flag-Setzen): auch hier blockieren.
-        if self.estop and name in ('send_radians', 'set_gripper', 'release_all'):
+        if self.estop and name in ('send_radians', 'set_gripper', 'release_all', 'release_servo'):
             log(f'NOT-AUS aktiv — Kommando verworfen: {name}')
             return
         try:
@@ -301,17 +347,35 @@ class Bridge:
                 else:
                     log('NOT-AUS FREIGABE — Kommandos wieder aktiv')
             elif name == 'send_radians' and len(parts) >= 8:
-                rads = [float(x) for x in parts[1:7]]
+                rads = [float(x) + self.versatz[i] for i, x in enumerate(parts[1:7])]   # Modell -> Encoder
                 speed = int(parts[7])
                 self.mc.send_radians(rads, speed)
             elif name == 'set_gripper' and len(parts) >= 3:
                 v = int(parts[1])
-                self.mc.set_gripper_value(v, int(parts[2]))
+                self.mc.set_gripper_value(v, int(parts[2]), self.gripper_type)
                 self.last_gripper_cmd = max(0, min(100, v))
             elif name == 'power_on':
                 self.mc.power_on()
             elif name == 'release_all':
                 self.mc.release_all_servos()
+            elif name == 'release_servo' and len(parts) >= 2:
+                # 2026-09-12: Benutzer dreht den Greifer (Servo 6) von Hand in die richtige
+                # Lage und lernt den Punkt dann an; die anderen Servos halten weiter.
+                # write() im Hardware-Interface sendet nur bei Aenderung - der Servo bleibt
+                # frei, bis das naechste send_radians kommt.
+                self.mc.release_servo(int(parts[1]))
+                log(f'Servo {parts[1]} FREI (stromlos) - von Hand drehbar')
+            elif name == 'focus_servo' and len(parts) >= 2:
+                self.mc.focus_servo(int(parts[1]))
+                log(f'Servo {parts[1]} wieder unter Drehmoment')
+            elif name == 'calibrate_servo' and len(parts) >= 2:
+                # 2026-09-23: Benutzer stellt eine Achse REAL in die Nullstellung und laesst den
+                # Servo-Nullpunkt dort setzen (Potentialwert 2048). Bleibt im Servo gespeichert.
+                # Danach lesen ALLE alten Teach-Punkte dieser Achse um den alten Encoderwert
+                # verschoben -> tools/teach_gelenk_verschieben.py. Werkzeug: tools/servo_nullen.py
+                sid = int(parts[1])
+                self.mc.set_servo_calibration(sid)
+                log(f'Servo {sid}: aktuelle Stellung als NULLPUNKT gespeichert (set_servo_calibration)')
             elif name == 'shutdown':
                 self.stop_event.set()
             else:
@@ -339,8 +403,13 @@ def main():
     ap.add_argument('--rate', type=float, default=20.0,
                     help='polling Hz (serial round-trip ~50ms)')
     ap.add_argument('--speed', type=int, default=30, help='default send_radians speed 1-100')
+    ap.add_argument('--gripper-type', type=int, default=1,
+                    help='pymycobot gripper type: 1=adaptive (this robot), 3=parallel, 4=flexible')
     ap.add_argument('--no-power-on', action='store_true',
                     help='do not call power_on() at startup (leave robot in teach mode)')
+    ap.add_argument('--release-on-exit', action='store_true',
+                    help='beim Beenden die Servos stromlos schalten - ACHTUNG, der Arm '
+                         'faellt dann in sich zusammen (Vorgabe: aus, Servos halten)')
     args = ap.parse_args()
 
     log(f'opening {args.port} @ {args.baud}')
@@ -354,7 +423,8 @@ def main():
         except Exception as e:
             log(f'WARN power_on: {e}')
 
-    bridge = Bridge(mc, args.speed, args.rate, args.socket)
+    bridge = Bridge(mc, args.speed, args.rate, args.socket, args.gripper_type,
+                    release_on_exit=args.release_on_exit)
 
     # Clean shutdown on SIGINT/SIGTERM (parent kill).
     def _sigterm(*_):

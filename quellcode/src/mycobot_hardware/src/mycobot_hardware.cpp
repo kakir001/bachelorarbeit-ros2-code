@@ -36,6 +36,11 @@ static rclcpp::Logger logger()
   return rclcpp::get_logger("mycobot_hardware");
 }
 
+// Gelenkbereich des Greifers laut URDF (gripper_controller): -0.74 = zu, 0.15 = auf.
+// Lesen UND Schreiben bilden linear auf Firmware-Prozent 0..100 ab.
+constexpr double kGripLower = -0.74;
+constexpr double kGripUpper = 0.15;
+
 ::CallbackReturn MyCobotHardware::on_init(const hardware_interface::HardwareInfo & info)
 {
   if (SystemInterface::on_init(info) != ::CallbackReturn::SUCCESS) {
@@ -53,6 +58,10 @@ static rclcpp::Logger logger()
   write_period_s_ = std::stod(get_or("write_period_s", "0.25"));
   change_threshold_rad_ = std::stod(get_or("change_threshold_rad", "0.001"));
   socket_path_ = get_or("socket_path", "/tmp/mycobot_bridge.sock");
+  {
+    const std::string v = get_or("release_on_deactivate", "false");
+    release_on_deactivate_ = (v == "true" || v == "True" || v == "1");
+  }
 
   // Locate bridge script in install/share/...
   try {
@@ -184,8 +193,28 @@ bool MyCobotHardware::connect_socket()
 
 ::CallbackReturn MyCobotHardware::on_deactivate(const rclcpp_lifecycle::State &)
 {
-  send_line("release_all\n");
-  RCLCPP_INFO(logger(), "Deactivated — servos released.");
+  // Hier stand frueher bedingungslos send_line("release_all\n"). Das schaltet die
+  // Servos stromlos, und der Arm faellt in sich zusammen — beim Beenden des Stacks
+  // also JEDES MAL. Am 2026-09-08 ist er dabei aus der Nullstellung komplett
+  // umgekippt; die Nullstellung ist dafuer der denkbar schlechteste Ausgangspunkt,
+  // weil der Arm dort senkrecht nach oben steht.
+  //
+  // Der NOT-AUS macht es laengst richtig: er schickt mc.stop() und laesst die
+  // Servos ausdruecklich unter Drehmoment ("der Arm faellt NICHT"). Das normale
+  // Beenden war damit unsicherer als der Notfall. Jetzt halten die Servos auch
+  // hier ihre Stellung.
+  //
+  // Wer das alte Verhalten braucht (Arm von Hand bewegen, Servos kuehlen lassen),
+  // setzt den Hardware-Parameter release_on_deactivate=true oder schickt der
+  // Bruecke direkt "release_all".
+  if (release_on_deactivate_) {
+    send_line("release_all\n");
+    RCLCPP_INFO(logger(), "Deactivated — servos released (release_on_deactivate=true).");
+  } else {
+    RCLCPP_INFO(logger(),
+                "Deactivated — Servos bleiben unter Drehmoment, der Arm haelt seine "
+                "Stellung. Zum Loslassen: release_on_deactivate=true.");
+  }
   return ::CallbackReturn::SUCCESS;
 }
 
@@ -296,8 +325,12 @@ void MyCobotHardware::read_loop()
         // pymycobot returns 0-100; values like 255/-1 mean "servo not responding"
         // and must be rejected, otherwise 255 -> 1.785 rad rotates the mimic
         // finger links out of view. Hold the last valid value on a bad read.
+        // 2026-09-11: Lesen jetzt mit DEMSELBEN Bereich wie das Schreiben unten
+        // ([-0.74 zu .. 0.15 auf]). Vorher stand hier `grip/100 * 0.7` (alter Bereich
+        // 0..0.7): 0 % (zu) kam als 0.0 an = im URDF 83 % offen, RViz zeigte den
+        // Greifer offen, waehrend er zu war; die Werkzeuge rechneten mit /0.7 zurueck.
         if (grip >= 0 && grip <= 100) {
-          latest_gripper_ = (static_cast<double>(grip) / 100.0) * 0.7;
+          latest_gripper_ = kGripLower + (static_cast<double>(grip) / 100.0) * (kGripUpper - kGripLower);
         }
       }
       latest_fresh_ = true;
@@ -376,26 +409,59 @@ return_type MyCobotHardware::write()
       any_change = true;
     }
   }
-  if (!any_change) return return_type::OK;
-
-  std::ostringstream oss;
-  oss.precision(6);
-  oss << std::fixed << "send_radians";
-  for (size_t i = 0; i < kArmDof; ++i) oss << ' ' << arm_cmd[i];
-  oss << ' ' << command_speed_ << '\n';
-  send_line(oss.str());
-
+  // Der Greifer bekommt eine EIGENE Aenderungserkennung. Vorher stand sein
+  // set_gripper hinter dem "if (!any_change) return" oben, das NUR die Armgelenke
+  // prueft — bei stehendem Arm wurde also jeder Greifbefehl stillschweigend
+  // verworfen, waehrend der gripper_controller trotzdem "Goal reached, success"
+  // meldete. Genau in dieser Lage wird aber gegriffen und losgelassen (der Arm
+  // haelt still). Nachgewiesen 2026-09-08: ohne neuen Greifbefehl, nur durch eine
+  // Armbewegung um 1 Grad, sprang der Rueckgabewert von 0 auf 99 — der alte
+  // Befehl war bis dahin haengen geblieben.
+  bool gripper_change = false;
+  double gripper_cmd = std::numeric_limits<double>::quiet_NaN();
   if (info_.joints.size() > kArmDof) {
     const double c = hw_position_cmds_[kGripperIdx];
     if (std::isfinite(c)) {
-      int g = static_cast<int>(std::clamp(c / 0.7, 0.0, 1.0) * 100.0);
-      std::ostringstream gg;
-      gg << "set_gripper " << g << ' ' << command_speed_ << '\n';
-      send_line(gg.str());
+      gripper_cmd = c;
+      if (!std::isfinite(last_gripper_sent_) ||
+          std::abs(c - last_gripper_sent_) > change_threshold_rad_)
+      {
+        gripper_change = true;
+      }
     }
   }
 
-  for (size_t i = 0; i < kArmDof; ++i) last_sent_cmds_[i] = arm_cmd[i];
+  if (!any_change && !gripper_change) return return_type::OK;
+
+  if (any_change) {
+    std::ostringstream oss;
+    oss.precision(6);
+    oss << std::fixed << "send_radians";
+    for (size_t i = 0; i < kArmDof; ++i) oss << ' ' << arm_cmd[i];
+    oss << ' ' << command_speed_ << '\n';
+    send_line(oss.str());
+    for (size_t i = 0; i < kArmDof; ++i) last_sent_cmds_[i] = arm_cmd[i];
+  }
+
+  if (gripper_change) {
+    // Gelenkwert -> Firmware-Prozent (0 = zu, 100 = offen).
+    //
+    // FEHLER, gefunden 2026-09-09: hier stand `gripper_cmd / 0.7`. Der URDF-Bereich des
+    // Gelenks ist aber [-0.74, 0.15], nicht [0, 0.7]. Folgen dieser Annahme:
+    //   * SRDF "open" (0.15) ergab 0.15/0.7 = 21 % — der Greifer ging nur ein Fuenftel auf.
+    //   * die GESAMTE negative Haelfte (-0.74 .. 0) wurde auf 0 geklemmt, also die Haelfte
+    //     des Stellbereichs war tot.
+    // Genau deshalb war beim Greifversuch "der Mund nicht weit genug offen", waehrend ein
+    // direkter pymycobot-Aufruf (go_to_zero.sh, set_gripper_value(100,..)) sichtbar ganz
+    // oeffnete — zwei Wege, zwei verschiedene Ergebnisse.
+    // Jetzt wird der tatsaechliche Gelenkbereich linear auf 0..100 abgebildet.
+    const double frac = (gripper_cmd - kGripLower) / (kGripUpper - kGripLower);
+    int g = static_cast<int>(std::lround(std::clamp(frac, 0.0, 1.0) * 100.0));
+    std::ostringstream gg;
+    gg << "set_gripper " << g << ' ' << command_speed_ << '\n';
+    send_line(gg.str());
+    last_gripper_sent_ = gripper_cmd;
+  }
   last_write_ = now;
   return return_type::OK;
 }

@@ -5,7 +5,7 @@
 #  Benutzerwunsch (2026-06-07, aktuell):
 #    - KEIN RViz (RViz+YOLO+Kamera gleichzeitig füllten den Nano-RAM und froren ihn ein,
 #      Erkennung war nicht möglich). Nur ein cv2-Fenster mit 2 Kameras + dieses Terminal reicht.
-#    - Im Kamerafenster ist der GEWAEHLTE Punkt sichtbar (linkes Panel = YOLO-Overlay /vida/overlay,
+#    - Im Kamerafenster ist der GEWAEHLTE Punkt sichtbar (linkes Panel = YOLO-Overlay /welle/overlay,
 #      mit "ZIEL" markiert). Rechtes Panel = Aufnahmekamera.
 #    - SCHRITT 1: Roboter startet bei Punkt 0 (home, alle Gelenke 0).
 #    - SCHRITT 2: bringt den Greifer GENAU UEBER das Ziel, 90° SENKRECHT, 10cm höher, OEFFNET, wartet.
@@ -17,7 +17,7 @@
 #    1) Systemvorbereitung (locale, rmem, USB power, GPU fan)  [fragt sudo]
 #    2) Stack: demo.launch.py use_camera:=true use_rviz:=false  (KEIN RViz)
 #    3) record_cam_publisher.py (2. Kamera → /record_cam/image_raw) + cam_viewer.py
-#    4) vida_detector (YOLO) — auf "Modell bereit" + erstes "ZIEL" warten
+#    4) wellen_detektor (YOLO) — auf "Modell bereit" + erstes "ZIEL" warten
 #    5) approach_target AUSFUEHREN (0 → 10cm über Ziel, Greifer auf, warten)
 #       wenn das Ziel gelatcht ist, wird der DETECTOR beendet (Roboterbewegung + YOLO gleichzeitig = RAM-thrash)
 #    6) Kamerafenster + Terminal bleiben offen; zum Beenden Ctrl+C → komplettes Aufräumen
@@ -74,7 +74,7 @@ kill_group() {
 sweep_ros_ghosts() {
   pkill -f "record_cam_publisher" 2>/dev/null
   pkill -f "cam_viewer.py"        2>/dev/null
-  pkill -f "vida_detector"        2>/dev/null
+  pkill -f "wellen_detektor"        2>/dev/null
   pkill -f "approach_target"      2>/dev/null
   pkill -f "approach_target.launch.py" 2>/dev/null
   pkill -f "demo.launch.py"       2>/dev/null
@@ -140,7 +140,14 @@ try:
         if mc.is_moving() == 0:
             break
     try:
-        mc.set_gripper_value(100, 50, 1)   # beim Park Finger OFFEN (gehaltene Schraube loslassen)
+        # Beim Park erst OEFFNEN (eine gehaltene Welle muss fallen koennen), dann
+        # wieder SCHLIESSEN. Grund fuer das Schliessen (Benutzer, 2026-09-09): in der
+        # Nullstellung haengt der Greifer direkt unter der Kamera; offene Finger
+        # verdecken die Arbeitsflaeche und werden vom Detektor sogar selbst als Welle
+        # erkannt. 100 = offen, 0 = zu, die 1 waehlt den adaptiven Greifer.
+        mc.set_gripper_value(100, 50, 1)
+        time.sleep(1.5)
+        mc.set_gripper_value(0, 50, 1)
         time.sleep(1.0)
     except Exception as ge:
         print("Greifer-Oeffnen Warnung:", ge)
@@ -236,7 +243,7 @@ setsid bash -c "exec python3 '$WS/record_cam_publisher.py'" >"$REC_LOG" 2>&1 &
 REC_PID=$!
 
 # ---- 3b2) Kamera-Viewer (2 Kameras in einem cv2-Fenster) ----
-# Linkes Panel = /vida/overlay (YOLO-Erkennung + GEWAEHLTER Punkt mit "ZIEL" markiert),
+# Linkes Panel = /welle/overlay (YOLO-Erkennung + GEWAEHLTER Punkt mit "ZIEL" markiert),
 # rechtes Panel = Aufnahmekamera. (Sobald der Detector startet, füllt sich das Overlay.)
 if [ -n "${DISPLAY:-}" ]; then
   log "cam_viewer (2-Kamera-Fenster) wird gestartet → $CAMV_LOG"
@@ -247,10 +254,10 @@ else
 fi
 
 # ---- 4) Detector (YOLO) starten, auf Modell + erstes ZIEL warten ----
-log "vida_detector wird gestartet → $DET_LOG"
-# Reach-Kreise (grün=200mm sicher, amber=260mm Senkrecht-Limit) sind jetzt in vida_detector_node.py
+log "wellen_detektor wird gestartet → $DET_LOG"
+# Reach-Kreise (grün=200mm sicher, amber=260mm Senkrecht-Limit) sind jetzt in wellen_detektor_node.py
 # als PERMANENTER Standard — werden immer im Overlay gezeichnet, kein extra -p nötig.
-setsid bash -c "exec ros2 run vida_vision vida_detector" >"$DET_LOG" 2>&1 &
+setsid bash -c "exec ros2 run wellenerkennung wellen_detektor" >"$DET_LOG" 2>&1 &
 DET_PID=$!
 
 log "Auf Detector-Bereitschaft warten: 'Modell bereit' (max ${DETECTOR_WAIT}s)..."
@@ -262,12 +269,12 @@ for i in $(seq 1 "$DETECTOR_WAIT"); do
 done
 [ "$ok" = "1" ] || { err "Modell nicht geladen innerhalb ${DETECTOR_WAIT}s. Siehe $DET_LOG"; exit 1; }
 
-log "Auf erstes Schrauben-Ziel ('ZIEL') warten (max 60s)..."
+log "Auf erstes Wellen-Ziel ('ZIEL') warten (max 60s)..."
 ok=0
 for i in $(seq 1 60); do
   kill -0 "$DET_PID" 2>/dev/null || { err "Detector gestorben! Siehe $DET_LOG"; exit 1; }
   if grep -q "ZIEL" "$DET_LOG" 2>/dev/null; then
-    ok=1; log "Schraube gefunden → $(grep 'ZIEL' "$DET_LOG" | tail -n1)"; break
+    ok=1; log "Welle gefunden → $(grep 'ZIEL' "$DET_LOG" | tail -n1)"; break
   fi
   [ $((i % 10)) -eq 0 ] && warn "  ...noch kein Ziel (${i}s). Letzte: $(tail -n1 "$DET_LOG")"
   sleep 1
@@ -285,9 +292,9 @@ export APPROACH_HEIGHT
 setsid bash -c "exec ros2 launch mycobot_demo approach_target.launch.py" >>"$NODE_LOG" 2>&1 &
 NODE_PID=$!
 
-# HINWEIS: detector wird JETZT NICHT MEHR GETOETET — /vida/overlay soll live bleiben, damit im linken
+# HINWEIS: detector wird JETZT NICHT MEHR GETOETET — /welle/overlay soll live bleiben, damit im linken
 # Kamera-Panel der gewählte Punkt ständig sichtbar ist (Benutzerpriorität). Da RViz weg ist,
-# ist der RAM ohnehin entspannt. Wenn der Roboter nicht erreicht, die Schraube näher zum Roboter legen (grüne Zone).
+# ist der RAM ohnehin entspannt. Wenn der Roboter nicht erreicht, die Welle näher zum Roboter legen (grüne Zone).
 
 # Node-Ausgabe live anzeigen; der node wartet bis Ctrl+C (Roboter steht über dem Ziel).
 log "Node-Ausgabe (Ctrl+C = alles beenden):"

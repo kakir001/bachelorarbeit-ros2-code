@@ -13,6 +13,7 @@
 #include <mutex>
 #include <string>
 #include <thread>
+#include <limits>
 #include <vector>
 
 #include <sys/types.h>
@@ -55,6 +56,11 @@ private:
   std::vector<double> hw_velocities_;
   std::vector<double> hw_position_cmds_;
   std::vector<double> last_sent_cmds_;
+  // Zuletzt an die Bridge geschickter Greifer-Befehl (Gelenkwert in rad).
+  // NaN = noch nie geschickt. Der Greifer braucht eine EIGENE Aenderungserkennung:
+  // frueher hing sein Senden an der Armbewegung, sodass jeder Greifbefehl bei
+  // stehendem Arm verworfen wurde (gefunden 2026-09-08).
+  double last_gripper_sent_ = std::numeric_limits<double>::quiet_NaN();
 
   // Parameters
   std::string port_;
@@ -62,6 +68,9 @@ private:
   int command_speed_ = 30;
   double write_period_s_ = 0.05;
   double change_threshold_rad_ = 0.001;
+  // Beim Deaktivieren die Servos stromlos schalten? Vorgabe NEIN - sonst faellt
+  // der Arm beim Beenden des Stacks in sich zusammen (siehe on_deactivate).
+  bool release_on_deactivate_ = false;
   std::string socket_path_;
   std::string bridge_script_;     // absolute path to mycobot_bridge.py
 

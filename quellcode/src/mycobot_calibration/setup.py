@@ -26,6 +26,7 @@ setup(
             'mycobot_bridge = mycobot_calibration.joint_encoder_publisher:main',
             'joint_pose_gui = mycobot_calibration.joint_pose_gui:main',
             'estop_button = mycobot_calibration.estop_button:main',
+            'nachfuehren = mycobot_calibration.nachfuehren:main',
         ],
     },
 )

@@ -42,7 +42,13 @@ import tf2_ros
 ROBOT_BASE_FRAME = 'robot_base'
 ROBOT_EE_FRAME = 'tcp'
 CAMERA_FRAME = 'camera_color_optical_frame'
-BOARD_FRAME = 'charuco_board'
+# ACHTUNG: Das ist das vom Detektor GEMESSENE Board-Frame, nicht der Modell-Link.
+# Seit dem 2026-09-09 steht die Platte auch im URDF, und zwar unter dem Namen
+# `charuco_board`. Wuerde hier weiterhin dieser Name stehen, saehe die
+# Kalibrierung nicht die Kamera, sondern ihr eigenes Modell - und rechnete
+# Unsinn aus, ohne dass es auffiele. Der Detektor wird deshalb mit
+# `board_frame:=charuco_gemessen` gestartet.
+BOARD_FRAME = os.environ.get('CHARUCO_BOARD_FRAME', 'charuco_gemessen')
 
 # 6x3 Greifer-ChArUco-Board -> (6-1)*(3-1) = 10 innere Ecken.
 # 2026-08-30: Konstanten stammten noch vom alten 5x5-Board (16/14) — damit wurde

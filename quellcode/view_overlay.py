@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-# view_overlay.py — /vida/overlay in einem LEICHTGEWICHTIGEN Fenster live zeigen.
-# Statt RViz/rqt (Nano-RAM sparen). Die gewählte Schraube GRUEN + mit "ZIEL" markiert.
+# view_overlay.py — /welle/overlay in einem LEICHTGEWICHTIGEN Fenster live zeigen.
+# Statt RViz/rqt (Nano-RAM sparen). Die gewählte Welle GRUEN + mit "ZIEL" markiert.
 #
 # Verwendung (separates Terminal):
 #   source /opt/ros/galactic/setup.bash && source ~/ros2_ws/install/setup.bash
@@ -8,7 +8,7 @@
 #   # im Fenster 'q' oder ESC = Ende
 #
 # Wenn du headless willst (kein Fenster, nur alle N Sekunden ein PNG speichern):
-#   SAVE_ONLY=1 SAVE_DIR=/tmp/vida python3 ~/ros2_ws/view_overlay.py
+#   SAVE_ONLY=1 SAVE_DIR=/tmp/welle python3 ~/ros2_ws/view_overlay.py
 import os
 import rclpy
 from rclpy.node import Node
@@ -17,15 +17,15 @@ import numpy as np
 import cv2
 
 SAVE_ONLY = os.environ.get("SAVE_ONLY", "0") == "1"
-SAVE_DIR = os.environ.get("SAVE_DIR", "/tmp/vida")
-WIN = "Schraube Overlay (ZIEL=gruen)  -  q/ESC=Ende"
+SAVE_DIR = os.environ.get("SAVE_DIR", "/tmp/welle")
+WIN = "Welle Overlay (ZIEL=gruen)  -  q/ESC=Ende"
 
 
 class Viewer(Node):
     def __init__(self):
-        super().__init__("vida_overlay_viewer")
-        # /vida/overlay wird mit default (reliable) QoS veröffentlicht; zum Matchen default-Abonnent.
-        self.sub = self.create_subscription(Image, "/vida/overlay", self.cb, 1)
+        super().__init__("welle_overlay_betrachter")
+        # /welle/overlay wird mit default (reliable) QoS veröffentlicht; zum Matchen default-Abonnent.
+        self.sub = self.create_subscription(Image, "/welle/overlay", self.cb, 1)
         self.frame = None
         self.n = 0
         if SAVE_ONLY:
@@ -34,7 +34,7 @@ class Viewer(Node):
         else:
             cv2.namedWindow(WIN, cv2.WINDOW_NORMAL)
             cv2.resizeWindow(WIN, 848, 480)
-            self.get_logger().info("warte auf /vida/overlay... (im Fenster mit q/ESC beenden)")
+            self.get_logger().info("warte auf /welle/overlay... (im Fenster mit q/ESC beenden)")
         self.timer = self.create_timer(0.03, self.tick)
 
     def cb(self, msg: Image):

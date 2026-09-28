@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Ein-Klick PLACE: Ablage-Punkt in der Kamera anklicken -> Roboter dreht die
-WAAGERECHT zwischen den Fingern gehaltene Schraube SENKRECHT (Anflug waagerecht)
+WAAGERECHT zwischen den Fingern gehaltene Welle SENKRECHT (Anflug waagerecht)
 und führt sie über diesen Punkt -> Sicht-Kontrolle (mit Roll aufrichten) -> ablegen.
 
 Einrichtung:
@@ -11,9 +11,9 @@ Einrichtung:
 
 Mouse: Links = Ablage-Punkt wählen    Rechts = löschen
 Keys:
-  O / C  = Greifer auf / zu (Schraube waagerecht laden, dann mit C greifen)
-  G      = los: Schraube SENKRECHT halten, über das Ziel (langsam)  [prüft erst IK]
-  A      = Schrauben-Achse wechseln (kommt Schraube nicht senkrecht: Z->X->Y testen)
+  O / C  = Greifer auf / zu (Welle waagerecht laden, dann mit C greifen)
+  G      = los: Welle SENKRECHT halten, über das Ziel (langsam)  [prüft erst IK]
+  A      = Wellen-Achse wechseln (kommt Welle nicht senkrecht: Z->X->Y testen)
   R      = ablegen: Greifer auf -> gerade nach oben zurück -> Home
   Z      = Home (Null)
   Q      = beenden
@@ -122,7 +122,7 @@ class ClickPlace(Node):
     """Ein-Klick-PLACE OHNE MoveIt: IK-Ziel finden und direkt per pymycobot anfahren.
 
     Ablauf: Punkt anklicken -> pixel_to_base liefert 3D-Ziel im robot_base-Frame ->
-    _solve_place sucht eine Pose, in der die Schraube SENKRECHT gehalten wird (gewählte
+    _solve_place sucht eine Pose, in der die Welle SENKRECHT gehalten wird (gewählte
     Greifer-Achse zeigt nach unten) -> 'G' fährt mit send_radians dorthin -> Sichtkontrolle
     -> 'R' öffnet den Greifer und fährt gerade nach oben zurück zu Home.
     ACHTUNG: Diese Variante plant KEINEN kollisionsfreien Weg (daher gibt es die sichere
@@ -134,7 +134,7 @@ class ClickPlace(Node):
         # Kamera-Intrinsik + letzte Bild-/Tiefenpuffer (spin-Thread schreibt, GUI liest; Lock schützt).
         self._K=None;self._bgr=None;self._depth=None;self._lock=threading.Lock()
         self._px=None;self._tgt=None      # angeklicktes Pixel bzw. dazugehöriger 3D-Punkt (robot_base)
-        self._screw_axis=2                # welche Achse die Schraube in gripper_base ist (2=Z Annahme)
+        self._wellen_achse=2                # welche Achse die Welle in gripper_base ist (2=Z Annahme)
         self._place_q=None                # gefundene Zielpose (6 Gelenkwinkel), None solange keine gültige IK
         self._status='Warte auf Kamera...'
         # TF-Buffer/Listener: statische Kamera->Basis-Transformation (eye-to-hand-Kalibrierung).
@@ -210,7 +210,7 @@ class ClickPlace(Node):
         self._mk.publish(m)
 
     def _solve_place(self):
-        """Pose über Ziel, Schraube SENKRECHT (Anflug waagerecht). Bester Azimut wird gesucht.
+        """Pose über Ziel, Welle SENKRECHT (Anflug waagerecht). Bester Azimut wird gesucht.
 
         Zielpunkt wird um HOVER_OFF angehoben (TCP schwebt über der Ablage). Für jeden Seed
         wird die Achsen-Ausrichtungs-IK gelöst und die Lösung nur akzeptiert, wenn:
@@ -222,7 +222,7 @@ class ClickPlace(Node):
         """
         if self._tgt is None: self._status='Erst einen Punkt waehlen!'; return False
         p=np.array([self._tgt[0],self._tgt[1],self._tgt[2]+HOVER_OFF])
-        ax=self._screw_axis; best=None
+        ax=self._wellen_achse; best=None
         for s in SEEDS:
             q,res=ik_align(p,ax,s)
             if res<1.5e-3 and np.all(q>=_LL-1e-6)and np.all(q<=_LU+1e-6):
@@ -231,10 +231,10 @@ class ClickPlace(Node):
                     best=(q,mz)
         if best is None:
             self._place_q=None
-            self._status=f'UNERREICHBAR (keine Schraube-senkrecht Pose, Achse={["X","Y","Z"][ax]}) — mit A Achse wechseln / anderer Punkt'
+            self._status=f'UNERREICHBAR (keine Welle-senkrecht Pose, Achse={["X","Y","Z"][ax]}) — mit A Achse wechseln / anderer Punkt'
             return False
         self._place_q,mz=best
-        self._status=f'Pose BEREIT (Schrauben-Achse={["X","Y","Z"][ax]}, Abstand {mz*1000:.0f}mm) — faehrt...'
+        self._status=f'Pose BEREIT (Wellen-Achse={["X","Y","Z"][ax]}, Abstand {mz*1000:.0f}mm) — faehrt...'
         return True
 
     # ---- pymycobot Bewegung (Haupt-Thread) ----
@@ -253,29 +253,29 @@ class ClickPlace(Node):
             except Exception: pass
 
     def go(self):
-        """'G': Schraube-senkrecht-Pose lösen und (langsam) anfahren. _busy sperrt Reentranz."""
+        """'G': Welle-senkrecht-Pose lösen und (langsam) anfahren. _busy sperrt Reentranz."""
         if self._busy: return
         self._busy=True
         try:
             if not self._solve_place(): return
-            self.get_logger().info('GO: faehrt zu Schraube-senkrecht Pose (langsam)')
+            self.get_logger().info('GO: faehrt zu Welle-senkrecht Pose (langsam)')
             self._go_radians(self._place_q,18)
-            self._status='Angekommen — Schraube SENKRECHT? [ ] mit Roll justieren, R ablegen'
+            self._status='Angekommen — Welle SENKRECHT? [ ] mit Roll justieren, R ablegen'
         finally: self._busy=False
 
     def toggle_axis(self):
-        """Wenn Schraube im Greifer auf anderer Achse (nicht senkrecht): Achse wechseln + erneut fahren.
+        """Wenn Welle im Greifer auf anderer Achse (nicht senkrecht): Achse wechseln + erneut fahren.
 
-        Wechselt zyklisch die als "Schraubenachse" angenommene gripper_base-Achse (Z->X->Y)
-        und plant/fährt neu. Nötig, weil die Schraube je nach Ladeorientierung auf einer
+        Wechselt zyklisch die als "Wellenachse" angenommene gripper_base-Achse (Z->X->Y)
+        und plant/fährt neu. Nötig, weil die Welle je nach Ladeorientierung auf einer
         anderen lokalen Achse liegt und nur die richtige Achse "senkrecht nach unten" ergibt.
         """
         if self._busy or self._tgt is None: return
-        self._screw_axis=(self._screw_axis+1)%3   # Z->X->Y Zyklus
+        self._wellen_achse=(self._wellen_achse+1)%3   # Z->X->Y Zyklus
         self._busy=True
         try:
             if self._solve_place(): self._go_radians(self._place_q,15)
-            self._status=f'Schrauben-Achse={["X","Y","Z"][self._screw_axis]} — Schraube senkrecht? wenn nicht A, wenn ja R'
+            self._status=f'Wellen-Achse={["X","Y","Z"][self._wellen_achse]} — Welle senkrecht? wenn nicht A, wenn ja R'
         finally: self._busy=False
 
     def grip(self,opn):
@@ -289,7 +289,7 @@ class ClickPlace(Node):
         """'R': Ablegen. Greifer öffnen, gerade nach oben zurückziehen, dann Home anfahren.
 
         Nach dem Öffnen wird per FK die aktuelle TCP-Pose bestimmt und ein Punkt RELEASE_UP
-        darüber angesteuert (gleiche Orientierung), damit der Greifer die abgelegte Schraube
+        darüber angesteuert (gleiche Orientierung), damit der Greifer die abgelegte Welle
         senkrecht verlässt und nicht seitlich streift. Danach zurück auf Null (Home).
         HINWEIS: ik6(...) ist hier nicht definiert -> dieser Zweig würde einen NameError
         werfen; die sichere/gepflegte Ablage-Logik steckt in click_place_moveit.py.
@@ -298,7 +298,7 @@ class ClickPlace(Node):
         self._busy=True
         try:
             self.get_logger().info('ABLEGEN: Greifer auf')
-            self.mc.set_gripper_value(100,50,1); time.sleep(1.5)   # Greifer öffnen -> Schraube fällt/liegt ab
+            self.mc.set_gripper_value(100,50,1); time.sleep(1.5)   # Greifer öffnen -> Welle fällt/liegt ab
             tcp,Rc,_=fk(self._place_q)
             up=np.array([tcp[0],tcp[1],tcp[2]+RELEASE_UP])
             qup,res=ik6(up,Rc,self._place_q)        # gerade nach oben (gleiche Orientierung)
@@ -328,7 +328,7 @@ class ClickPlace(Node):
         cv2.rectangle(f,(0,0),(w,28),(40,40,40),-1)
         cv2.putText(f,self._status,(8,20),cv2.FONT_HERSHEY_SIMPLEX,0.5,(255,255,255),1,cv2.LINE_AA)
         cv2.rectangle(f,(0,h-22),(w,h),(40,40,40),-1)
-        cv2.putText(f,'Links:Punkt  O/C:Greifer  G:los  A:Schrauben-Achse  R:ablegen  Z:home  Q:beenden',
+        cv2.putText(f,'Links:Punkt  O/C:Greifer  G:los  A:Wellen-Achse  R:ablegen  Z:home  Q:beenden',
                     (4,h-6),cv2.FONT_HERSHEY_SIMPLEX,0.45,(180,180,180),1,cv2.LINE_AA)
         return f
 
@@ -345,7 +345,7 @@ def main():
     threading.Thread(target=lambda: rclpy.spin(node),daemon=True).start()
     cv2.namedWindow('Click Place',cv2.WINDOW_NORMAL); cv2.resizeWindow('Click Place',1280,720)
     cv2.setMouseCallback('Click Place',mouse,node)
-    print('\n  CLICK PLACE — Punkt anklicken, O/C laden, G los, A Schrauben-Achse, R ablegen\n')
+    print('\n  CLICK PLACE — Punkt anklicken, O/C laden, G los, A Wellen-Achse, R ablegen\n')
     # GUI-Hauptschleife (~20 Hz): Bild zeigen, Tasten auf Knoten-Aktionen abbilden.
     try:
         while rclpy.ok():

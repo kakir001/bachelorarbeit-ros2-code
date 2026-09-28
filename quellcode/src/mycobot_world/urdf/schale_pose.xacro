@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+<!--
+  ================= ERZEUGTE DATEI - NICHT VON HAND AENDERN =================
+
+  Lage der Bereitstellungsschale (robot_base -> schale). Diese Datei ist die EINZIGE
+  Quelle der Schalenlage im Modell; mycobot_world.urdf.xacro liest sie hier ein.
+  Die MASSE der Schale stehen NICHT hier, sondern in schale.xacro.
+
+  Geschrieben von : tools/schale_finden.py
+  Zuletzt         : 2026-09-12
+  Verfahren       : im Tiefenbild selbst gefunden - oertliche Erhebung als Randfilter,
+                    danach Hough mit FESTEM Radius (beide Boegen stimmen gemeinsam ab),
+                    Mittelpunkt mit Gauss-Newton nachgezogen, Gierwinkel aus einem
+                    45.3-Grad-Fenster ueber der Winkelverteilung.
+
+  Verfahren (4 Ecken geklickt, an Kanten nachgezogen): Schnitt der Sehstrahlen mit der Ebene Oberkante,
+  Form mit festem Radius eingepasst. rms 4.3 mm, Deckung 78%, Flaeche 100%.
+  Kamera /camera/aligned_depth_to_color/image_raw, Plattenhoehe 2.5 mm.
+  Oeffnungswinkel gemessen: 45.80 Grad (Modell 45.3)
+  Nachziehen an 1006 Kantenpunkten: rms 4.2 mm, Deckung 78%, Verschiebung 2.3 mm / 0.32 Grad, Oeffnungswinkel 45.7 Grad (Modell 45.3) | Median aus 5 Frames, Spannweite 0.1/1.8 mm, 0.46 Grad
+
+  Der Ursprung des Frames `schale` ist der MITTELPUNKT des Kreisrings - er liegt
+  neben der Schale, nicht in ihr. z=0 ist der Innenboden, +X die Winkelhalbierende.
+
+  Einschalten: SCHALE_MONTIERT=1 (bzw. schale_montiert:=true).
+  ==========================================================================
+-->
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <!-- robot_base -> schale (Meter / Radiant) -->
+  <xacro:property name="schale_x"   value="-0.051745"/>
+  <xacro:property name="schale_y"   value="0.006456"/>
+  <xacro:property name="schale_z"   value="0.004550"/>
+  <xacro:property name="schale_yaw" value="-0.160972"/>
+
+</robot>

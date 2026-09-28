@@ -1,9 +1,9 @@
-// myCobot 280 JN — Tilt-bewusster Schrauben-PICK (Hover + Bestätigung + paralleler Abstieg + greifen + heben).
+// myCobot 280 JN — Tilt-bewusster Wellen-PICK (Hover + Bestätigung + paralleler Abstieg + greifen + heben).
 //
 // Ablauf (Sitzung 25 Plan — ~/.claude/plans/shimmering-wondering-bachman.md):
-//   home (0) → /vida/target warten (Detector gibt VOLLES Quaternion aus; ohne
+//   home (0) → /welle/ziel warten (Detector gibt VOLLES Quaternion aus; ohne
 //              zuverlässigen Tilt gibt er gar nichts aus → Roboter wartet hier,
-//              Benutzer mischt die Schrauben)
+//              Benutzer mischt die Wellen)
 //   → HOVER: vom Greif-Pose entlang der ANNAEHERUNGSACHSE um approach_height zurück, Greifer in
 //            Greif-Ausrichtung, Finger offen. IK-Fallback: Detector q, sonst q∘Ry(π)
 //            (180° Finger-Flip — Annäherungsachse GLEICH, Griff symmetrisch). Wenn beides scheitert,
@@ -12,8 +12,8 @@
 //   → PARALLELER ABSTIEG: cartesianMove von hover→grasp (Ausrichtung konstant = parallele Annäherung).
 //   → Greifer SCHLIESSEN → senkrechtes LIFT → HALTEN + warten (Ctrl+C). Kein Place.
 //
-// Die /vida/target Orientation des Detectors ist Greif-Frame: tcp +Y = Annäherungsachse.
-// Gerade Schraube → Annäherung ~direkt-nach-unten (top-down); schiefe Schraube → achsenparalleler Abstieg.
+// Die /welle/ziel Orientation des Detectors ist Greif-Frame: tcp +Y = Annäherungsachse.
+// Gerade Welle → Annäherung ~direkt-nach-unten (top-down); schiefe Welle → achsenparalleler Abstieg.
 
 #include <atomic>
 #include <chrono>
@@ -52,10 +52,10 @@ constexpr double JUMP_THRESHOLD  = 5.0;    // >0: Sprung im Gelenk-Raum ABLEHNEN
 constexpr double MIN_FRACTION    = 0.95;   // unter 95% nicht akzeptiert
 constexpr double VEL_SCALE       = 0.20;   // Sicherheit: 20% Geschwindigkeit
 constexpr double ACC_SCALE       = 0.20;
-constexpr double TARGET_WAIT_SEC = 30.0;   // Warten auf das erste /vida/target
+constexpr double TARGET_WAIT_SEC = 30.0;   // Warten auf das erste /welle/ziel
 
 // EXAKT gleiche Reihenfolge wie detection.py CLASS_NAMES (class_id 0..4 = Farbe).
-const std::vector<std::string> CLASS_NAMES{"sari", "beyaz", "siyah", "yesil", "kirmizi"};
+const std::vector<std::string> CLASS_NAMES{"gelb", "weiss", "schwarz", "gruen", "rot"};
 }
 
 // PLACE Ausrichtungs-Kandidaten (gleiche Logik wie goto_clicked_point): Greifer schaut nach unten,
@@ -145,11 +145,14 @@ static bool cartesianMove(
 
 // Greifer DIREKT an den Controller senden (MoveIt collision-aware Plan NICHT verwenden).
 // SRDF: open=0.15, closed=-0.74 (URDF Gelenkbereich [-0.74, 0.15]).
+static constexpr double kGripOpen   =  0.15;   // URDF upper  = ganz auf (100 %)
+static constexpr double kGripClosed = -0.74;   // URDF lower  = ganz zu  (0 %)
+
 static bool setGripper(
     const std::shared_ptr<GripperClient>& client,
-    const std::string& named_state, const rclcpp::Logger& log)
+    double pos, const std::string& label, const rclcpp::Logger& log)
 {
-  const double pos = (named_state == "open") ? 0.15 : -0.74;
+  pos = std::min(std::max(pos, kGripClosed), kGripOpen);
   if (!client->wait_for_action_server(std::chrono::seconds(3))) {
     RCLCPP_ERROR(log, "kein Greifer-Action-Server"); return false;
   }
@@ -170,8 +173,17 @@ static bool setGripper(
     RCLCPP_WARN(log, "Greifer-Ergebnis Zeitueberschreitung (trotzdem weiter)");
   }
   std::this_thread::sleep_for(std::chrono::milliseconds(300));
-  RCLCPP_INFO(log, "Greifer -> %s (pos=%.2f) OK", named_state.c_str(), pos);
+  RCLCPP_INFO(log, "Greifer -> %s (pos=%.2f, ~%.0f %% offen) OK", label.c_str(), pos,
+              (pos - kGripClosed) / (kGripOpen - kGripClosed) * 100.0);
   return true;
+}
+
+// Bequemlichkeit fuer die beiden Endlagen.
+static bool setGripper(
+    const std::shared_ptr<GripperClient>& client,
+    const std::string& named_state, const rclcpp::Logger& log)
+{
+  return setGripper(client, named_state == "open" ? kGripOpen : kGripClosed, named_state, log);
 }
 
 // Zum HOVER planen+gehen: in Greif-Ausrichtung, sonst 180° Finger-Flip. Bei Erfolg wird die gewählte
@@ -264,9 +276,15 @@ int main(int argc, char** argv)
     return node->get_parameter(name).as_double();
   };
   const double approach_height = param_d("approach_height", 0.10);  // 5-10 cm
+  // pregrasp_open: wie weit der Greifer VOR dem Abstieg aufgeht (Gelenkeinheiten,
+  // 0.15 = ganz auf, -0.74 = zu). Liegen mehrere Wellen dicht beieinander, stossen
+  // ganz geoeffnete Finger an die Nachbarn — dann nur so weit oeffnen, wie die Welle
+  // breit ist, plus etwas Luft. Der passende Wert haengt vom Greifer ab und ist am
+  // Objekt auszumessen; 0.15 laesst das bisherige Verhalten unveraendert.
+  const double pregrasp_open   = param_d("pregrasp_open", 0.15);
   const double grasp_z_offset  = param_d("grasp_z_offset", 0.0);
   const double descend_vel     = param_d("descend_vel_scale", 0.10);  // langsamer Abstieg
-  // rapid traverse: Freiraum-Übergänge OHNE Schraubenkontakt (home, hover) mit dieser
+  // rapid traverse: Freiraum-Übergänge OHNE Wellenkontakt (home, hover) mit dieser
   // höheren Geschwindigkeit. Pendant zu CNC G00. Abstieg/greifen/heben NICHT BETROFFEN (bleibt bei
   // descend_vel und VEL_SCALE). Vernünftige Obergrenze für Open-Loop-Brücke + Sicherheit; bei 0 oder
   // gleich VEL_SCALE altes Verhalten (alles 20%).
@@ -280,7 +298,7 @@ int main(int argc, char** argv)
   const bool preview_confirm = param_b("preview_confirm", false);
 
   // --- PLACE (Sortierung nach Farbe) Parameter ---
-  // place_enabled: nach dem Greifen + Rückkehr zu home die Schraube in die ihrer FARBE gehörende Box
+  // place_enabled: nach dem Greifen + Rückkehr zu home die Welle in die ihrer FARBE gehörende Box
   // aus der Luft fallen lassen. Box-Zentren aus dem box_<farbe> Parameter (box_map.yaml, teach_boxes.py).
   const bool   place_enabled      = param_b("place_enabled", true);
   // place_hover_z / place_drop_z: ABSOLUTES z über der Box (robot_base, m). Da die Boxen
@@ -305,17 +323,17 @@ int main(int argc, char** argv)
   auto marker_pub = node->create_publisher<Marker>(
       "/approach/target_marker", rclcpp::QoS(1).transient_local());
 
-  // --- /vida/target (VOLLE Pose: Position + Greif-Ausrichtung) ---
+  // --- /welle/ziel (VOLLE Pose: Position + Greif-Ausrichtung) ---
   PoseStamped target_msg;
   std::atomic<bool> have_target{false};
   auto target_sub = node->create_subscription<PoseStamped>(
-      "/vida/target", rclcpp::QoS(1),
+      "/welle/ziel", rclcpp::QoS(1),
       [&](PoseStamped::SharedPtr m) { target_msg = *m; have_target = true; });
 
-  // --- /vida/target_color (Farbklasse der gegriffenen Schraube, synchron mit /vida/target) ---
+  // --- /welle/ziel_farbe (Farbklasse der gegriffenen Welle, synchron mit /welle/ziel) ---
   std::atomic<int> latched_color{-1};
   auto color_sub = node->create_subscription<std_msgs::msg::Int32>(
-      "/vida/target_color", rclcpp::QoS(1),
+      "/welle/ziel_farbe", rclcpp::QoS(1),
       [&](std_msgs::msg::Int32::SharedPtr m) { latched_color = m->data; });
 
   // --- /pick/confirm (Bestätigung im Hover) ---
@@ -367,22 +385,26 @@ int main(int argc, char** argv)
     }
   }
 
-  RCLCPP_INFO(log, ">> Greifer oeffnen (pre-grasp)");
-  setGripper(gripper_client, "open", log);
+  // Bei home bleibt der Greifer ZU. Offene Finger stehen in der Nullstellung direkt
+  // unter der Kamera, verdecken die Arbeitsflaeche und werden vom Detektor sogar selbst
+  // als Welle erkannt (2026-09-09 gemessen: conf 0.87-0.91). Geoeffnet wird erst oben
+  // ueber der Welle, im Hover.
+  RCLCPP_INFO(log, ">> Greifer schliessen (bei home zu — freie Kamerasicht)");
+  setGripper(gripper_client, "closed", log);
 
   // --- Auf erstes Ziel warten (UNBEGRENZT) ---
-  // Wenn der Detector keinen zuverlässigen Tilt findet, kommt /vida/target nie → Roboter wartet bei home,
-  // Benutzer mischt die Schrauben. Bei gewünschtem Beenden Ctrl+C. (TARGET_WAIT_SEC ist nur
+  // Wenn der Detector keinen zuverlässigen Tilt findet, kommt /welle/ziel nie → Roboter wartet bei home,
+  // Benutzer mischt die Wellen. Bei gewünschtem Beenden Ctrl+C. (TARGET_WAIT_SEC ist nur
   // die Periode der "noch nicht gekommen" Warnung.)
-  RCLCPP_INFO(log, "warte auf /vida/target — Detector muss ZUVERLAESSIGEN Tilt finden "
-                   "(sonst gibt er nichts aus). Wenn kein Ziel, Schrauben mischen. Ctrl+C = Beenden.");
+  RCLCPP_INFO(log, "warte auf /welle/ziel — Detector muss ZUVERLAESSIGEN Tilt finden "
+                   "(sonst gibt er nichts aus). Wenn kein Ziel, Wellen mischen. Ctrl+C = Beenden.");
   {
     auto t0 = node->now();
     while (rclcpp::ok() && !have_target) {
       std::this_thread::sleep_for(std::chrono::milliseconds(100));
       if ((node->now() - t0).seconds() >= TARGET_WAIT_SEC) {
-        RCLCPP_WARN(log, "immer noch kein /vida/target — ist Detector/Kamera an? "
-                    "fuer zuverlaessigen Tilt Schrauben deutlich schraeg legen/mischen.");
+        RCLCPP_WARN(log, "immer noch kein /welle/ziel — ist Detector/Kamera an? "
+                    "fuer zuverlaessigen Tilt Wellen deutlich schraeg legen/mischen.");
         t0 = node->now();
       }
     }
@@ -420,7 +442,7 @@ int main(int argc, char** argv)
     geometry_msgs::msg::Quaternion chosen;
     if (!moveToHover(arm, hover, grasp.orientation, log, chosen, gate)) {
       ++hover_fails;
-      RCLCPP_WARN(log, "⚠ Ziel UNERREICHBAR (r=%.0fmm, %d. in Folge). Schraube NAEHER an den Roboter "
+      RCLCPP_WARN(log, "⚠ Ziel UNERREICHBAR (r=%.0fmm, %d. in Folge). Welle NAEHER an den Roboter "
                   "legen (GRUENER Kreis in der Kamera). In 5s erneut mit AKTUELLSTEM Ziel...",
                   r, hover_fails);
       if (hover_fails % 5 == 0) {
@@ -434,6 +456,12 @@ int main(int argc, char** argv)
     hover_fails = 0;
     color_at_pick = latched_color.load();   // Farbe dieses Ziels einfrieren (PLACE nutzt das)
     grasp.orientation = chosen;   // descend GLEICHE Ausrichtung = paralleler Abstieg
+
+    // Erst JETZT oeffnen: der Greifer steht ueber der Welle, der Abstieg kommt als
+    // naechstes. Nur so weit wie noetig (pregrasp_open) — in einer vollen Schale
+    // schieben ganz geoeffnete Finger die Nachbarwellen beiseite.
+    RCLCPP_INFO(log, ">> Greifer oeffnen (pre-grasp, im Hover)");
+    setGripper(gripper_client, pregrasp_open, "pre-grasp", log);
 
     // --- SCHRITT 3: im HOVER auf Bestätigung warten — NUR wenn preview_confirm AUS ist.
     // wenn preview_confirm an ist, wurde hover bereits über gate bestätigt, und der Abstieg unten
@@ -462,7 +490,7 @@ int main(int argc, char** argv)
       RCLCPP_ERROR(log, "Abstieg fehlgeschlagen (%d/3) — zu home zurueck, erneut versuchen", descend_fails);
       arm.setNamedTarget("home"); arm.move();
       if (descend_fails >= 3) {
-        RCLCPP_FATAL(log, "3 Abstiegs-Fehlschlaege — AUFGEGEBEN. Schraube/Szene anpassen und "
+        RCLCPP_FATAL(log, "3 Abstiegs-Fehlschlaege — AUFGEGEBEN. Welle/Szene anpassen und "
                      "Skript neu starten.");
         break;
       }
@@ -474,11 +502,11 @@ int main(int argc, char** argv)
     setGripper(gripper_client, "closed", log);
 
     // --- SCHRITT 5b: GREIF-BESTAETIGUNG (VOR dem Heben warten) ---
-    // Der Roboter STEHT mit gehaltener Schraube im Greif-Pose; der Benutzer prüft per Kamera, ob die Schraube
+    // Der Roboter STEHT mit gehaltener Welle im Greif-Pose; der Benutzer prüft per Kamera, ob die Welle
     // wirklich gegriffen wurde, und lässt sie bei korrekt mit 'g' (/pick/confirm)
     // heben. Wenn nicht gegriffen, Ctrl+C (hebt nicht). Dies ist die zweite, separate Bestätigung.
     confirmed = false;
-    RCLCPP_INFO(log, ">> SCHRITT 5b: warte auf GREIF-Bestaetigung — wurde die Schraube gehalten? "
+    RCLCPP_INFO(log, ">> SCHRITT 5b: warte auf GREIF-Bestaetigung — wurde die Welle gehalten? "
                 "in cam_viewer 'g' = heben. Wenn nicht gegriffen, Ctrl+C.");
     while (rclcpp::ok() && !confirmed) {
       marker_pub->publish(makeTargetMarker(grasp.position));
@@ -493,10 +521,10 @@ int main(int argc, char** argv)
       RCLCPP_WARN(log, "Heben cartesian unvollstaendig/abgebrochen — trotzdem weiter halten");
     }
 
-    // --- SCHRITT 7: Schraube HALTEND DIREKT + SCHNELL zum Null-(home-)Punkt zurück (rabbit) ---
-    // Freiraum, kein Schraubenkontakt → KEINE Bestätigung/Vorschau, direkt mit rapid Geschwindigkeit.
+    // --- SCHRITT 7: Welle HALTEND DIREKT + SCHNELL zum Null-(home-)Punkt zurück (rabbit) ---
+    // Freiraum, kein Wellenkontakt → KEINE Bestätigung/Vorschau, direkt mit rapid Geschwindigkeit.
     // (Bei langsamer Fahrt zittern die Servos durch stick-slip; schnell = glatt.)
-    RCLCPP_INFO(log, ">> SCHRITT 7: Schraube wird gehalten — schnell zum NULL-(home-)Punkt zurueck (%.0f%%)",
+    RCLCPP_INFO(log, ">> SCHRITT 7: Welle wird gehalten — schnell zum NULL-(home-)Punkt zurueck (%.0f%%)",
                 rapid_vel * 100.0);
     arm.setMaxVelocityScalingFactor(rapid_vel);
     arm.setMaxAccelerationScalingFactor(rapid_vel);
@@ -506,12 +534,12 @@ int main(int argc, char** argv)
       if (arm.plan(home_plan) == moveit::planning_interface::MoveItErrorCode::SUCCESS) {
         arm.execute(home_plan);   // direkt — kein gate
       } else {
-        RCLCPP_WARN(log, "Rueckkehr zu Null nicht planbar — Schraube wird im Greif-Pose gehalten");
+        RCLCPP_WARN(log, "Rueckkehr zu Null nicht planbar — Welle wird im Greif-Pose gehalten");
       }
     }
-    RCLCPP_INFO(log, "✓ Schraube gegriffen, am NULL-Punkt — jetzt PLACE (Box nach Farbe).");
+    RCLCPP_INFO(log, "✓ Welle gegriffen, am NULL-Punkt — jetzt PLACE (Box nach Farbe).");
 
-    // --- SCHRITT 8: PLACE — Schraube über die ihrer FARBE gehörende Box bringen, aus der Luft fallen lassen ---
+    // --- SCHRITT 8: PLACE — Welle über die ihrer FARBE gehörende Box bringen, aus der Luft fallen lassen ---
     // Farbe = das beim Pick eingefrorene color_at_pick. Box-Zentrum = box_<farbe> (teach).
     // "Aus der Luft fallen lassen": kein senkrechtes Drehen/in-Loch-Setzen — über die Box absteigen, Greifer öffnen.
     const std::string color_name =
@@ -522,17 +550,17 @@ int main(int argc, char** argv)
                            !box_xyz[color_at_pick].empty());
 
     if (!place_enabled) {
-      RCLCPP_INFO(log, "place_enabled=false — Schraube wird bei NULL gehalten (Ctrl+C).");
+      RCLCPP_INFO(log, "place_enabled=false — Welle wird bei NULL gehalten (Ctrl+C).");
     } else if (!have_box) {
       RCLCPP_WARN(log, "⚠ PLACE uebersprungen: keine Box fuer Farbe='%s' (id=%d). "
-                  "Wurde box_map.yaml eingelernt (teach_boxes.py)? Schraube wird bei NULL gehalten.",
+                  "Wurde box_map.yaml eingelernt (teach_boxes.py)? Welle wird bei NULL gehalten.",
                   color_name.c_str(), color_at_pick);
     } else {
       const auto& b = box_xyz[color_at_pick];
       RCLCPP_INFO(log, ">> SCHRITT 8: PLACE — Box der Farbe='%s' (x=%.3f y=%.3f z=%.3f)",
                   color_name.c_str(), b[0], b[1], b[2]);
 
-      // HOVER über der Box (Freiraum, Schraube in der Luft → rapid). ABSOLUTES z, yaw+tilt-Suche
+      // HOVER über der Box (Freiraum, Welle in der Luft → rapid). ABSOLUTES z, yaw+tilt-Suche
       // (Boxen an der Reichweitengrenze → top-down nicht lösbar, schräge Ausrichtung nötig).
       arm.setMaxVelocityScalingFactor(rapid_vel);
       arm.setMaxAccelerationScalingFactor(rapid_vel);
@@ -546,7 +574,7 @@ int main(int argc, char** argv)
       const auto place_cands = placeOrientations(b[0], b[1]);
       geometry_msgs::msg::Quaternion place_q;
       if (!moveToHoverCands(arm, place_hover, place_cands, log, place_q, gate, "place-hover")) {
-        RCLCPP_WARN(log, "⚠ keine IK ueber der Box (kein yaw/tilt) — Schraube wird gehalten, zu NULL zurueck.");
+        RCLCPP_WARN(log, "⚠ keine IK ueber der Box (kein yaw/tilt) — Welle wird gehalten, zu NULL zurueck.");
         arm.setNamedTarget("home"); arm.move();
       } else {
         // Kurzer Abstieg in die Box hinein (noch in der Luft, kein Kontakt) — kontrollierte Geschwindigkeit.
@@ -560,8 +588,8 @@ int main(int argc, char** argv)
           drop = place_hover;   // aus der Hover-Höhe ablegen
         }
 
-        // ABLEGEN: Greifer öffnen → Schraube fällt in die Box.
-        RCLCPP_INFO(log, ">> SCHRITT 8b: Greifer oeffnen — Schraube wird in Box '%s' abgelegt",
+        // ABLEGEN: Greifer öffnen → Welle fällt in die Box.
+        RCLCPP_INFO(log, ">> SCHRITT 8b: Greifer oeffnen — Welle wird in Box '%s' abgelegt",
                     color_name.c_str());
         setGripper(gripper_client, "open", log);
 
@@ -582,7 +610,7 @@ int main(int argc, char** argv)
       if (arm.plan(home_plan) == moveit::planning_interface::MoveItErrorCode::SUCCESS)
         arm.execute(home_plan);
     }
-    RCLCPP_INFO(log, "✅ FERTIG — Schraube in Box '%s' abgelegt, Roboter bei NULL (Ctrl+C).",
+    RCLCPP_INFO(log, "✅ FERTIG — Welle in Box '%s' abgelegt, Roboter bei NULL (Ctrl+C).",
                 color_name.c_str());
     picked = true;
   }

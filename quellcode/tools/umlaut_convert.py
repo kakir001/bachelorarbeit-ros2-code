@@ -1,17 +1,17 @@
 #!/usr/bin/env python3
-"""Yorum/docstring-kapsamlı ASCII-Almanca -> gerçek umlaut dönüştürücü.
-String literal'lere DOKUNMAZ (cv2 metinleri + grep kontratı korunur).
-Kullanım: umlaut.py [--apply]   (varsayılan: dry-run)
+"""Wandelt ASCII-Deutsch in echte Umlaute um - nur in Kommentaren und Docstrings.
+String-Literale bleiben UNANGETASTET (cv2-Texte und der grep-Vertrag bleiben erhalten).
+Aufruf: umlaut.py [--apply]   (Vorgabe: Probelauf ohne Schreiben)
 """
 import os, re, sys, io, tokenize, ast, glob, collections
 
 APPLY = '--apply' in sys.argv
 ROOT = os.path.expanduser('~/ros2_ws')
 OUR = ['src/mycobot_calibration','src/mycobot_world','src/mycobot_hardware',
-       'src/mycobot_demo','src/mycobot_moveit_config','src/vida_vision']
+       'src/mycobot_demo','src/mycobot_moveit_config','src/wellenerkennung']
 VOWELS=set('aeiouäöüAEIOU')
 
-# --- ß + özel tam-kelime dönüşümleri (elle onaylı) ---
+# --- ß und einzeln gepruefte Ganzwort-Umwandlungen (von Hand bestaetigt) ---
 FORCE = {
  'gross':'groß','grosse':'große','grosses':'großes','Grosser':'Großer','grossteils':'großteils',
  'groesste':'größte','groesstem':'größtem','groessten':'größten','groesster':'größter',
@@ -36,12 +36,12 @@ FORCE = {
  'gleichmaessig':'gleichmäßig','gleichmaessiger':'gleichmäßiger',
  'erfahrungsgemaess':'erfahrungsgemäß','Standardmaessig':'Standardmäßig',
  'Muell':'Müll',
- 'zuruueckprojizieren':'zurückprojizieren',  # önceden var olan yazım hatası (uue) düzeltildi
+ 'zuruueckprojizieren':'zurückprojizieren',  # vorhandener Schreibfehler (uue) mitkorrigiert
 }
-# İngilizce/özel-ad/zuerst — hiç değişmez
+# Englisch, Eigennamen, zuerst - bleibt unveraendert
 KEEP = {'true','True','value','values','Daemon-Thread','Rodrigues','Rodrigues-Rotationsvektor',
  'Rodrigues-Umformung','Shoemake','Verzeichnungskoeffizienten','zuerst','Zuerst'}
-# -uell Latince sıfat/zarf — ue korunur (füllen DEĞİL)
+# -uell, lateinische Adjektive und Adverbien - ue bleibt (NICHT fuellen)
 UELL_SKIP = {'aktuell','aktuelle','aktuellem','aktuellen','aktueller','aktuelles','aktuellste','aktuellstes',
  'Aktuelle','Aktuellen','manuell','manuellen','visuell','visuelle','visuellen'}
 
@@ -63,7 +63,7 @@ def rule(w):
 CHANGES = collections.Counter()
 def conv_word(w):
     if w in FORCE: new=FORCE[w]
-    elif w in KEEP or w in UELL_SKIP or w.isupper(): new=w   # UPPERCASE=UI-literal referansı, atla
+    elif w in KEEP or w in UELL_SKIP or w.isupper(): new=w   # GROSSSCHREIBUNG = Verweis auf ein UI-Literal, ueberspringen
     else: new=rule(w)
     if new!=w: CHANGES[(w,new)]+=1
     return new
@@ -82,7 +82,7 @@ def process_py(src):
         toks=list(tokenize.generate_tokens(io.StringIO(src).readline))
     except Exception as e:
         return src, False
-    # docstring string token'larını bul (Module/Class/Func ilk ifade)
+    # Docstring-Token finden (erste Anweisung in Modul, Klasse oder Funktion)
     doc_positions=set()
     try:
         tree=ast.parse(src)
@@ -108,7 +108,7 @@ def process_py(src):
     out.append(src[last:])
     return ''.join(out), changed
 
-# ---------- .sh: tam-satır # yorumları ----------
+# ---------- .sh: Kommentarzeilen, die ganz mit # beginnen ----------
 def process_sh(src):
     res=[]; changed=False
     for line in src.splitlines(keepends=True):
@@ -120,7 +120,7 @@ def process_sh(src):
             res.append(line)
     return ''.join(res), changed
 
-# ---------- .yaml: satır-başı ya da boşluk-sonrası # ----------
+# ---------- .yaml: # am Zeilenanfang oder nach Leerraum ----------
 def process_yaml(src):
     res=[]; changed=False
     for line in src.splitlines(keepends=True):
@@ -136,7 +136,7 @@ def process_yaml(src):
             res.append(line)
     return ''.join(res), changed
 
-# ---------- .cpp: // ve /* */ yorumları ----------
+# ---------- .cpp: Kommentare // und /* */ ----------
 def process_cpp(src):
     out=[]; i=0; n=len(src); changed=False
     while i<n:
@@ -202,7 +202,7 @@ for p in sorted(set(files)):
         if APPLY:
             open(p,'w',encoding='utf-8').write(new)
 
-print(f"{'UYGULANDI' if APPLY else 'DRY-RUN'}: {len(changed_files)} dosya değiş(ecek/ti), {len(CHANGES)} benzersiz kelime dönüşümü, toplam {sum(CHANGES.values())} yerde")
-print("=== benzersiz dönüşümler (alfabetik) ===")
+print(f"{'ANGEWENDET' if APPLY else 'PROBELAUF'}: {len(changed_files)} Datei(en) betroffen, {len(CHANGES)} verschiedene Woerter, insgesamt {sum(CHANGES.values())} Stellen")
+print("=== verschiedene Umwandlungen (alphabetisch) ===")
 for (w,new),c in sorted(CHANGES.items()):
     print(f"{c:4d}  {w}  ->  {new}")

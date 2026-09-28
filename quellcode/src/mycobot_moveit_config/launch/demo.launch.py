@@ -32,6 +32,60 @@ from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
 from moveit_configs_utils import MoveItConfigsBuilder
 
 
+def _schale_montiert() -> str:
+    """Bereitstellungsschale im Modell? Quelle ist die Umgebung (SCHALE_MONTIERT).
+
+    Die Schale ist ein Kreisringausschnitt (39.9 Grad, R 186.9..301.9 mm, Wand 2 mm,
+    Wandhoehe 17 mm). Sie steht als Kollisionskoerper im Modell, damit MoveIt Griffe
+    dicht am Schalenrand von selbst verwirft, statt Erfolg zu melden und die Finger
+    an die Wand zu fahren.
+
+    Default "false" = xacro-Default. Solange die LAGE der Schale nicht gemessen ist
+    (tools/schale_pose_klicken.py schreibt sie nach urdf/schale_pose.xacro), waere sie
+    ein Kollisionskasten an der falschen Stelle - und der ist schlimmer als gar keiner,
+    weil MoveIt dann gueltige Griffe stillschweigend verwirft. Akzeptiert 0/1/false/true.
+    """
+    v = os.environ.get("SCHALE_MONTIERT", "false").strip().lower()
+    return "true" if v in ("1", "true", "yes", "ja", "on") else "false"
+
+
+def _trichter_montiert() -> str:
+    """Trichter im Modell? Quelle ist die Umgebung (TRICHTER_MONTIERT).
+
+    Schraeger Hohlkegel mit Auslaufrohr und Fussplatte (mycobot_world/urdf/trichter.xacro).
+    Am 2026-09-10 hat sich der Greifer am Trichter verbogen, weil er im Modell fehlte;
+    mit ihm verwirft MoveIt Stellungen, die in den Kegel fahren.
+
+    Default "false" = xacro-Default, solange die Neigungsrichtung (yaw in
+    urdf/trichter_pose.xacro) nicht gemessen ist - ein Kegel, der nach der falschen Seite
+    kippt, ist schlimmer als keiner. Akzeptiert 0/1/false/true wie SCHALE_MONTIERT.
+    """
+    v = os.environ.get("TRICHTER_MONTIERT", "false").strip().lower()
+    return "true" if v in ("1", "true", "yes", "ja", "on") else "false"
+
+
+def _ablageplatte_montiert() -> str:
+    """Ablageplatte (5x4 Nester) im Modell? Umgebung ABLAGEPLATTE_MONTIERT, Default "true":
+    die Platte ist seit 2026-09-11 festgeklebt, Lage aus den angelernten Nestern
+    (tools/ablageplatte_modell.py -> urdf/ablageplatte_pose.xacro). 0 zum Abschalten."""
+    v = os.environ.get("ABLAGEPLATTE_MONTIERT", "true").strip().lower()
+    return "true" if v in ("1", "true", "yes", "ja", "on") else "false"
+
+
+def _charuco_montiert() -> str:
+    """ChArUco-Platte im Modell? Quelle ist die Umgebung (CHARUCO_MONTIERT).
+
+    Die Platte sitzt nur waehrend der Hand-Auge-Kalibrierung am Greifer. Ist sie
+    abgeschraubt, muss sie auch aus dem Modell verschwinden - sonst plant MoveIt um
+    einen Kollisionskasten herum, den es gar nicht mehr gibt, und jeder Greifversuch
+    scheitert, ohne dass eine Fehlermeldung darauf hinweist.
+
+    Default "true" = xacro-Default (Kalibrieraufbau). Akzeptiert 0/1/false/true.
+    """
+    v = os.environ.get("CHARUCO_MONTIERT", "false").strip().lower()  # 2026-09-14: Platte abgeschraubt -> Default AUS
+    return "false" if v in ("0", "false", "no", "nein", "off") else "true"
+
+
 def generate_launch_description():
     # MoveItConfigsBuilder Galactic: robot_name="mycobot" → mycobot_moveit_config Paket
     world_share = get_package_share_directory("mycobot_world")
@@ -43,6 +97,7 @@ def generate_launch_description():
     # Default: echter Roboter. "sim" mode → use_fake_hardware=true.
     use_fake_hw = os.environ.get("USE_FAKE_HARDWARE", "false")
     robot_port = os.environ.get("MYCOBOT_PORT", "/dev/ttyTHS1")
+    charuco = _charuco_montiert()
 
     # MoveItConfigsBuilder bündelt die gesamte MoveIt-Konfiguration aus den YAML-/SRDF-Dateien
     # des Pakets zu einem Objekt, das anschließend an move_group und RViz weitergereicht wird.
@@ -55,6 +110,10 @@ def generate_launch_description():
             mappings={
                 "use_fake_hardware": use_fake_hw,
                 "robot_port": robot_port,
+                "charuco_montiert": charuco,
+                "schale_montiert": _schale_montiert(),
+                "trichter_montiert": _trichter_montiert(),
+                "ablageplatte_montiert": _ablageplatte_montiert(),
             },
         )
         # SRDF: semantische Beschreibung (Planungsgruppen "arm"/"gripper", disable_collisions).
@@ -165,7 +224,7 @@ def generate_launch_description():
             moveit_config.planning_pipelines,
         ],
         # use_rviz:=false → ohne RViz laufen, um RAM-Thrashing auf dem Jetson Nano zu
-        # vermeiden (Schrauben-Verifikation mit joint_pose_gui + tf2_echo benötigt kein RViz).
+        # vermeiden (Wellen-Verifikation mit joint_pose_gui + tf2_echo benötigt kein RViz).
         condition=IfCondition(LaunchConfiguration("use_rviz")),
     )
 
@@ -174,6 +233,28 @@ def generate_launch_description():
     # Kommando-Socket des seriellen Bridge-Prozesses weiter. Nur bei ECHTER Hardware
     # sinnvoll (fake hardware startet keinen Bridge); der Bridge stoppt dann sofort
     # jede Bewegung (mc.stop, Drehmoment bleibt) und blockiert weitere Kommandos.
+    # arbeitsraum_marker: zeichnet die GEMESSENE Reichweitengrenze (aussen, innen und
+    # den Totsektor von Gelenk 1) als gelatchte Marker auf /arbeitsraum/grenzen.
+    # Bewusst NICHT im URDF: es ist eine Messung, kein Bauteil — im Kollisionsmodell
+    # wuerde MoveIt an ihr planen. Als Marker laesst sie sich in RViz zuschalten.
+    # Quelle: mycobot_world/config/arbeitsraum_ring.json (tools/arbeitsraum_grenze.py).
+    arbeitsraum_marker_node = Node(
+        package="mycobot_world",
+        executable="arbeitsraum_marker.py",
+        name="arbeitsraum_marker",
+        output="screen",
+    )
+
+    # arbeitsraum_wolke: Punktwolke der D435i auf den Kasten ueber der Kaiser-Grundplatte
+    # beschneiden -> /camera/arbeitsraum/points (RViz-DepthCloud zeigt nur den Arbeitsraum).
+    arbeitsraum_wolke_node = Node(
+        package="mycobot_world",
+        executable="arbeitsraum_wolke.py",
+        name="arbeitsraum_wolke",
+        output="screen",
+        condition=IfCondition(LaunchConfiguration("use_camera")),
+    )
+
     estop_relay_node = Node(
         package="mycobot_hardware",
         executable="estop_relay.py",
@@ -195,13 +276,16 @@ def generate_launch_description():
         launch_arguments={
             # pointcloud/align_depth: Punktwolke + zum Farbbild ausgerichtete Tiefe — nötig,
             # damit die Vision-Pipeline aus 2D-Detektionen 3D-Greifpunkte ableiten kann.
-            "pointcloud.enable": "true",
+            # 2026-09-12: beides per Launch-Argument, weil die Kamera-Messwerkzeuge
+            # (schale_finden_kontur.py, punkt_klicken.py) 848x480 brauchen (1 mm/px statt 2)
+            # und der Nano das nur OHNE PointCloud traegt. start_mycobot.sh: KAMERA_PROFIL=848.
+            "pointcloud.enable": LaunchConfiguration("pointcloud"),
             "align_depth.enable": "true",
             # 424x240x15: bewusst niedrige Auflösung/Framerate. Auf dem Jetson Nano führt die
             # volle Auflösung zu "Out of frame resources" bzw. RAM-/USB-Sättigung; 424x240@15
-            # ist das getestete stabile Profil für den kompletten Stack.
-            "depth_module.profile": "424x240x15",
-            "rgb_camera.profile": "424x240x15",
+            # ist das getestete stabile Profil für den kompletten Stack (mit PointCloud).
+            "depth_module.profile": LaunchConfiguration("camera_profile"),
+            "rgb_camera.profile": LaunchConfiguration("camera_profile"),
             # Infrarot-, Gyro- und Accel-Streams sind für diese Anwendung ungenutzt und
             # werden abgeschaltet, um USB-Bandbreite und CPU zu sparen.
             "enable_infra1": "false",
@@ -228,6 +312,16 @@ def generate_launch_description():
             description="true → RealSense D435i Kamera-Node mit starten",
         ),
         DeclareLaunchArgument(
+            "camera_profile",
+            default_value="424x240x15",
+            description="RealSense Farb- UND Tiefenprofil (gleich halten!); 848x480x15 zum Einmessen",
+        ),
+        DeclareLaunchArgument(
+            "pointcloud",
+            default_value="true",
+            description="false → keine PointCloud (noetig bei 848x480 auf dem Nano)",
+        ),
+        DeclareLaunchArgument(
             "use_rviz",
             default_value="true",
             description="false → RViz nicht starten (Jetson Nano RAM-Ersparnis)",
@@ -247,6 +341,8 @@ def generate_launch_description():
         move_group_node,
         rviz_node,
         realsense_launch,
+        arbeitsraum_marker_node,
+        arbeitsraum_wolke_node,
     ]
     # NOT-AUS-Relay nur bei echter Hardware anhängen (Python-Bedingung statt
     # IfCondition, weil die Hardware-Auswahl per Umgebungsvariable erfolgt).

@@ -1,0 +1,98 @@
+<?xml version="1.0"?>
+<!--
+  ================== ABLAGEPLATTE (Kollisionsmodell) ==================
+  5 Zeilen x 4 Spalten Nester, in die die Wellen senkrecht gestellt werden.
+  Am Bauteil gemessen 2026-09-10 (Benutzer; die Zeichnung in der BA ist falsch):
+      Platte           94 x 78 mm, 1 mm dick   (5x12 + 4x5 + 2x7 = 94 ; 4x12 + 3x5 + 2x7.5 = 78)
+      Nestboss         Ø 12 aussen, Ø 8 innen, 6 mm hoch  -> Oberkante 7 mm ueber der Grundplatte
+      Raster           18.3 mm (Massband 13.9.; vorher '17' notiert)
+  Die LAGE und die Bossmitten kommen aus ablageplatte_pose.xacro (erzeugt von
+  tools/ablageplatte_modell.py aus den angelernten Nestern - Modellraum des Roboters).
+  Der Plattenkasten ist das umschliessende Rechteck der Bosse + 7 mm Rand + 3 mm Zuschlag.
+  Bosse als volle Zylinder (die Bohrung Ø 8 ist fuer die Kollision egal: dort steht nur
+  die Welle). Beim Ablegen stehen die Fingerspitzen >= 30 mm ueber den Bossen (Nestpunkt
+  z ~55 im Modell, Ablage -20, Tastprobe -6).
+  Kollision: alles in EINEM Link (eine Zeile in der SRDF-Kollisionsmatrix); die FARBIGEN Bosse sind
+  eigene, kollisionslose Links (RViz-Farbfehler, s. Makro ablageplatte_boss).
+  ==============================================================================
+-->
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+  <material name="ablageplatte_farbe"><color rgba="0.12 0.12 0.12 0.9"/></material>
+  <!-- Wellenfarben (farbplan.json): Boss = Koerperfarbe der Welle, die hierher gehoert,
+       zwei duenne Ringe = Streifenfarbe (Benutzerwunsch 2026-09-13: Zuordnung im Modell sichtbar) -->
+  <!-- 2026-09-14: RViz (Galactic) zeigte alle Bosse SCHWARZ, wenn die Farbe nur ueber den Materialnamen
+       referenziert wird -> die rgba steht jetzt in JEDEM visual inline (Dict, per xacro). -->
+  <xacro:property name="welle_rgba" value="${dict(schwarz='0.05 0.05 0.05 1.0', gelb='1.00 0.85 0.00 1.0', weiss='0.95 0.95 0.95 1.0',
+                                                   gruen='0.20 0.60 0.10 1.0', rot='0.85 0.05 0.05 1.0')}"/>
+  <xacro:property name="welle_rgba_leer" value="0.12 0.12 0.12 0.9"/>
+
+  <xacro:property name="ablageplatte_dicke"    value="0.001"/>
+  <xacro:property name="ablageplatte_boss_r"   value="0.006"/>
+  <xacro:property name="ablageplatte_boss_h"   value="0.006"/>
+  <xacro:property name="ablageplatte_ring_h"   value="0.0008"/>
+
+  <!-- Ein Boss. Zwei Betriebsarten ueber die Property boss_modus:
+         'kollision' (Default, im Link ablageplatte): nur der Kollisionszylinder - alle Bosse bleiben EIN Link
+                     (eine Zeile in der SRDF-Kollisionsmatrix);
+         'links'    : eigener Link je Boss (fest an ablageplatte) NUR mit den sichtbaren Zylindern.
+       Warum getrennt: RViz (Galactic) zeichnet alle visuals EINES Links in der Farbe des ersten
+       (14.9.: alle Bosse schwarz, obwohl jedes visual seine rgba hatte). Farbe pro Link klappt. -->
+  <xacro:property name="boss_modus" value="kollision"/>
+  <xacro:macro name="ablageplatte_boss" params="name x y koerper:='-' streifen:='-'">
+    <xacro:if value="${boss_modus == 'kollision'}">
+      <collision>
+        <origin xyz="${x} ${y} ${ablageplatte_dicke + ablageplatte_boss_h / 2.0}" rpy="0 0 0"/>
+        <geometry><cylinder radius="${ablageplatte_boss_r}" length="${ablageplatte_boss_h}"/></geometry>
+      </collision>
+    </xacro:if>
+    <xacro:if value="${boss_modus == 'links'}">
+      <link name="boss_${name}">
+        <visual>
+          <origin xyz="0 0 ${ablageplatte_dicke + ablageplatte_boss_h / 2.0}" rpy="0 0 0"/>
+          <geometry><cylinder radius="${ablageplatte_boss_r}" length="${ablageplatte_boss_h}"/></geometry>
+          <material name="boss_${name}_koerper"><color rgba="${welle_rgba[koerper] if koerper in welle_rgba else welle_rgba_leer}"/></material>
+        </visual>
+      </link>
+      <joint name="ablageplatte_to_boss_${name}" type="fixed">
+        <parent link="ablageplatte"/><child link="boss_${name}"/><origin xyz="${x} ${y} 0" rpy="0 0 0"/>
+      </joint>
+      <xacro:unless value="${streifen == '-'}">
+        <link name="boss_${name}_ringe">
+          <visual>
+            <origin xyz="0 0 ${ablageplatte_dicke + ablageplatte_boss_h * 0.35}" rpy="0 0 0"/>
+            <geometry><cylinder radius="${ablageplatte_boss_r + 0.0004}" length="${ablageplatte_ring_h}"/></geometry>
+            <material name="boss_${name}_streifen"><color rgba="${welle_rgba[streifen] if streifen in welle_rgba else welle_rgba_leer}"/></material>
+          </visual>
+          <visual>
+            <origin xyz="0 0 ${ablageplatte_dicke + ablageplatte_boss_h * 0.65}" rpy="0 0 0"/>
+            <geometry><cylinder radius="${ablageplatte_boss_r + 0.0004}" length="${ablageplatte_ring_h}"/></geometry>
+            <material name="boss_${name}_streifen"><color rgba="${welle_rgba[streifen] if streifen in welle_rgba else welle_rgba_leer}"/></material>
+          </visual>
+        </link>
+        <joint name="ablageplatte_to_boss_${name}_ringe" type="fixed">
+          <parent link="ablageplatte"/><child link="boss_${name}_ringe"/><origin xyz="${x} ${y} 0" rpy="0 0 0"/>
+        </joint>
+      </xacro:unless>
+    </xacro:if>
+  </xacro:macro>
+
+  <!-- Farbige Boss-Links: auf Robot-Ebene NACH dem Link ablageplatte aufrufen. -->
+  <xacro:macro name="ablageplatte_boss_links">
+    <xacro:property name="boss_modus" value="links"/>
+    <xacro:ablageplatte_bosse/>
+    <xacro:property name="boss_modus" value="kollision"/>
+  </xacro:macro>
+
+  <xacro:macro name="ablageplatte_koerper" params="laenge_x laenge_y">
+    <visual>
+      <origin xyz="0 0 ${ablageplatte_dicke / 2.0}" rpy="0 0 0"/>
+      <geometry><box size="${laenge_x} ${laenge_y} ${ablageplatte_dicke}"/></geometry>
+      <material name="ablageplatte_platte_farbe"><color rgba="0.12 0.12 0.12 0.9"/></material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 ${ablageplatte_dicke / 2.0}" rpy="0 0 0"/>
+      <geometry><box size="${laenge_x} ${laenge_y} ${ablageplatte_dicke}"/></geometry>
+    </collision>
+    <xacro:ablageplatte_bosse/>
+  </xacro:macro>
+</robot>

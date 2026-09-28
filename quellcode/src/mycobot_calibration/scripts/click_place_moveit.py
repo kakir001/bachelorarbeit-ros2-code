@@ -14,10 +14,10 @@ Einrichtung:
 
 Mouse: Links = Ablage-Punkt   Rechts = löschen
 Keys:
-  O / C = Greifer auf / zu (Schraube waagerecht laden, mit C greifen)
-  P     = PLANEN: Schraube-senkrecht Pose -> kollisionsfreier Weg -> RViz-Vorschau
+  O / C = Greifer auf / zu (Welle waagerecht laden, mit C greifen)
+  P     = PLANEN: Welle-senkrecht Pose -> kollisionsfreier Weg -> RViz-Vorschau
   E     = bestätigen & AUSFUEHREN (folgt dem geplanten Weg)
-  A     = Schrauben-Achse wechseln (kommt Schraube nicht senkrecht: Z->X->Y)
+  A     = Wellen-Achse wechseln (kommt Welle nicht senkrecht: Z->X->Y)
   Pfeile / 8/2/4/6 = Ziel 1cm verschieben (xy)  ;  +/- = z 1cm  (oben=+X links=+Y)
   S     = aktuellen Offset als PERMANENTEN Standard speichern (.place_offset.json)
   H     = PLANEN home (Null) ; danach mit E ausführen
@@ -59,7 +59,7 @@ def load_default_off():
 
 # ---- FK + Achsen-Ausrichtungs-IK (mycobot_280_jn) ----
 # Identische eigenständige FK/IK wie in click_place.py; hier dient sie NUR dazu, ein
-# GELENK-Ziel (Schraube senkrecht) zu finden. Den kollisionsfreien WEG dorthin plant
+# GELENK-Ziel (Welle senkrecht) zu finden. Den kollisionsfreien WEG dorthin plant
 # danach MoveIt (siehe _plan_thread). Zusätzlich gibt es hier fk_pts + in_base_box, um
 # Kandidaten vorab auszusortieren, die in die Roboter-Basiskiste ragen würden.
 def rpy(r,p,y):
@@ -136,7 +136,7 @@ class ClickPlaceMoveit(Node):
     """SICHERE Ein-Klick-PLACE-Variante: eigenes IK-Gelenkziel + MoveIt-Wegplanung + Bestätigung.
 
     Unterschied zu click_place.py: statt direkt per send_radians zu fahren, wird das
-    Schraube-senkrecht-Gelenkziel an MoveIt übergeben, das aus der ECHTEN Startpose
+    Welle-senkrecht-Gelenkziel an MoveIt übergeben, das aus der ECHTEN Startpose
     (per pymycobot gelesen) einen KOLLISIONSFREIEN Weg plant und ihn in RViz als Ghost
     zeigt. Erst 'E' lässt pymycobot der geplanten Trajektorie (abgetastet) folgen.
     Zusätzlich: verschiebbarer Ziel-Offset ('nudge', Pfeile/8246/+-) mit persistentem
@@ -147,8 +147,8 @@ class ClickPlaceMoveit(Node):
         # Kamera-Intrinsik + Bild/Tiefe (spin-Thread schreibt, GUI liest; Lock schützt).
         self._K=None;self._bgr=None;self._depth=None;self._lock=threading.Lock()
         self._def_off=load_default_off()   # persistenter Standard-Offset (beim Start geladen)
-        # _off: aktueller kumulativer Offset (startet auf Standard); _screw_axis: angenommene Schraubenachse.
-        self._px=None;self._tgt=None;self._screw_axis=2;self._off=self._def_off.copy()
+        # _off: aktueller kumulativer Offset (startet auf Standard); _wellen_achse: angenommene Wellenachse.
+        self._px=None;self._tgt=None;self._wellen_achse=2;self._off=self._def_off.copy()
         self._plan=None;self._plan_kind=''   # zuletzt geplante Trajektorie + Art ('place' / 'home')
         self._planning=False;self._busy=False  # Reentranz-Flags: Planung läuft / Ausführung läuft
         self._status='Warte auf Kamera/MoveGroup...'
@@ -250,7 +250,7 @@ class ClickPlaceMoveit(Node):
         self._mk.publish(m)
 
     def _place_joint_goal(self):
-        """Gelenk-Zielkonfiguration für die aktuelle Ablage suchen (Schraube senkrecht, Base-Box-frei).
+        """Gelenk-Zielkonfiguration für die aktuelle Ablage suchen (Welle senkrecht, Base-Box-frei).
 
         Ziel = angeklickter Punkt + kumulativer Offset + HOVER_OFF in z (Schwebehöhe). Für
         jeden Seed wird ik_align gelöst und die Lösung akzeptiert, wenn: Restfehler klein,
@@ -260,7 +260,7 @@ class ClickPlaceMoveit(Node):
         (None, Fehlertext).
         """
         if self._tgt is None: return None,'Erst einen Punkt waehlen!'
-        p=np.array([self._tgt[0]+self._off[0],self._tgt[1]+self._off[1],self._tgt[2]+self._off[2]+HOVER_OFF]); ax=self._screw_axis; best=None
+        p=np.array([self._tgt[0]+self._off[0],self._tgt[1]+self._off[1],self._tgt[2]+self._off[2]+HOVER_OFF]); ax=self._wellen_achse; best=None
         for s in SEEDS:
             q,res=ik_align(p,ax,s)
             if res<1.5e-3 and np.all(q>=_LL-1e-6)and np.all(q<=_LU+1e-6):
@@ -268,8 +268,8 @@ class ClickPlaceMoveit(Node):
                 if (Rc[2,ax]<-0.95 and mz>0.02
                         and not any(in_base_box(pt) for pt in fk_pts(q))   # nicht in die Base-Box ragen
                         and (best is None or mz>best[1])): best=(q,mz)
-        if best is None: return None,f'Keine IK (keine Schraube-senkrecht + Base-Box-freie Pose, Achse={["X","Y","Z"][ax]}) — ferner/hoeherer Punkt oder A'
-        return list(best[0]),f'Schrauben-Achse={["X","Y","Z"][ax]}, Abstand {best[1]*1000:.0f}mm'
+        if best is None: return None,f'Keine IK (keine Welle-senkrecht + Base-Box-freie Pose, Achse={["X","Y","Z"][ax]}) — ferner/hoeherer Punkt oder A'
+        return list(best[0]),f'Wellen-Achse={["X","Y","Z"][ax]}, Abstand {best[1]*1000:.0f}mm'
 
     def plan_place(self):
         """'P': Ablage-Gelenkziel suchen und (falls gefunden) MoveIt-Wegplanung dafür anstoßen."""
@@ -406,16 +406,16 @@ class ClickPlaceMoveit(Node):
         except Exception as e: self.get_logger().warn(str(e))
         self._status='Greifer '+('AUF' if opn else 'ZU')
     def release(self):
-        """'R': Greifer öffnen (Schraube ablegen). Danach H (home planen) + E (ausführen) zum Zurückfahren."""
+        """'R': Greifer öffnen (Welle ablegen). Danach H (home planen) + E (ausführen) zum Zurückfahren."""
         if self._busy or self._estop: return
         try: self.mc.set_gripper_value(100,50,1)
         except Exception as e: self.get_logger().warn(str(e))
         self._status='ABGELEGT (Greifer auf) — H dann E fuer home'
     def toggle_axis(self):
-        """'A': angenommene Schraubenachse zyklisch wechseln (Z->X->Y); alten Plan verwerfen, neu planen nötig."""
+        """'A': angenommene Wellenachse zyklisch wechseln (Z->X->Y); alten Plan verwerfen, neu planen nötig."""
         if self._busy or self._planning: return
-        self._screw_axis=(self._screw_axis+1)%3;self._plan=None
-        self._status=f'Schrauben-Achse={["X","Y","Z"][self._screw_axis]} — mit P erneut planen'
+        self._wellen_achse=(self._wellen_achse+1)%3;self._plan=None
+        self._status=f'Wellen-Achse={["X","Y","Z"][self._wellen_achse]} — mit P erneut planen'
 
     def nudge(self,dx,dy,dz):
         """Ziel in robot_base 1cm verschieben + erneut planen (Greifer über das Loch bringen)."""

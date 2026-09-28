@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!-- CycloneDDS NUR auf loopback (2026-09-11).
+     Warum: das WLAN wechselte mitten in der Sitzung die Adresse (172.20.10.x -> 192.168.0.x).
+     CycloneDDS bindet jeden Teilnehmer an die Adresse beim Start; danach konnten neue Knoten
+     (Kamera-Klick-Werkzeug, ros2 topic hz) die laufenden (Kamera, move_group) nicht mehr
+     erreichen - tausende "ddsi_udp_conn_write ... failed". Der ganze Stack laeuft auf diesem
+     einen Jetson, also braucht DDS das WLAN gar nicht.
+     Aktiv ueber CYCLONEDDS_URI in start_mycobot.sh / handsteuerung.sh / run_pick_preview.sh
+     und ~/.bashrc (fuer Werkzeuge aus dem Terminal). -->
+<CycloneDDS xmlns="https://cdds.io/config">
+  <Domain id="any">
+    <General>
+      <!-- CycloneDDS 0.8 (Galactic): NetworkInterfaceAddress; die neuere <Interfaces>-Form gibt es erst ab 0.9 -->
+      <NetworkInterfaceAddress>lo</NetworkInterfaceAddress>
+      <AllowMulticast>true</AllowMulticast>
+    </General>
+    <Discovery>
+      <!-- lo hat kein Multicast -> Unicast-Discovery; dann ist die Zahl der Teilnehmer je Host
+           standardmaessig 10. Der Stack hat mehr (2026-09-11: arbeitsraum_marker starb mit
+           "Failed to find a free participant index"). -->
+      <ParticipantIndex>auto</ParticipantIndex>
+      <MaxAutoParticipantIndex>120</MaxAutoParticipantIndex>
+    </Discovery>
+  </Domain>
+</CycloneDDS>

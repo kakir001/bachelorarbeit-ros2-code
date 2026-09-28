@@ -12,7 +12,7 @@
 #  ANLERNEN:
 #     - In RViz mit dem Werkzeug "Publish Point" auf den Ort der Box klicken → Roboter fährt hin.
 #     - Bei Bedarf erneut klicken, anpassen. Wenn genau über der Box, speichern mit:
-#         python3 teach_boxes.py --once <farbe>     (farbe: sari/beyaz/siyah/yesil/kirmizi)
+#         python3 teach_boxes.py --once <farbe>     (farbe: gelb/weiss/schwarz/gruen/rot)
 #  BEENDEN: diesen Prozess stoppen → Roboter wird zu 0 geparkt, alles wird beendet.
 # =====================================================================
 set -u

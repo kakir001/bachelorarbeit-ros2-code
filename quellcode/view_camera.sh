@@ -3,8 +3,8 @@
 #  view_camera.sh — NUR Kamerabild + Roboter-Reach-RINGE.
 #
 #  Zweck: ohne pick, nur das D435i-Overlay ansehen — YOLO-Erkennung + gewählte
-#  Schraube + Roboter-Basis-Reach-Kreise (grün/amber/rot). Um per Auge zu prüfen,
-#  ob die Schrauben im grünen Band liegen.
+#  Welle + Roboter-Basis-Reach-Kreise (grün/amber/rot). Um per Auge zu prüfen,
+#  ob die Wellen im grünen Band liegen.
 #
 #  RUEHRT DEN ECHTEN ROBOTER NICHT AN: use_fake_hardware:=true → TF (Kamera→robot_base) kommt aus dem URDF
 #  (eye-to-hand, statisch), Port/Servo werden nicht genutzt, KEIN Servo-drop-Risiko.
@@ -82,9 +82,9 @@ for i in $(seq 1 "$CAM_WAIT"); do
 done
 [ "$ok" = "1" ] || { err "Kamera sendet nicht innerhalb ${CAM_WAIT}s (evtl. USB aus-/einstecken noetig)"; tail -n 20 "$CAM_LOG"; exit 1; }
 
-# --- Detector (zeichnet Overlay + Reach-Ringe, sendet an /vida/overlay) ---
-log "vida_detector (conf=$CONF) → $DET_LOG"
-setsid bash -c "exec ros2 run vida_vision vida_detector --ros-args -p conf:=$CONF" >"$DET_LOG" 2>&1 &
+# --- Detector (zeichnet Overlay + Reach-Ringe, sendet an /welle/overlay) ---
+log "wellen_detektor (conf=$CONF) → $DET_LOG"
+setsid bash -c "exec ros2 run wellenerkennung wellen_detektor --ros-args -p conf:=$CONF" >"$DET_LOG" 2>&1 &
 DET_PID=$!
 ok=0
 for i in $(seq 1 "$DETECTOR_WAIT"); do
@@ -94,13 +94,13 @@ for i in $(seq 1 "$DETECTOR_WAIT"); do
 done
 [ "$ok" = "1" ] || { err "Detector nicht bereit innerhalb ${DETECTOR_WAIT}s"; tail -n 20 "$DET_LOG"; exit 1; }
 
-# --- cam_viewer: öffnet das /vida/overlay-Fenster (hier sind die Ringe sichtbar) ---
+# --- cam_viewer: öffnet das /welle/overlay-Fenster (hier sind die Ringe sichtbar) ---
 log "cam_viewer (Overlay-Fenster) → $CAMV_LOG"
 setsid bash -c "exec python3 '$WS/cam_viewer.py'" >"$CAMV_LOG" 2>&1 &
 CAMV_PID=$!
 
 log "BEREIT — Kamerafenster offen. Gruen/amber Kreis = Roboter-Reach-Grenze."
-log "Schraube innerhalb des GRUENEN Kreises = ideale pick-Zone. Ctrl+C = beenden."
+log "Welle innerhalb des GRUENEN Kreises = ideale pick-Zone. Ctrl+C = beenden."
 # Warten, solange die nodes leben (wenn einer stirbt → raus → cleanup)
 while kill -0 "$CAMV_PID" 2>/dev/null && kill -0 "$DET_PID" 2>/dev/null \
    && kill -0 "$CAM_PID" 2>/dev/null && kill -0 "$STACK_PID" 2>/dev/null; do

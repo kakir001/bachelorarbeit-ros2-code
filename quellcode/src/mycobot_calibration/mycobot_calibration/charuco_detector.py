@@ -151,7 +151,11 @@ class CharucoDetector(Node):
         # Frames + Topics: Namen der Koordinatensysteme (Kamera-optisch, Board)
         # sowie der abonnierten Bild- und CameraInfo-Topics der RealSense.
         self.declare_parameter('camera_frame', 'camera_color_optical_frame')
-        self.declare_parameter('board_frame', 'charuco_board')
+        # Vorgabe 'charuco_gemessen', NICHT 'charuco_board': letzteres ist seit
+        # 2026-09-09 der Name des URDF-Links der Platte. Gleicher Name = derselbe
+        # Frame mit zwei Eltern, und TF antwortet dann mit der MODELL-Lage - jede
+        # Messung vergliche das Modell mit sich selbst, ohne Fehlermeldung.
+        self.declare_parameter('board_frame', 'charuco_gemessen')
         self.declare_parameter('image_topic', '/camera/color/image_raw')
         self.declare_parameter('camera_info_topic', '/camera/color/camera_info')
 

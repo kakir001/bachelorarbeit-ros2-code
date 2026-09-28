@@ -1,12 +1,12 @@
 # Mit teach_boxes.py eingelernt — Mittelpunkte der Sortierboxen je Farbe (Frame robot_base, in m).
 # pick_tilt.launch.py lädt diese Datei über die Umgebungsvariable BOX_MAP
 # (Standardpfad: ~/ros2_ws/box_map.yaml).
-# Hinweis: Die Parameternamen (box_sari usw.) sind Daten-IDs und müssen mit
+# Hinweis: Die Parameternamen (box_gelb usw.) sind Daten-IDs und müssen mit
 # CLASS_NAMES des Detektors übereinstimmen — NICHT übersetzen.
 /**:
   ros__parameters:
-    box_sari: [0.2461, -0.0970, 0.0372]
-    box_beyaz: [0.1747, -0.1858, 0.0412]
-    box_siyah: [0.1153, -0.2448, 0.0548]
-    box_yesil: [-0.0084, -0.2693, 0.0536]
-    box_kirmizi: [0.2792, 0.0119, 0.0580]
+    box_gelb: [0.2461, -0.0970, 0.0372]
+    box_weiss: [0.1747, -0.1858, 0.0412]
+    box_schwarz: [0.1153, -0.2448, 0.0548]
+    box_gruen: [-0.0084, -0.2693, 0.0536]
+    box_rot: [0.2792, 0.0119, 0.0580]

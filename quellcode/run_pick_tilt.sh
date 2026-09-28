@@ -3,13 +3,13 @@
 #  run_pick_tilt.sh — TILT-BEWUSSTER PICK (KEIN RViz — Kamerafenster + Terminal).
 #
 #  Ablauf (Sitzung 25, Plan: ~/.claude/plans/shimmering-wondering-bachman.md):
-#    home (0) → auf /vida/target warten (detector sendet, wenn er einen ZUVERLAESSIGEN tilt findet; sonst nicht
-#               → Roboter wartet, Benutzer mischt die Schrauben)
+#    home (0) → auf /welle/ziel warten (detector sendet, wenn er einen ZUVERLAESSIGEN tilt findet; sonst nicht
+#               → Roboter wartet, Benutzer mischt die Wellen)
 #    → HOVER (von der Grasp-Pose entlang der Annäherungsachse APPROACH_HEIGHT zurück, Finger offen)
 #    → im cam_viewer-Fenster 'g' = BESTAETIGUNG → PARALLELER Abstieg → greifen → anheben → halten.
 #
-#  KEIN RViz (Nano RAM + Tegra segfault). Linkes Panel /vida/overlay (zeigt tilt=.. lin=.. [mod];
-#  wenn unzuverlässig "Schrauben mischen"), rechtes Panel Aufnahmekamera.
+#  KEIN RViz (Nano RAM + Tegra segfault). Linkes Panel /welle/overlay (zeigt tilt=.. lin=.. [mod];
+#  wenn unzuverlässig "Wellen mischen"), rechtes Panel Aufnahmekamera.
 #  Detector bleibt AN (pick_tilt liest ständig das aktuellste Ziel).
 #
 #  Verwendung:  cd ~/ros2_ws && ./run_pick_tilt.sh
@@ -74,7 +74,7 @@ sweep_ros_ghosts() {
   # = installierter Executable-Pfad) und launch ("pick_tilt.launch.py") Mustern matchen.
   pkill -f "record_cam_publisher" 2>/dev/null
   pkill -f "cam_viewer.py"        2>/dev/null
-  pkill -f "vida_detector"        2>/dev/null
+  pkill -f "wellen_detektor"        2>/dev/null
   pkill -f "mycobot_demo/pick_tilt" 2>/dev/null
   pkill -f "pick_tilt.launch.py"  2>/dev/null
   pkill -f "demo.launch.py"       2>/dev/null
@@ -139,7 +139,14 @@ try:
         if mc.is_moving() == 0:
             break
     try:
-        mc.set_gripper_value(100, 50, 1)   # beim Park Finger OFFEN (gehaltene Schraube loslassen)
+        # Beim Park erst OEFFNEN (eine gehaltene Welle muss fallen koennen), dann
+        # wieder SCHLIESSEN. Grund fuer das Schliessen (Benutzer, 2026-09-09): in der
+        # Nullstellung haengt der Greifer direkt unter der Kamera; offene Finger
+        # verdecken die Arbeitsflaeche und werden vom Detektor sogar selbst als Welle
+        # erkannt. 100 = offen, 0 = zu, die 1 waehlt den adaptiven Greifer.
+        mc.set_gripper_value(100, 50, 1)
+        time.sleep(1.5)
+        mc.set_gripper_value(0, 50, 1)
         time.sleep(1.0)
     except Exception as ge:
         print("Greifer-Oeffnen Warnung:", ge)
@@ -286,8 +293,8 @@ else
 fi
 
 # ---- 4) Detector (YOLO) starten, auf Modell warten ----
-log "vida_detector wird gestartet → $DET_LOG"
-setsid bash -c "exec ros2 run vida_vision vida_detector --ros-args \
+log "wellen_detektor wird gestartet → $DET_LOG"
+setsid bash -c "exec ros2 run wellenerkennung wellen_detektor --ros-args \
   -p conf:=$CONF -p mode_consensus:=$MODE_CONSENSUS -p sticky_radius:=$STICKY_RADIUS" >"$DET_LOG" 2>&1 &
 DET_PID=$!
 
@@ -300,8 +307,8 @@ for i in $(seq 1 "$DETECTOR_WAIT"); do
 done
 [ "$ok" = "1" ] || { err "Modell nicht geladen innerhalb ${DETECTOR_WAIT}s. Siehe $DET_LOG"; exit 1; }
 
-warn "HINWEIS: pick_tilt erhaelt /vida/target nur bei ZUVERLAESSIGEM tilt. Wenn das Overlay 'Schrauben mischen'"
-warn "     sagt, die Schraube deutlich GENEIGT hinlegen/mischen; der Roboter wartet im Hover."
+warn "HINWEIS: pick_tilt erhaelt /welle/ziel nur bei ZUVERLAESSIGEM tilt. Wenn das Overlay 'Wellen mischen'"
+warn "     sagt, die Welle deutlich GENEIGT hinlegen/mischen; der Roboter wartet im Hover."
 
 # ---- 5) pick_tilt AUSFUEHREN ----
 log "=============================================="

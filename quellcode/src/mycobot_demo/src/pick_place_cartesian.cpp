@@ -1,7 +1,7 @@
-// myCobot 280 JN — Schrauben Pick & Place (Cartesian Annäherung + orientation constraint).
+// myCobot 280 JN — Wellen Pick & Place (Cartesian Annäherung + orientation constraint).
 //
 // Ablauf (exakt nach Herstellerempfehlung — 3-stufiges Greifen):
-//   /vida/target (Detector) → Pick-Position
+//   /welle/ziel (Detector) → Pick-Position
 //   home → joint plan → pick_pre (10cm darüber)   ← PRE-GRASP (senkrechte Ziel-Pose)
 //          ↓ cartesian descend                ← LINEAR DESCENT (Ausrichtung konstant)
 //        pick → gripper close                 ← CLOSE GRIPPER
@@ -25,7 +25,7 @@
 //   - Frame: robot_base (planning), tcp (end-effector).
 //   - SRDF named states: arm/home, arm/ready, gripper/open, gripper/closed.
 //   - TCP +Y = Annäherungsachse; wenn der Greifer nach unten schaut, +Y → Welt -Z.
-//     Yaw (Drehung um die Schraube) frei; seed wird mit atan2 gegeben.
+//     Yaw (Drehung um die Welle) frei; seed wird mit atan2 gegeben.
 
 #include <chrono>
 #include <thread>
@@ -60,7 +60,7 @@ constexpr double MIN_FRACTION    = 0.95;   // unter 95% nicht akzeptiert
 constexpr double VEL_SCALE       = 0.20;   // Sicherheit: 20% Geschwindigkeit
 constexpr double ACC_SCALE       = 0.20;
 
-constexpr double TARGET_WAIT_SEC = 10.0;   // Warten auf /vida/target
+constexpr double TARGET_WAIT_SEC = 10.0;   // Warten auf /welle/ziel
 }
 
 // Greifer schaut nach unten: tcp +Y -> Welt -Z. yaw = Azimut, tilt = Abweichung von der Senkrechten.
@@ -109,7 +109,7 @@ static bool cartesianMove(
 // ausführbaren an und gibt die gewählte Ausrichtung über `chosen` zurück. So nutzen descend/retreat
 // die GLEICHE Ausrichtung (die orientation des cartesian Abstiegs bleibt konstant).
 //
-// Warum: wenn die Schraube armnah/niedrig ist, ist die reine senkrecht-nach-unten (tilt=0) Einzel-Pose
+// Warum: wenn die Welle armnah/niedrig ist, ist die reine senkrecht-nach-unten (tilt=0) Einzel-Pose
 // in der IK nicht kollisionsfrei/limit-innerhalb lösbar (OMPL "unable to sample valid goal states").
 // Exakt gleicher stufenweiser Ansatz wie goto_clicked_point.cpp: zuerst direkt nach unten,
 // sonst Greifer neigen und yaw drehen.
@@ -123,9 +123,9 @@ static bool approachWithFallback(
     yaw_out, yaw_out + M_PI_2, yaw_out - M_PI_2,
     yaw_out + M_PI, yaw_out + M_PI_4, yaw_out - M_PI_4,
   };
-  // Für eine flach liegende Schraube NUR direkt-nach-unten (tilt=0) greifen. Schräge Annäherung
+  // Für eine flach liegende Welle NUR direkt-nach-unten (tilt=0) greifen. Schräge Annäherung
   // (alter 20°/35° Fallback) schob die Finger seitlich weg und verdarb den Griff;
-  // außerdem fiel sie, als "Reichweiten-Kompromiss" gewählt, 1-2cm neben die Schraube.
+  // außerdem fiel sie, als "Reichweiten-Kompromiss" gewählt, 1-2cm neben die Welle.
   // Jetzt geht sie entweder mit tilt=0 gerade runter-hält, oder sagt sauber "unerreichbar".
   const std::vector<double> tilts{ 0.0 };
 
@@ -226,19 +226,19 @@ int main(int argc, char** argv)
   executor.add_node(node);
   std::thread spinner([&]() { executor.spin(); });
 
-  // --- Schraubenposition vom Detector holen (/vida/target, robot_base Frame) ---
+  // --- Wellenposition vom Detector holen (/welle/ziel, robot_base Frame) ---
   // Die orientation des Detectors ist nur Z-yaw; da wir yaw-frei arbeiten, nutzen wir
   // NUR die Position, die Ausrichtung bauen wir selbst mit gripperDown().
-  geometry_msgs::msg::Point screw;
+  geometry_msgs::msg::Point welle;
   std::atomic<bool> have_target{false};
   auto target_sub = node->create_subscription<PoseStamped>(
-      "/vida/target", rclcpp::QoS(1),
+      "/welle/ziel", rclcpp::QoS(1),
       [&](PoseStamped::SharedPtr m) {
-        screw = m->pose.position;
+        welle = m->pose.position;
         have_target = true;
       });
 
-  RCLCPP_INFO(log, "warte auf /vida/target (Detector muss laufen)...");
+  RCLCPP_INFO(log, "warte auf /welle/ziel (Detector muss laufen)...");
   {
     auto t0 = node->now();
     while (rclcpp::ok() && !have_target &&
@@ -247,12 +247,12 @@ int main(int argc, char** argv)
     }
   }
   if (!have_target) {
-    RCLCPP_ERROR(log, "innerhalb von %.0f s kein /vida/target gekommen — laeuft der Detector? Abgebrochen.",
+    RCLCPP_ERROR(log, "innerhalb von %.0f s kein /welle/ziel gekommen — laeuft der Detector? Abgebrochen.",
                  TARGET_WAIT_SEC);
     rclcpp::shutdown(); spinner.join(); return 1;
   }
-  RCLCPP_INFO(log, "Schraubenziel: x=%.3f y=%.3f z=%.3f (z_offset=%.3f)",
-              screw.x, screw.y, screw.z, grasp_z_offset);
+  RCLCPP_INFO(log, "Wellenziel: x=%.3f y=%.3f z=%.3f (z_offset=%.3f)",
+              welle.x, welle.y, welle.z, grasp_z_offset);
 
   MoveGroupInterface arm(node, "arm");
   // Der Greifer wird jetzt statt über MoveIt direkt über die Controller-Action gesteuert.
@@ -274,9 +274,9 @@ int main(int argc, char** argv)
   // Die Ausrichtung wird hier NICHT FIXIERT: im pre-grasp Plan wird ein yaw+tilt Raster probiert
   // (approachWithFallback) und die gewählte Ausrichtung auf descend/retreat übertragen.
   Pose pick;
-  pick.position.x = screw.x;
-  pick.position.y = screw.y;
-  pick.position.z = screw.z + grasp_z_offset;
+  pick.position.x = welle.x;
+  pick.position.y = welle.y;
+  pick.position.z = welle.z + grasp_z_offset;
 
   Pose place;
   place.position.x = place_x;

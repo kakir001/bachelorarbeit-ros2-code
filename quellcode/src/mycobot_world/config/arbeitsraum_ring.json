@@ -1,0 +1,147 @@
+{
+  "z": 0.015,
+  "frame": "robot_base",
+  "orientierung": "senkrecht (tcp+Y -> -z)",
+  "ring": [
+    {
+      "theta": 0.0,
+      "r_min": 92.2,
+      "r_max": 270.0
+    },
+    {
+      "theta": 15.0,
+      "r_min": 99.1,
+      "r_max": 270.0
+    },
+    {
+      "theta": 30.0,
+      "r_min": 107.2,
+      "r_max": 270.0
+    },
+    {
+      "theta": 45.0,
+      "r_min": 97.2,
+      "r_max": 270.0
+    },
+    {
+      "theta": 60.0,
+      "r_min": 85.3,
+      "r_max": 270.0
+    },
+    {
+      "theta": 75.0,
+      "r_min": 85.3,
+      "r_max": 270.0
+    },
+    {
+      "theta": 90.0,
+      "r_min": 85.3,
+      "r_max": 270.0
+    },
+    {
+      "theta": 105.0,
+      "r_min": 85.3,
+      "r_max": 270.0
+    },
+    {
+      "theta": 120.0,
+      "r_min": 121.6,
+      "r_max": 270.0
+    },
+    {
+      "theta": 135.0,
+      "r_min": 124.1,
+      "r_max": 270.0
+    },
+    {
+      "theta": 150.0,
+      "r_min": 210.9,
+      "r_max": 270.0
+    },
+    {
+      "theta": 165.0,
+      "r_min": 124.1,
+      "r_max": 170.0
+    },
+    {
+      "theta": 180.0,
+      "r_min": 124.1,
+      "r_max": 270.0
+    },
+    {
+      "theta": 195.0,
+      "r_min": 124.1,
+      "r_max": 270.0
+    },
+    {
+      "theta": 210.0,
+      "r_min": 115.3,
+      "r_max": 270.0
+    },
+    {
+      "theta": 225.0,
+      "r_min": 97.2,
+      "r_max": 270.0
+    },
+    {
+      "theta": 240.0,
+      "r_min": 85.3,
+      "r_max": 270.0
+    },
+    {
+      "theta": 255.0,
+      "r_min": 85.3,
+      "r_max": 270.0
+    },
+    {
+      "theta": 270.0,
+      "r_min": 85.3,
+      "r_max": 270.0
+    },
+    {
+      "theta": 285.0,
+      "r_min": 85.3,
+      "r_max": 270.0
+    },
+    {
+      "theta": 300.0,
+      "r_min": 89.7,
+      "r_max": 270.0
+    },
+    {
+      "theta": 315.0,
+      "r_min": 102.8,
+      "r_max": 270.0
+    },
+    {
+      "theta": 330.0,
+      "r_min": 99.1,
+      "r_max": 270.0
+    },
+    {
+      "theta": 345.0,
+      "r_min": 90.3,
+      "r_max": 270.0
+    }
+  ],
+  "gemessen": "2026-09-09 18:08",
+  "totsektor": {
+    "von": 153.0,
+    "bis": 173.0,
+    "breite": 20.0,
+    "ursache": "Drehgrenze von Gelenk 1 (+-168.0 Grad) zusammen mit dem Montageversatz joint1 = theta + 15.9 Grad zwischen der Gelenk-1-Nullstellung und der +x-Achse von robot_base.",
+    "gemessen_bei": {
+      "r_mm": 240.0,
+      "z_m": 0.015
+    },
+    "belege": {
+      "152": "erreichbar",
+      "153": "keine Loesung",
+      "170": "keine Loesung",
+      "173": "keine Loesung",
+      "174": "erreichbar (joint1 = -167.7 Grad)",
+      "175": "erreichbar (joint1 = -166.7 Grad, andere Gelenkfamilie, j6 = -141 Grad)"
+    },
+    "hinweis": "Die reine Grenzwertrechnung ergaebe 152.1 bis 176.1 Grad. Die obere Kante stimmt exakt, die untere liegt rund 3 Grad frueher, weil das Handgelenk einen Teil der Drehung aufnimmt. Der gemessene Wert gilt."
+  }
+}

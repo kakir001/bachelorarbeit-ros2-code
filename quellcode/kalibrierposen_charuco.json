@@ -1,0 +1,228 @@
+{
+ "erzeugt": "2026-09-09",
+ "wozu": "Gelenkstellungen, in denen die Kamera das ChArUco-Board am Greifer vollstaendig sieht. Fuer eine erneute Hand-Auge-Kalibrierung koennen sie direkt angefahren werden, statt sie neu zu suchen.",
+ "gilt_solange": [
+  "das Board unveraendert am Greifer sitzt (Lage im Modell: charuco_muster)",
+  "die Kamera an ihrem Platz bleibt (sonst zeigt das Board woanders hin)",
+  "die Kamera auf 1280x720 laeuft - bei 424x240 ist der Marker zu klein"
+ ],
+ "board": {
+  "felder": "6x3",
+  "feldkante_m": 0.015875,
+  "marker_m": 0.0119,
+  "woerterbuch": "DICT_4X4_50",
+  "innere_ecken": 10
+ },
+ "gelenke": [
+  "joint2_to_joint1",
+  "joint3_to_joint2",
+  "joint4_to_joint3",
+  "joint5_to_joint4",
+  "joint6_to_joint5",
+  "joint6output_to_joint6"
+ ],
+ "einheit": "Grad",
+ "stellungen": [
+  {
+   "q_grad": [
+    5.0,
+    -12.29,
+    -0.29,
+    -49.71,
+    -44.66,
+    -165.0
+   ],
+   "ecken": 10
+  },
+  {
+   "q_grad": [
+    -25.0,
+    -32.29,
+    -0.29,
+    -79.71,
+    -44.66,
+    -125.0
+   ],
+   "ecken": 10
+  },
+  {
+   "q_grad": [
+    -5.0,
+    -22.29,
+    -0.29,
+    -49.71,
+    -44.66,
+    -125.0
+   ],
+   "ecken": 10
+  },
+  {
+   "q_grad": [
+    5.0,
+    -32.29,
+    -0.29,
+    -79.71,
+    -44.66,
+    -145.0
+   ],
+   "ecken": 10
+  },
+  {
+   "q_grad": [
+    5.0,
+    -12.29,
+    -0.29,
+    -49.71,
+    -14.66,
+    -145.0
+   ],
+   "ecken": 10
+  },
+  {
+   "q_grad": [
+    5.0,
+    -32.29,
+    -0.29,
+    -64.71,
+    -29.66,
+    -125.0
+   ],
+   "ecken": 10
+  },
+  {
+   "q_grad": [
+    5.0,
+    -12.29,
+    -0.29,
+    -79.71,
+    -29.66,
+    -165.0
+   ],
+   "ecken": 10
+  },
+  {
+   "q_grad": [
+    -5.0,
+    -12.29,
+    -0.29,
+    -49.71,
+    -29.66,
+    -145.0
+   ],
+   "ecken": 10
+  },
+  {
+   "q_grad": [
+    -15.0,
+    -22.29,
+    -0.29,
+    -79.71,
+    -44.66,
+    -145.0
+   ],
+   "ecken": 10
+  },
+  {
+   "q_grad": [
+    5.0,
+    -12.29,
+    -0.29,
+    -79.71,
+    -44.66,
+    -145.0
+   ],
+   "ecken": 10
+  },
+  {
+   "q_grad": [
+    5.0,
+    -12.29,
+    -0.29,
+    -49.71,
+    -14.66,
+    -165.0
+   ],
+   "ecken": 10
+  },
+  {
+   "q_grad": [
+    5.0,
+    -12.29,
+    -0.29,
+    -64.71,
+    -29.66,
+    -145.0
+   ],
+   "ecken": 10
+  },
+  {
+   "q_grad": [
+    5.0,
+    -22.29,
+    -0.29,
+    -49.71,
+    -29.66,
+    -165.0
+   ],
+   "ecken": 9
+  },
+  {
+   "q_grad": [
+    5.0,
+    -22.29,
+    -0.29,
+    -79.71,
+    -29.66,
+    -145.0
+   ],
+   "ecken": 10
+  },
+  {
+   "q_grad": [
+    5.0,
+    -22.29,
+    -0.29,
+    -64.71,
+    -44.66,
+    -165.0
+   ],
+   "ecken": 10
+  },
+  {
+   "q_grad": [
+    -5.0,
+    -12.29,
+    -0.29,
+    -49.71,
+    -44.66,
+    -145.0
+   ],
+   "ecken": 10
+  }
+ ],
+ "verworfen": [
+  {
+   "q_grad": [
+    -25.0,
+    -12.29,
+    -0.29,
+    -49.71,
+    -44.66,
+    -165.0
+   ],
+   "grund": "nur 6 von 10 Ecken erkannt"
+  },
+  {
+   "q_grad": [
+    -15.0,
+    -12.29,
+    -0.29,
+    -79.71,
+    -44.66,
+    -125.0
+   ],
+   "grund": "nur 6 von 10 Ecken erkannt"
+  }
+ ],
+ "_hinweis_versatz": "Gelenkwinkel im MODELLRAUM (Encoder - Versatz, gelenk_nullpunkte.json), umgestellt 2026-09-20; Encoder-Fassung: kalibrierposen_charuco_encoder_2026-09-20.json | 2026-09-23: J5 um +0.34 Grad verschoben"
+}

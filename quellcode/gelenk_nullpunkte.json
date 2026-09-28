@@ -1,0 +1,63 @@
+{
+ "_hinweis": "Encoder-Ablesung, bei der das Gelenk REAL senkrecht/in Nullstellung steht (Benutzer am Roboter, Handy-Wasserwaage/Augenmass). Differenz zu 0 = Nullpunktversatz des Servos (Elephant Robotics 2026-09-08: J2-Home ist verschoben). Soll = kommandierter Wert, Ist = Encoder nach dem Setzen.",
+ "joint3_to_joint2": {
+  "gelenk": "J2",
+  "soll_grad": 3.0,
+  "ist_grad": 2.29,
+  "real_grad": 0.0,
+  "richtung_plus": "vom Benutzer bestaetigt (19./20.9.)",
+  "zeit": "2026-09-20 00:12",
+  "notiz": "Aus der Nullstellung J2 auf +3 kommandiert -> Encoder 2.29; Benutzer: Arm steht jetzt REAL genau in der Nullstellung. Nullpunktversatz J2 ~ +2.3 Grad (Encoder) / +3.0 (Soll)."
+ },
+ "joint4_to_joint3": {
+  "gelenk": "J3",
+  "soll_grad": 1.0,
+  "ist_grad": 0.29,
+  "real_grad": 0.0,
+  "richtung_plus": "gleiche Wirkrichtung wie J2 (+ = Arm nach hinten, Vorneigung wird kleiner)",
+  "zeit": "2026-09-20 00:13",
+  "notiz": "Nullstellung, J2 auf +3 (real Null), J3 von -1.03 auf Soll +1.0 -> Encoder +0.29; Benutzer: ab Achse 3 steht der Arm jetzt REAL senkrecht. Nullpunktversatz J3 ~ +0.3 Grad (Encoder) / +1.0 (Soll)."
+ },
+ "joint5_to_joint4": {
+  "gelenk": "J4",
+  "soll_grad": -0.46,
+  "ist_grad": -0.29,
+  "real_grad": 0.0,
+  "richtung_plus": "gleiche Wirkrichtung wie J2/J3 (+ = nach hinten)",
+  "zeit": "2026-09-20 00:17",
+  "notiz": "Nullstellung mit J2 +3 / J3 +1 (real Null); J4 von -3.84 in zwei Schritten (+2.8, +2, Totband ~1.5 Grad -> nachstellen) auf Encoder -0.29; Benutzer: Handgelenk/Greifer REAL senkrecht. Nullpunktversatz J4 ~ -0.3 Grad (praktisch 0) - der Encoder-Nullpunkt von J4 stimmt; die 6-10 Grad Neigung an den Nestern sind SPIEL (richtungsabhaengig), kein Nullpunktfehler."
+ },
+ "_reale_nullstellung_soll_grad": [
+  -0.63,
+  3.0,
+  1.0,
+  -0.46,
+  0.06,
+  1.49
+ ],
+ "_reale_nullstellung_ist_grad": [
+  -0.63,
+  3.15,
+  0.97,
+  -0.29,
+  0.06,
+  1.49
+ ],
+ "_versatz_encoder_grad": [
+  0.0,
+  2.29,
+  0.29,
+  -0.29,
+  0.0,
+  0.0
+ ],
+ "_versatz_hinweis": "Encoder-Ablesung bei REAL senkrechtem Gelenk (20.9.). Die Bruecke (mycobot_bridge.py) meldet Encoder - Versatz als Modellwinkel und sendet Modell + Versatz. J1/J5/J6: kein Bezug gemessen -> 0. Seit 2026-09-20 sind ALLE Teach-Punkte in teach_punkte.json im MODELLRAUM (= Encoder - Versatz); Sicherung der Encoder-Fassung: teach_punkte_encoder_2026-09-20.json | 2026-09-23: J5-Nullpunkt im SERVO gesetzt (nicht als Versatz), Versatz J5 bleibt 0.",
+ "joint6_to_joint5": {
+  "gelenk": "J5",
+  "soll_grad": 0.98,
+  "ist_grad": -0.34,
+  "real_grad": 0.0,
+  "zeit": "2026-09-23",
+  "notiz": "Am Nest nest_11_ablage: Benutzer sah den Greifer 2 Grad zu nest_14 (+x) geneigt; J5 -2 Grad (nachstellen, Soll +0.98, Encoder danach +0.97, nach dem Setzen -0.34) -> Benutzer: 'tam duez'. NULLPUNKT IM SERVO gesetzt (tools/servo_nullen.py 5, set_servo_calibration): Encoder liest dort jetzt 0.00. Versatz in der Bruecke bleibt 0; alle Teach-Punkte/Kalibrierposen J5 um +0.34 verschoben (teach_gelenk_verschieben.py, Sicherungen *_vor_J5_2026-09-23.json). Spiel J5 ~1.3-1.5 Grad (Greifer auf/zu verschiebt den Encoder) - nicht durch Nullen behebbar."
+ }
+}

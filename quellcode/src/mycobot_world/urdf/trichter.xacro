@@ -1,0 +1,265 @@
+<?xml version="1.0"?>
+<!--
+  ================== TRICHTER (Vereinzelung / Aufrichten der Welle) ==================
+  Kollisionsmodell. Masse aus messungen_trichter.txt (2026-09-10), Fotos in
+  ~/Downloads/gripper/WhatsApp Image 2026-09-10 at 15.18.5*.jpeg und ~/Downloads/trichter/.
+
+  WARUM ueberhaupt ins Modell: am 2026-09-10 hat sich der Greifer beim Joggen in
+  Trichternaehe um 23 Grad verbogen. Kein Werkzeug konnte den Trichter sehen - weder
+  MoveIt noch compute_cartesian_path mit avoid_collisions=True. Die Regelung merkt einen
+  Anstoss nicht und drueckt weiter, bis etwas nachgibt. Fuer die Schale war dasselbe
+  schon geloest (schale.xacro); fuer den Trichter wurde es versaeumt.
+
+  DAS TEIL, von unten nach oben (alles 3D-Druck, schwarz):
+      FUSSPLATTE   flach, nierenfoermig, Ø 120 (R 60). Sie liegt UNTER dem schraegen
+                   Kegel, gegen Kippen. Der Auslauf sitzt an ihrem Rand, in der Kerbe.
+      AUSLAUF      kurzes SENKRECHTES Rohr, innen Ø 13, aussen Ø 17, Oberkante 20 mm
+                   ueber Grund. Hier haengt die Welle mit ihrem Bund (Ø 13-14) auf und
+                   steht 22 mm heraus (Kopfoberkante 42 mm ueber Grund).
+      ZUNGE        kleine Rampe neben dem Auslauf, auf der dem Kegel ABGEWANDTEN Seite.
+      KEGEL        duennwandig (2 mm), SCHRAEG. Unten Ø 17, oben "Ø 85" in rund 95 mm
+                   Hoehe (aus dem Linealfoto abgelesen, nicht gemessen). Er neigt sich
+                   VOM Auslauf WEG, ueber die Fussplatte.
+                   ⚠️ ER IST KEIN GESCHLOSSENER KEGEL. Benutzer, 2026-09-11: "etwa ein
+                   Viertel des Umfangs" (zuerst "ein Sechstel", dann korrigiert) - eine
+                   Schale von rund 90 Grad Bogen, auf der dem Roboter ABGEWANDTEN Seite. Zweck: die von oben
+                   fallende Welle prallt an die Wand und rutscht in den Auslauf. Der
+                   Greifer faehrt VOR dieser Wand bis auf Wellenhoehe hinunter, die
+                   Wand steht ihm nicht im Weg. Deshalb wird nur dieser Bogen
+                   modelliert (kegel_bogen, um +X zentriert); ein voller Ring haette
+                   eine "nahe Wand" 10.5 mm vor der Welle, die es nicht gibt - und
+                   die im Modell jeden Griff verworfen hat (Sitzung 2026-09-11).
+                   Die "Ø 85, Kante zu Kante" vom 2026-09-10 ist bei einer Schale die
+                   SEHNE zwischen den beiden Raendern, nicht ein Durchmesser -
+                   Bogenradius und -winkel muessen aus Sehne + Pfeilhoehe bestimmt
+                   werden (ANNAHME bis dahin: R 42.5, 90 Grad).
+                   ⚠️ SEIN UNTERES ENDE UMSCHLIESST DIE WELLE NICHT. Auf dem Foto
+                   (15.18.54, Ausschnitt um den Auslauf) sitzt der schmale Kegelfuss
+                   HINTER dem Auslaufrohr, auf dessen abgewandter Seite; die Welle
+                   steht frei im Rohr, davor liegt die Zunge. Der Kegelfuss ist also
+                   um rund Rohr-Aussenradius + Kegelfuss-Radius = 17 mm nach +X
+                   versetzt (kegel_versatz, ANNAHME: tangential anliegend). Erst so
+                   passt die Linealprobe UND der gelungene Griff vom 2026-09-10 -
+                   ein Kegel, der die Welle unten umschliesst, laesst keine offenen
+                   Finger an den Kopf (Innen-Ø dort nur 26-34 mm).
+
+  FRAME `trichter`:
+      Ursprung = MITTE der Auslaufbohrung, auf dem GRUND (z = 0 = Oberseite der
+                 Grundplatte, also das z = 0 von robot_base)
+      +X       = Richtung, in die sich der Kegel NEIGT (zur Fussplattenmitte hin);
+                 der Kegelfuss liegt bei +kegel_versatz, die Zunge bei -X
+      +Z       = senkrecht nach oben
+  Die Lage von robot_base aus steht in trichter_pose.xacro (Platzhalter, bis gemessen).
+  x/y des Ursprungs sind bekannt: es ist die x/y des angelernten Greifpunkts
+  (die Welle steht im Auslauf). Nur die DREHUNG (Neigungsrichtung) muss noch bestimmt
+  werden.
+
+  DIE NEIGUNG - eine Annahme, die zu pruefen ist:
+      Gemessen ist sie nicht ("25 bis 30 Grad" nach Augenmass). Die Linealprobe sagt:
+      ein Lineal senkrecht neben der Welle beruehrt den Kegel nicht, ueber der Welle
+      bleibt offener Raum. Das geht nur, wenn die dem Auslauf zugewandte Mantellinie
+      (die "nahe Wand") SENKRECHT oder nach aussen geneigt steht. Deshalb ist der
+      Standardwert: Achsneigung = halber Oeffnungswinkel, so dass die nahe Wand genau
+      senkrecht steht - bei x = kegel_versatz - Kegelfuss-Radius, also an der
+      abgewandten Aussenseite des Auslaufrohrs. Mit Ø 17 unten, Ø 85 oben, 75 mm hoch
+      sind das 25.6 Grad - im Rahmen des Augenmasses. Steht die nahe Wand in
+      Wirklichkeit weiter draussen, ist das Modell zur Greifseite hin zu ENG (verwirft
+      Griffe), nie zu weit (laesst nichts durch).
+
+  AUFBAU: alles sitzt in EINEM Link (`trichter`), wie bei der Schale - ein Link ist
+  eine Zeile in der Kollisionsmatrix, innerhalb eines Links prueft MoveIt nichts
+  gegeneinander. Die KEGELSCHALE ist ein Stapel von Bogenstuecken aus Sehnen-Kaesten,
+  je Scheibe wandert der Bogen mit der Achse nach +X und wird weiter.
+
+  FEHLER DER ZERLEGUNG (bei 15 Scheiben, 4 Sehnen auf 90 Grad):
+      * Scheibe 5 mm hoch, Radius waechst darin um 2.3 mm -> der Kasten deckt den
+        ganzen Bereich ab, ragt also oben bis 2.3 mm nach INNEN. Das ist die Reserve,
+        die beim Griff verloren geht (echte Luft zwischen Finger und Kegelwand rund
+        6-10 mm, nach messungen_trichter.txt).
+      * Sehne 20 Grad: Ecken der Kaesten liegen bei R 42.5 um 0.65 mm innerhalb des
+        Kreises - vernachlaessigbar.
+  Beides geht in Richtung "zu eng", nie "zu weit". Das ist die richtige Seite.
+
+  NICHT GEMESSEN (Annahmen, im Kopf des jeweiligen Kastens vermerkt):
+      Dicke der Fussplatte (4 mm), Versatz der Fussplattenmitte zum Auslauf (50 mm,
+      aus den Fotos: der Auslauf sitzt in der Randkerbe), Masse der Zunge.
+  ==================================================================================
+-->
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <!-- Halbtransparent, damit Welle und Greifer darin sichtbar bleiben. -->
+  <material name="trichter_farbe">
+    <color rgba="0.15 0.15 0.15 0.45"/>
+  </material>
+
+  <!--
+    Ein Bogen aus n Sehnen-Kaesten (eine Scheibe der Kegelschale), zentriert um +X.
+      j        Zaehler der Rekursion (Aufruf mit 0)
+      n        Sehnen auf dem Bogen
+      bogen    Bogenwinkel (rad)
+      cx       x-Mitte des Bogens (die Kegelachse ist geneigt, der Bogen wandert)
+      r_mitte  mittlerer Radius des Bandes
+      r_dicke  radiale Dicke des Bandes
+      hoehe    Hoehe in z
+      z_mitte  z-Mitte des Kastens
+  -->
+  <xacro:macro name="trichter_ring" params="j n bogen cx r_mitte r_dicke hoehe z_mitte phi0:=0.0">
+    <xacro:if value="${j &lt; n}">
+      <xacro:property name="dphi"  value="${bogen / n}"/>
+      <xacro:property name="phi"   value="${phi0 - bogen / 2.0 + (j + 0.5) * dphi}"/>
+      <xacro:property name="sehne" value="${2.0 * (r_mitte + r_dicke / 2.0) * sin(dphi / 2.0)}"/>
+      <xacro:property name="px"    value="${cx + r_mitte * cos(phi)}"/>
+      <xacro:property name="py"    value="${r_mitte * sin(phi)}"/>
+
+      <collision>
+        <origin xyz="${px} ${py} ${z_mitte}" rpy="0 0 ${phi}"/>
+        <geometry><box size="${r_dicke} ${sehne} ${hoehe}"/></geometry>
+      </collision>
+      <visual>
+        <origin xyz="${px} ${py} ${z_mitte}" rpy="0 0 ${phi}"/>
+        <geometry><box size="${r_dicke} ${sehne} ${hoehe}"/></geometry>
+        <material name="trichter_farbe"/>
+      </visual>
+
+      <xacro:trichter_ring j="${j + 1}" n="${n}" bogen="${bogen}" cx="${cx}" r_mitte="${r_mitte}"
+                           r_dicke="${r_dicke}" hoehe="${hoehe}" z_mitte="${z_mitte}" phi0="${phi0}"/>
+    </xacro:if>
+  </xacro:macro>
+
+  <!--
+    Der Kegelmantel als Stapel von Ringen, von unten (k=0) nach oben.
+      k          Zaehler der Rekursion (Aufruf mit 0)
+      scheiben   Anzahl Scheiben
+      sehnen     Sehnen auf dem Bogen
+      bogen      Bogenwinkel der Schale (rad), um +X zentriert
+      z0         z der Kegelunterkante (= Auslaufkante)
+      hoehe      Kegelhoehe (Unterkante bis Muendung)
+      r_unten    INNENradius unten (= Auslauf innen)
+      r_oben     INNENradius an der Muendung
+      wand       Wandstaerke
+      neigung    Neigung der Kegelachse gegen die Senkrechte (rad), in +X
+      x0         x der Kegelachse an der Unterkante (Kegelfuss-Versatz zum Auslauf)
+  -->
+  <xacro:macro name="trichter_kegel"
+               params="k scheiben sehnen bogen z0 hoehe r_unten r_oben wand neigung x0 phi0:=0.0">
+    <xacro:if value="${k &lt; scheiben}">
+      <xacro:property name="dz"      value="${hoehe / scheiben}"/>
+      <xacro:property name="z_u"     value="${z0 + k * dz}"/>
+      <xacro:property name="z_m"     value="${z_u + dz / 2.0}"/>
+      <!-- Innenradius unten und oben in dieser Scheibe -->
+      <xacro:property name="r_u"     value="${r_unten + (r_oben - r_unten) * (k / scheiben)}"/>
+      <xacro:property name="r_o"     value="${r_unten + (r_oben - r_unten) * ((k + 1) / scheiben)}"/>
+      <!-- der Kasten deckt r_u .. r_o + wand ab (siehe Kopf: Fehler nach innen) -->
+      <xacro:property name="r_dicke" value="${r_o - r_u + wand}"/>
+      <xacro:property name="r_mitte" value="${r_u + r_dicke / 2.0}"/>
+      <!-- Achse in Scheibenmitte -->
+      <xacro:property name="cx"      value="${x0 + (z_m - z0) * tan(neigung)}"/>
+
+      <xacro:trichter_ring j="0" n="${sehnen}" bogen="${bogen}" cx="${cx}" r_mitte="${r_mitte}"
+                           r_dicke="${r_dicke}" hoehe="${dz}" z_mitte="${z_m}" phi0="${phi0}"/>
+
+      <xacro:trichter_kegel k="${k + 1}" scheiben="${scheiben}" sehnen="${sehnen}" bogen="${bogen}"
+                            z0="${z0}" hoehe="${hoehe}" r_unten="${r_unten}"
+                            r_oben="${r_oben}" wand="${wand}" neigung="${neigung}"
+                            x0="${x0}" phi0="${phi0}"/>
+    </xacro:if>
+  </xacro:macro>
+
+  <!--
+    Der ganze Trichter. Wird INNERHALB von <link name="trichter"> aufgerufen.
+      auslauf_r_aussen   Auslaufrohr aussen (Ø 17 -> 0.0085)
+      auslauf_hoehe      Auslaufkante ueber Grund (0.020)
+      kegel_hoehe        Auslaufkante bis Muendung (0.075)
+      kegel_r_oben       Innenradius der Muendung (Ø 85 -> 0.0425)
+      wand               Wandstaerke (0.002)
+      neigung            Achsneigung (rad)
+      kegel_versatz      Kegelfuss-Mitte in +X vom Auslauf (ANNAHME 0.017, tangential)
+      kegel_bogen        Bogenwinkel der Schale (rad), um +X = Neigungsrichtung
+      scheiben, sehnen   Zerlegung
+      fuss_r             Fussplatte Radius (0.060)
+      fuss_dicke         Fussplatte Dicke (ANNAHME 0.004)
+      fuss_kante_x       x der geraden Kante der HALBKREIS-Fussplatte (= -auslauf_r_aussen)
+      zunge_laenge/_breite/_hoehe   die Rampe auf der -X-Seite (ANNAHME)
+      kragen_r/_hoehe/_wand   Kragen auf der Auslaufkante (Ø 15 -> 30, 17 hoch, 1 mm; 2026-09-12)
+      wand2_hoehe/_wand       robotseitige (-X) Wand: Hoehe ab Auslaufkante (0.020), Dicke (0.001)
+  -->
+
+  <!-- Halbkreisscheibe aus n Streifen (rekursiv): Streifen k deckt x_kante + k*dx .. +(k+1)*dx,
+       Breite in y = volle Sehne am AEUSSEREN Rand des Streifens (eher zu gross als zu klein). -->
+  <xacro:macro name="halbscheibe_streifen" params="k n r x_kante dicke">
+    <xacro:if value="${n > k}">
+      <xacro:property name="dx"  value="${r / n}"/>
+      <xacro:property name="xi"  value="${k * dx}"/>
+      <xacro:property name="hb"  value="${sqrt(max(r*r - xi*xi, 0.0))}"/>
+      <collision>
+        <origin xyz="${x_kante + xi + dx / 2.0} 0 ${dicke / 2.0}" rpy="0 0 0"/>
+        <geometry><box size="${dx} ${2.0 * hb} ${dicke}"/></geometry>
+      </collision>
+      <visual>
+        <origin xyz="${x_kante + xi + dx / 2.0} 0 ${dicke / 2.0}" rpy="0 0 0"/>
+        <geometry><box size="${dx} ${2.0 * hb} ${dicke}"/></geometry>
+        <material name="trichter_farbe"/>
+      </visual>
+      <xacro:halbscheibe_streifen k="${k + 1}" n="${n}" r="${r}" x_kante="${x_kante}" dicke="${dicke}"/>
+    </xacro:if>
+  </xacro:macro>
+
+  <xacro:macro name="trichter_koerper"
+               params="auslauf_r_aussen auslauf_hoehe kegel_hoehe kegel_r_oben wand neigung
+                       kegel_versatz kegel_bogen scheiben sehnen fuss_r fuss_dicke fuss_kante_x
+                       zunge_laenge zunge_breite zunge_hoehe kragen_r kragen_hoehe kragen_wand wand2_hoehe wand2_wand auslauf_wand">
+
+    <!-- FUSSPLATTE: HALBKREIS Radius 60 mm mit OVALEN ECKEN (Rundung r 20, Benutzer 2026-09-14:
+         "die Ecken sind rund, nicht spitz"; die spitze Halbscheibe ragte 19 mm zu weit zur
+         Ablageplatte). STL-Mesh meshes/trichterfuss_r60_oval.stl, erzeugt von
+         tools/trichterfuss_mesh.py (r 60, Ecke 20, Dicke 4). Ursprung des Mesh = Mitte der
+         geraden Kante (laeuft in y, Breite +-34.6 mm), Halbkreis nach +X. Die gerade Kante liegt
+         bei x = fuss_kante_x = robotseitige Aussenkante des Auslaufrohrs. Alt: halbscheibe_r60 (12.9.). -->
+    <collision>
+      <origin xyz="${fuss_kante_x} 0 0" rpy="0 0 0"/>
+      <geometry><mesh filename="package://mycobot_world/meshes/trichterfuss_r60_oval.stl"/></geometry>
+    </collision>
+    <visual>
+      <origin xyz="${fuss_kante_x} 0 0" rpy="0 0 0"/>
+      <geometry><mesh filename="package://mycobot_world/meshes/trichterfuss_r60_oval.stl"/></geometry>
+      <material name="trichter_farbe"/>
+    </visual>
+
+    <!-- AUSLAUFROHR (Benutzer 2026-09-12): aussen Ø 15, Wand 5 mm -> BOHRUNG Ø 5, in der die
+         Welle steckt. Als 12 Sehnenkaesten (Ring, r 2.5..7.5), damit die Bohrung im Modell
+         wirklich offen ist. Hoehe = auslauf_hoehe (Oberkante 20 mm ueber Grund). -->
+    <xacro:trichter_ring j="0" n="12" bogen="${2.0 * PI}" cx="0"
+                         r_mitte="${auslauf_r_aussen - auslauf_wand / 2.0}"
+                         r_dicke="${auslauf_wand}" hoehe="${auslauf_hoehe}" z_mitte="${auslauf_hoehe / 2.0}"/>
+
+    <!-- (2026-09-14: die frueher hier gezeichnete Welle im Auslauf ist raus - Benutzer: es steckt nicht
+         dauernd eine Welle im Trichter; nur die Bohrung O 5 als Aufnahme bleibt.) -->
+    <!-- OBERTEIL (Benutzer 2026-09-12): ueber dem Auslaufrohr stehen sich ZWEI gleiche
+         Waende gegenueber, die Seiten (+-Y) sind OFFEN. Jede Wand = konischer Kragen
+         (Ø 15 -> 30, 17 mm, Wand 1 mm, senkrecht) + darauf die schraege Schale
+         (r 14 -> kegel_r_oben, bis Muendung, nach AUSSEN geneigt). Bogen je Wand =
+         kegel_bogen (90 Grad), Mitte bei +X bzw. -X. -->
+    <!-- Wand 1: um +X (vom Roboter weg), Schale neigt nach +X -->
+    <xacro:trichter_kegel k="0" scheiben="4" sehnen="4" bogen="${kegel_bogen}"
+                          z0="${auslauf_hoehe}" hoehe="${kragen_hoehe}"
+                          r_unten="${auslauf_r_aussen - kragen_wand}" r_oben="${kragen_r - kragen_wand}"
+                          wand="${kragen_wand}" neigung="0.0" x0="0.0" phi0="0.0"/>
+    <xacro:trichter_kegel k="0" scheiben="${scheiben}" sehnen="${sehnen}" bogen="${kegel_bogen}"
+                          z0="${auslauf_hoehe + kragen_hoehe}" hoehe="${kegel_hoehe - kragen_hoehe}"
+                          r_unten="${kragen_r - kragen_wand}" r_oben="${kegel_r_oben}"
+                          wand="${wand}" neigung="${neigung}" x0="0.0" phi0="0.0"/>
+    <!-- Wand 2: um -X (zum Roboter hin), spiegelbildlich, aber NUR wand2_hoehe (20 mm) hoch
+         ab der Auslaufkante und nur wand2_wand (1 mm) dick (Benutzer 2026-09-12):
+         Kragen (17 mm) + ein 3-mm-Rest der Flanke, alles darueber weggeschnitten. -->
+    <xacro:trichter_kegel k="0" scheiben="4" sehnen="4" bogen="${kegel_bogen}"
+                          z0="${auslauf_hoehe}" hoehe="${kragen_hoehe}"
+                          r_unten="${auslauf_r_aussen - wand2_wand}" r_oben="${kragen_r - wand2_wand}"
+                          wand="${wand2_wand}" neigung="0.0" x0="0.0" phi0="${PI}"/>
+    <xacro:trichter_kegel k="0" scheiben="1" sehnen="${sehnen}" bogen="${kegel_bogen}"
+                          z0="${auslauf_hoehe + kragen_hoehe}" hoehe="${wand2_hoehe - kragen_hoehe}"
+                          r_unten="${kragen_r - wand2_wand}"
+                          r_oben="${kragen_r - wand2_wand + (kegel_r_oben - (kragen_r - kragen_wand)) * (wand2_hoehe - kragen_hoehe) / (kegel_hoehe - kragen_hoehe)}"
+                          wand="${wand2_wand}" neigung="0.0" x0="0.0" phi0="${PI}"/>
+  </xacro:macro>
+
+</robot>

@@ -110,7 +110,7 @@ Visualization Manager:
       Velocity_Scaling_Factor: 0.1
     - Class: rviz_default_plugins/Marker
       Enabled: true
-      Name: Hedef_Secilen
+      Name: Ziel_Gewaehlt
       Namespaces:
         {}
       Topic:
@@ -122,7 +122,7 @@ Visualization Manager:
       Value: true
     - Class: rviz_default_plugins/Marker
       Enabled: true
-      Name: Hedef_Detector
+      Name: Ziel_Detektor
       Namespaces:
         {}
       Topic:
@@ -130,7 +130,7 @@ Visualization Manager:
         Durability Policy: Volatile
         History Policy: Keep Last
         Reliability Policy: Reliable
-        Value: /vida/target_marker
+        Value: /welle/ziel_marker
       Value: true
   Enabled: true
   Global Options:

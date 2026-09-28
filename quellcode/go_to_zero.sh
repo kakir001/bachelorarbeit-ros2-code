@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
-# Fährt den echten Roboter in die Nullstellung: alle 6 Gelenke = 0 rad,
-# Greifer OFFEN. send_radians lässt die Servos unter Drehmoment (kein Absturz
+# Fährt den echten Roboter in die REALE Nullstellung (teach_punkte.json "nullstellung", 20.9.: J2 +3, J3 +1 -
+# Encoder-Nullpunkte verschoben; Rückfall 0 rad),
+# Greifer ZU (die offenen Finger verdecken sonst die Kamerasicht). send_radians lässt die Servos unter Drehmoment (kein Absturz
 # beim Loslassen). Nutzt direkt pymycobot über /dev/ttyTHS1 — der ros2_control
 # Stack darf dabei NICHT am selben Port hängen (Sim-Modus ist ok).
 set -euo pipefail
@@ -19,11 +20,17 @@ mc = MyCobot280(port, baud)
 time.sleep(1.5)
 print("aktuelle Winkel:", mc.get_angles())
 
-mc.send_radians([0, 0, 0, 0, 0, 0], speed)   # Nullstellung, Servos unter Drehmoment
+import json, math
+try: null = json.load(open("/home/er/ros2_ws/teach_punkte.json"))["nullstellung"]["rad"]   # REALE Nullstellung (20.9.)
+except Exception: null = [0, 0, 0, 0, 0, 0]
+mc.send_radians([float(v) for v in null], speed)   # Nullstellung, Servos unter Drehmoment
 time.sleep(3)
 
-mc.set_gripper_value(100, 50, 1)             # 100 = offen, adaptiver Greifer (Open-Loop)
+# Finger ZU (0). In der Nullstellung steht der Greifer direkt unter der Kamera;
+# offene Finger ragen dann ins Bild und verdecken die Arbeitsflaeche.
+# 100 = offen, 0 = zu; die 1 waehlt den adaptiven Greifer (Open-Loop).
+mc.set_gripper_value(0, 50, 1)
 time.sleep(2)
 
-print("Nullstellung + Greifer offen fertig; Winkel:", mc.get_angles())
+print("Nullstellung + Greifer zu fertig; Winkel:", mc.get_angles())
 PY

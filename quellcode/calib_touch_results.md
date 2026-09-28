@@ -1,24 +1,34 @@
-# Transform doğrulama — robot-dokunma ölçümleri (2026-06-01 oturum 14)
+# Pruefung der Transformation - Antast-Messungen am Roboter (2026-06-01, Sitzung 14)
 
-Yöntem: detector BASE vs robot TCP temas (ground-truth). Δ = detector − tcp.
+Verfahren: Detektor-Position in BASE gegen den angetasteten TCP (Referenz).
+Delta = Detektor - TCP.
 
-| Trial | Detector BASE (mm) | TCP temas (mm) | Δx | Δy | Δz | Not |
-|-------|--------------------|----------------|----|----|----|-----|
-| 1 | (150, -70, -5) | (125, -62, -14) | +25 | -8 | +9 | conf düşük (0.25-0.48); reverse yöntem (önce dokun, sonra ölç) |
-| 2 | (176, -108, -9) | (135, -109, -9) | +41 | +1 | 0 | conf yüksek (0.79-0.85); forward yöntem; gripper temas oryantasyonu trial-1'den farklı |
+| Versuch | Detektor BASE (mm) | TCP angetastet (mm) | dx | dy | dz | Anmerkung |
+|---------|--------------------|---------------------|----|----|----|-----------|
+| 1 | (150, -70, -5) | (125, -62, -14) | +25 | -8 | +9 | niedrige Konfidenz (0.25-0.48); rueckwaerts (erst antasten, dann messen) |
+| 2 | (176, -108, -9) | (135, -109, -9) | +41 | +1 | 0 | hohe Konfidenz (0.79-0.85); vorwaerts; Greiferausrichtung anders als in Versuch 1 |
 
-## Analiz (2 trial)
-- Δx: +25, +41 → her ikisinde de detector x'i GERÇEK temastan ileride (pozitif bias), ama sabit değil (büyüyor)
-- Δy: -8, +1 → küçük, manuel dokunma gürültüsü içinde
-- Δz: +9, 0 → küçük
-- KONFOUND: iki dokunmada gripper oryantasyonu çok farklıydı (quaternion) + `tcp` frame'i tam parmak ucu değil → x farkının bir kısmı bu ofsetin dönmesinden, saf transform hatası değil.
-- Sonraki: temiz sonuç için DİK (top-down) sabit oryantasyonla 1-2 dokunma daha; o zaman tcp x-y = parmak ucu x-y = vida x-y olur.
+## Auswertung (2 Versuche)
+- dx: +25, +41 - der Detektor liegt in beiden Faellen VOR dem echten Antastpunkt
+  (positiver Versatz), aber nicht konstant, sondern wachsend.
+- dy: -8, +1 - klein, liegt im Rauschen des Antastens von Hand.
+- dz: +9, 0 - klein.
+- STOERGROESSE: Die Greiferausrichtung war in beiden Antastungen sehr verschieden
+  (Quaternion), und der Rahmen `tcp` liegt nicht genau an der Fingerspitze. Ein Teil
+  der x-Differenz kommt also aus der Drehung dieses Versatzes und ist kein reiner
+  Transformationsfehler.
+- Naechster Schritt: fuer ein sauberes Ergebnis ein bis zwei weitere Antastungen
+  SENKRECHT von oben mit fester Ausrichtung; dann gilt tcp x-y = Fingerspitze x-y
+  = Welle x-y.
 
-## KALİBRASYON iter-1 uygulandı (2026-06-01)
-- Dosya: `src/mycobot_world/urdf/mycobot_world.urdf.xacro:152`
-- Kamera origin x: **0.2575 → 0.2245** (-33mm = ortalama Δx)
-- TF doğrulama: camera_color_optical_frame→robot_base x: 0.245 → **0.212** ✓ (-33mm)
-- Build: mycobot_world --symlink-install OK
-- y, z dokunulmadı (gürültü içinde)
-- BEKLEYEN: temiz top-down dokunmayla artık (residual) hata ölçümü → fazla/eksik düzeltme ayarı
-- UYARI: veri konfound'lu (gripper oryantasyonu + tcp-parmak ucu ofseti + robot servo ~30mm). iter-2 için kartezyen GUI + sabit vida ile DİK dokunma önerilir.
+## Kalibrierung Schritt 1 angewendet (2026-06-01)
+- Datei: `src/mycobot_world/urdf/mycobot_world.urdf.xacro:152`
+- Kamera-Ursprung x: **0.2575 -> 0.2245** (-33 mm = mittleres dx)
+- TF-Pruefung: camera_color_optical_frame -> robot_base x: 0.245 -> **0.212** ok (-33 mm)
+- Build: mycobot_world --symlink-install ok
+- y und z unveraendert (liegen im Rauschen)
+- OFFEN: Restfehler mit einer sauberen senkrechten Antastung messen, um Ueber- oder
+  Unterkorrektur zu erkennen.
+- WARNUNG: Die Daten sind ueberlagert (Greiferausrichtung + Versatz TCP zu
+  Fingerspitze + Servoabweichung des Roboters ~30 mm). Fuer Schritt 2 empfiehlt sich
+  eine kartesische Oberflaeche und eine feste Welle, senkrecht angetastet.

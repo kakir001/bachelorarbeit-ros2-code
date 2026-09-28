@@ -27,7 +27,7 @@ ARM_JOINTS = ['joint2_to_joint1', 'joint3_to_joint2', 'joint4_to_joint3',
               'joint5_to_joint4', 'joint6_to_joint5', 'joint6output_to_joint6']
 WS = os.path.expanduser("~/ros2_ws")
 JSON_PATH = os.path.join(WS, ".box_teach.json")
-ORDER = ["kirmizi", "sari", "beyaz", "siyah", "yesil"]
+ORDER = ["rot", "gelb", "weiss", "schwarz", "gruen"]
 
 
 def quat_rpy(roll, pitch, yaw):

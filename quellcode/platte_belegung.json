@@ -1,0 +1,46 @@
+{
+ "_hinweis": "Belegung der Ablageplatte; Wert = Eintrag (belegt) oder 'frei'. Geschrieben von lege_welle.py, gelesen von nest_fuer_farbe.py.",
+ "_zurueckgesetzt": "2026-09-14 09:55",
+ "nest_34": {
+  "koerper": "weiss",
+  "streifen": "gruen",
+  "steht": null,
+  "zeit": "2026-09-14 11:10"
+ },
+ "nest_21": {
+  "koerper": "gelb",
+  "streifen": "gruen",
+  "steht": null,
+  "zeit": "2026-09-14 12:52"
+ },
+ "nest_53": {
+  "koerper": "rot",
+  "streifen": "gelb",
+  "steht": null,
+  "zeit": "2026-09-14 13:56"
+ },
+ "nest_32": {
+  "koerper": "weiss",
+  "streifen": "schwarz",
+  "steht": null,
+  "zeit": "2026-09-14 15:26"
+ },
+ "_freigegeben_2026-09-23_2220": "nest_41 vom Benutzer (GUI) als frei gemeldet, war: {'koerper': 'gruen', 'streifen': 'weiss', 'steht': None, 'zeit': '2026-09-23 21:52'}",
+ "_freigegeben_2026-09-23_2240": "nest_41 vom Benutzer (GUI) als frei gemeldet, war: {'koerper': 'gruen', 'streifen': 'weiss', 'steht': None, 'zeit': '2026-09-23 22:28'}",
+ "_freigegeben_2026-09-23_2308": "nest_41 vom Benutzer (GUI) als frei gemeldet, war: {'koerper': 'gruen', 'streifen': 'weiss', 'steht': None, 'zeit': '2026-09-23 22:51'}",
+ "_freigegeben_2026-09-23_2341": "nest_41 vom Benutzer (GUI) als frei gemeldet, war: {'koerper': 'gruen', 'streifen': 'weiss', 'steht': None, 'zeit': '2026-09-23 23:32'}",
+ "_freigegeben_2026-09-23_2347": "nest_41 vom Benutzer (GUI) als frei gemeldet, war: {'koerper': 'gruen', 'streifen': 'weiss', 'steht': None, 'zeit': '2026-09-23 23:45'}",
+ "_freigegeben_2026-09-24_0006": "nest_41 vom Benutzer (GUI) als frei gemeldet, war: {'koerper': 'gruen', 'streifen': 'weiss', 'steht': None, 'zeit': '2026-09-23 23:51'}",
+ "nest_41": {
+  "koerper": "gruen",
+  "streifen": "weiss",
+  "steht": null,
+  "zeit": "2026-09-24 00:11"
+ },
+ "nest_51": {
+  "koerper": "rot",
+  "streifen": "gruen",
+  "steht": null,
+  "zeit": "2026-09-24 00:34"
+ }
+}

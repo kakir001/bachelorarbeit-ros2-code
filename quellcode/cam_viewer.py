@@ -18,11 +18,11 @@ from rclpy.qos import QoSProfile, ReliabilityPolicy, HistoryPolicy
 from sensor_msgs.msg import Image
 from std_msgs.msg import Empty
 
-# CAM1 = Detector Overlay (YOLO-Erkennung + AUSGEWAEHLTE Schraube als "ZIEL" markiert).
+# CAM1 = Detector Overlay (YOLO-Erkennung + AUSGEWAEHLTE Welle als "ZIEL" markiert).
 #   Wenn der Detector stirbt, friert das letzte Bild ein (der ausgewählte Punkt
 #   bleibt sichtbar). Ein best-effort Sub empfängt auch von einem reliable Pub
 #   → am kompatibelsten.
-CAM1 = os.environ.get("CAM1_TOPIC", "/vida/overlay")             # D435i + Erkennungs-Overlay
+CAM1 = os.environ.get("CAM1_TOPIC", "/welle/overlay")             # D435i + Erkennungs-Overlay
 # Rohbild-Fallback: solange der Detector noch laedt/warmuppt (auf dem Nano 1-2 min),
 # wird das ROHE Kamerabild gezeigt statt eines schwarzen "warten..."-Fensters.
 RAW = os.environ.get("RAW_TOPIC", "/camera/color/image_raw")
@@ -90,7 +90,7 @@ class CamViewer(Node):
         else:
             r = cv2.resize(img, (max(1, int(img.shape[1] * sc)), h), interpolation=interp)
         # show_label=False: im D435i-Overlay-Panel kein Label zeichnen — das Detector-
-        # Overlay schreibt bereits seinen eigenen "N Schrauben" + ZIEL Text, damit es
+        # Overlay schreibt bereits seinen eigenen "N Wellen" + ZIEL Text, damit es
         # sich nicht überlagert.
         if show_label:
             cv2.putText(r, label, (8, 26), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)

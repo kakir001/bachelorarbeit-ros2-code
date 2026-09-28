@@ -1,0 +1,1810 @@
+{
+ "_archiv_2026-09-10_11": {
+  "trichter_greif": {
+   "grad": [
+    -39.28,
+    -0.87,
+    -122.6,
+    39.37,
+    -0.43,
+    135.79
+   ],
+   "proben": 7,
+   "rad": [
+    -0.686,
+    -0.015,
+    -2.14,
+    0.687,
+    -0.008,
+    2.37
+   ],
+   "streuung_grad": 0.0,
+   "zeit": "2026-09-10 18:00:23"
+  },
+  "trichter_greif2": {
+   "grad": [
+    -38.503,
+    -1.318,
+    -123.243,
+    38.044,
+    -1.318,
+    136.249
+   ],
+   "proben": 10,
+   "quelle": "joint_states (Arm haelt selbst)",
+   "rad": [
+    -0.672,
+    -0.023,
+    -2.151,
+    0.664,
+    -0.023,
+    2.378
+   ],
+   "streuung_grad": 0.0,
+   "zeit": "2026-09-10 20:03:30"
+  },
+  "trichter_greif3": {
+   "grad": [
+    -40.68,
+    -7.96,
+    -115.22,
+    30.6,
+    -0.29,
+    130.58
+   ],
+   "notiz": "2026-09-11 02:xx: Rezept 149->37.2, nachstellen, dann versetze --radial -1.5 --dz -2; Benutzer: Welle mittig zwischen den Fingern, Greifer leicht zur Basis geneigt (Spiel hinter Getriebe)",
+   "proben": 1,
+   "rad": [
+    -0.71,
+    -0.139,
+    -2.011,
+    0.534,
+    -0.005,
+    2.279
+   ],
+   "streuung_grad": 0.0,
+   "tcp_mm": [
+    94.1,
+    -165.8
+   ],
+   "yaw": 180.0
+  },
+  "trichter_greif4": {
+   "grad": [
+    -40.92,
+    -8.38,
+    -113.32,
+    29.11,
+    -0.3,
+    130.34
+   ],
+   "notiz": "2026-09-11 02:40 GELUNGEN: Soll-Gelenke nach versetze_soll (+2 z, +2 radial ab greif3) + nachstellen; Fingerspitze auf Auslaufrand-Hoehe (~20 mm), Greifer -0.62 -> 16 %, Welle geholt",
+   "proben": 1,
+   "rad": [
+    -0.7142,
+    -0.1463,
+    -1.9778,
+    0.5081,
+    -0.0052,
+    2.2749
+   ],
+   "streuung_grad": 0.0,
+   "tcp_mm": [
+    94.4,
+    -164.9
+   ],
+   "yaw": 180.0
+  },
+  "trichter_greif5": {
+   "grad": [
+    -40.51,
+    -8.7,
+    -113.73,
+    29.53,
+    0.52,
+    131.13
+   ],
+   "greifer_prozent": 17,
+   "notiz": "2026-09-11 ~03:00: greif4 angefahren, J4 (und Greiferservo 7) frei, Benutzer hat den Greifer von Hand senkrecht gestellt, dann gesperrt und gelesen",
+   "proben": 7,
+   "rad": [
+    -0.707,
+    -0.1518,
+    -1.985,
+    0.5154,
+    0.0091,
+    2.2887
+   ],
+   "streuung_grad": 0.0,
+   "tcp_mm": [
+    94.4,
+    -164.9
+   ],
+   "yaw": 180.0
+  }
+ },
+ "nest_11": {
+  "grad": [
+   -80.672,
+   14.67,
+   -123.247,
+   16.734,
+   0.0,
+   134.817
+  ],
+  "proben": 10,
+  "quelle": "joint_states (Arm haelt selbst)",
+  "rad": [
+   -1.408,
+   0.2560319601293298,
+   -2.1510614548307836,
+   0.29206145483078355,
+   0.0,
+   2.353
+  ],
+  "streuung_grad": 0.0,
+  "tcp_mm": [
+   -40.92,
+   -152.47,
+   55.67
+  ],
+  "tcp_modell_mm": [
+   -40.9,
+   -152.5,
+   55.7
+  ],
+  "yaw": 180.0,
+  "zeit": "2026-09-11 14:04:13",
+  "raum": "modell (Encoder - Versatz, seit 2026-09-20)"
+ },
+ "nest_11_ablage": {
+  "grad": [
+   -83.45,
+   19.89,
+   -140.67,
+   34.33,
+   1.57,
+   137.96
+  ],
+  "rad": [
+   -1.456477260789268,
+   0.34714598822167214,
+   -2.4551546587804234,
+   0.5991715322096534,
+   0.027401669256310976,
+   2.4078562360513773
+  ],
+  "tcp_modell_mm": [
+   -43.9,
+   -149.2,
+   42.1
+  ],
+  "modell_neigung_grad": {
+   "radial": 9.7,
+   "tangential": 5.2
+  },
+  "anfahrt": "J4 von OBEN (tools/gelenkspiel.py, Hub 8), dann nachstellen; Greifer 17-25 mm",
+  "quelle": "2026-09-19 am Roboter: Greifer real senkrecht (Handy 0 Grad, auch nach Nullstellung und Rueckkehr), Welle im Nest mittig; Feinkorrektur -3 mm y gegenueber der ersten Fassung. Modell-Neigung = Spiel hinter dem Getriebe.",
+  "yaw": 180.0,
+  "zeit": "2026-09-19 23:33",
+  "raum": "modell (Encoder - Versatz, seit 2026-09-20)"
+ },
+ "nest_12": {
+  "grad": [
+   -73.175,
+   16.974,
+   -124.739,
+   15.852,
+   -0.068,
+   135.352
+  ],
+  "notiz": "2026-09-11 bilinear aus den 4 Eckpunkten: TCP-Lage und Greiferorientierung im Modell interpoliert, IK nahe der Gelenkinterpolation (s=0.00 t=0.33, 1.5 Grad vom Seed)",
+  "rad": [
+   -1.27714,
+   0.29625196012932986,
+   -2.1771114548307837,
+   0.2766714548307836,
+   -0.00119,
+   2.36233
+  ],
+  "tcp_modell_mm": [
+   -22.2,
+   -152.7,
+   55.5
+  ],
+  "raum": "modell (Encoder - Versatz, seit 2026-09-20)"
+ },
+ "nest_13": {
+  "grad": [
+   -65.856,
+   17.78,
+   -125.274,
+   15.504,
+   -0.127,
+   135.683
+  ],
+  "notiz": "2026-09-11 bilinear aus den 4 Eckpunkten: TCP-Lage und Greiferorientierung im Modell interpoliert, IK nahe der Gelenkinterpolation (s=0.00 t=0.67, 1.5 Grad vom Seed)",
+  "rad": [
+   -1.14941,
+   0.31032196012932983,
+   -2.1864414548307836,
+   0.27059145483078356,
+   -0.00221,
+   2.36811
+  ],
+  "tcp_modell_mm": [
+   -3.4,
+   -152.9,
+   55.3
+  ],
+  "raum": "modell (Encoder - Versatz, seit 2026-09-20)"
+ },
+ "nest_14": {
+  "grad": [
+   -58.957,
+   17.019,
+   -124.851,
+   15.76,
+   -0.172,
+   135.619
+  ],
+  "proben": 10,
+  "quelle": "joint_states (Arm haelt selbst)",
+  "rad": [
+   -1.029,
+   0.29703196012932986,
+   -2.1790614548307836,
+   0.2750614548307836,
+   -0.003,
+   2.367
+  ],
+  "streuung_grad": 0.0,
+  "tcp_mm": [
+   15.4,
+   -153.12,
+   55.13
+  ],
+  "tcp_modell_mm": [
+   15.4,
+   -153.1,
+   55.1
+  ],
+  "yaw": 180.0,
+  "zeit": "2026-09-11 14:06:23",
+  "raum": "modell (Encoder - Versatz, seit 2026-09-20)"
+ },
+ "nest_21": {
+  "grad": [
+   -81.978,
+   4.665,
+   -113.528,
+   17.288,
+   -0.06,
+   132.481
+  ],
+  "notiz": "2026-09-11 bilinear aus den 4 Eckpunkten: TCP-Lage und Greiferorientierung im Modell interpoliert, IK nahe der Gelenkinterpolation (s=0.25 t=0.00, 2.7 Grad vom Seed)",
+  "rad": [
+   -1.43078,
+   0.08141196012932986,
+   -1.9814314548307834,
+   0.30173145483078356,
+   -0.00105,
+   2.31223
+  ],
+  "tcp_modell_mm": [
+   -41.5,
+   -170.8,
+   59.6
+  ],
+  "raum": "modell (Encoder - Versatz, seit 2026-09-20)"
+ },
+ "nest_22": {
+  "grad": [
+   -75.307,
+   6.529,
+   -115.663,
+   17.608,
+   -0.087,
+   132.722
+  ],
+  "notiz": "2026-09-11 bilinear aus den 4 Eckpunkten: TCP-Lage und Greiferorientierung im Modell interpoliert, IK nahe der Gelenkinterpolation (s=0.25 t=0.33, 3.0 Grad vom Seed)",
+  "rad": [
+   -1.31435,
+   0.11395196012932986,
+   -2.0186914548307837,
+   0.3073114548307836,
+   -0.00152,
+   2.31643
+  ],
+  "tcp_modell_mm": [
+   -22.4,
+   -171.1,
+   58.7
+  ],
+  "raum": "modell (Encoder - Versatz, seit 2026-09-20)"
+ },
+ "nest_23": {
+  "grad": [
+   -68.747,
+   7.172,
+   -116.762,
+   18.112,
+   -0.118,
+   132.829
+  ],
+  "notiz": "2026-09-11 bilinear aus den 4 Eckpunkten: TCP-Lage und Greiferorientierung im Modell interpoliert, IK nahe der Gelenkinterpolation (s=0.25 t=0.67, 2.9 Grad vom Seed)",
+  "rad": [
+   -1.19987,
+   0.12517196012932985,
+   -2.0378814548307838,
+   0.31611145483078357,
+   -0.00206,
+   2.31831
+  ],
+  "tcp_modell_mm": [
+   -3.2,
+   -171.4,
+   57.9
+  ],
+  "raum": "modell (Encoder - Versatz, seit 2026-09-20)"
+ },
+ "nest_24": {
+  "grad": [
+   -62.484,
+   6.533,
+   -116.821,
+   18.854,
+   -0.15,
+   132.663
+  ],
+  "notiz": "2026-09-11 bilinear aus den 4 Eckpunkten: TCP-Lage und Greiferorientierung im Modell interpoliert, IK nahe der Gelenkinterpolation (s=0.25 t=1.00, 2.9 Grad vom Seed)",
+  "rad": [
+   -1.09055,
+   0.11402196012932984,
+   -2.038911454830784,
+   0.3290614548307836,
+   -0.00262,
+   2.31541
+  ],
+  "tcp_modell_mm": [
+   15.9,
+   -171.6,
+   57.0
+  ],
+  "raum": "modell (Encoder - Versatz, seit 2026-09-20)"
+ },
+ "nest_31": {
+  "grad": [
+   -83.016,
+   -4.537,
+   -102.598,
+   15.831,
+   -0.107,
+   130.41
+  ],
+  "notiz": "2026-09-11 bilinear aus den 4 Eckpunkten: TCP-Lage und Greiferorientierung im Modell interpoliert, IK nahe der Gelenkinterpolation (s=0.50 t=0.00, 3.5 Grad vom Seed)",
+  "rad": [
+   -1.44891,
+   -0.07918803987067013,
+   -1.7906714548307834,
+   0.27631145483078356,
+   -0.00187,
+   2.27608
+  ],
+  "tcp_modell_mm": [
+   -42.0,
+   -189.2,
+   63.5
+  ],
+  "raum": "modell (Encoder - Versatz, seit 2026-09-20)"
+ },
+ "nest_32": {
+  "grad": [
+   -76.989,
+   -2.915,
+   -105.372,
+   17.148,
+   -0.082,
+   130.541
+  ],
+  "notiz": "2026-09-11 bilinear aus den 4 Eckpunkten: TCP-Lage und Greiferorientierung im Modell interpoliert, IK nahe der Gelenkinterpolation (s=0.50 t=0.33, 3.8 Grad vom Seed)",
+  "rad": [
+   -1.34371,
+   -0.05087803987067015,
+   -1.8390814548307834,
+   0.29929145483078357,
+   -0.00143,
+   2.27837
+  ],
+  "tcp_modell_mm": [
+   -22.6,
+   -189.5,
+   62.0
+  ],
+  "raum": "modell (Encoder - Versatz, seit 2026-09-20)"
+ },
+ "nest_33": {
+  "grad": [
+   -71.034,
+   -2.368,
+   -107.034,
+   18.433,
+   -0.073,
+   130.583
+  ],
+  "notiz": "2026-09-11 bilinear aus den 4 Eckpunkten: TCP-Lage und Greiferorientierung im Modell interpoliert, IK nahe der Gelenkinterpolation (s=0.50 t=0.67, 3.7 Grad vom Seed)",
+  "rad": [
+   -1.23977,
+   -0.04133803987067015,
+   -1.8681014548307835,
+   0.32172145483078357,
+   -0.00127,
+   2.27911
+  ],
+  "tcp_modell_mm": [
+   -3.1,
+   -189.8,
+   60.4
+  ],
+  "raum": "modell (Encoder - Versatz, seit 2026-09-20)"
+ },
+ "nest_34": {
+  "grad": [
+   -65.293,
+   -2.938,
+   -107.578,
+   19.715,
+   -0.076,
+   130.426
+  ],
+  "notiz": "2026-09-11 bilinear aus den 4 Eckpunkten: TCP-Lage und Greiferorientierung im Modell interpoliert, IK nahe der Gelenkinterpolation (s=0.50 t=1.00, 3.6 Grad vom Seed)",
+  "rad": [
+   -1.13958,
+   -0.051278039870670145,
+   -1.8775914548307835,
+   0.34409145483078357,
+   -0.00132,
+   2.27637
+  ],
+  "tcp_modell_mm": [
+   16.4,
+   -190.2,
+   58.9
+  ],
+  "raum": "modell (Encoder - Versatz, seit 2026-09-20)"
+ },
+ "nest_41": {
+  "grad": [
+   -83.866,
+   -13.45,
+   -90.313,
+   12.732,
+   -0.144,
+   128.53
+  ],
+  "notiz": "2026-09-11 bilinear aus den 4 Eckpunkten: TCP-Lage und Greiferorientierung im Modell interpoliert, IK nahe der Gelenkinterpolation (s=0.75 t=0.00, 2.5 Grad vom Seed)",
+  "rad": [
+   -1.46373,
+   -0.23474803987067017,
+   -1.5762514548307835,
+   0.22222145483078354,
+   -0.00251,
+   2.24327
+  ],
+  "tcp_modell_mm": [
+   -42.6,
+   -207.6,
+   67.4
+  ],
+  "raum": "modell (Encoder - Versatz, seit 2026-09-20)"
+ },
+ "nest_42": {
+  "grad": [
+   -78.354,
+   -11.892,
+   -93.809,
+   14.95,
+   -0.06,
+   128.678
+  ],
+  "notiz": "2026-09-11 bilinear aus den 4 Eckpunkten: TCP-Lage und Greiferorientierung im Modell interpoliert, IK nahe der Gelenkinterpolation (s=0.75 t=0.33, 3.4 Grad vom Seed)",
+  "rad": [
+   -1.36754,
+   -0.20755803987067012,
+   -1.6372814548307835,
+   0.26093145483078356,
+   -0.00104,
+   2.24585
+  ],
+  "tcp_modell_mm": [
+   -22.8,
+   -207.9,
+   65.2
+  ],
+  "raum": "modell (Encoder - Versatz, seit 2026-09-20)"
+ },
+ "nest_43": {
+  "grad": [
+   -72.893,
+   -11.353,
+   -96.085,
+   16.973,
+   -0.001,
+   128.764
+  ],
+  "notiz": "2026-09-11 bilinear aus den 4 Eckpunkten: TCP-Lage und Greiferorientierung im Modell interpoliert, IK nahe der Gelenkinterpolation (s=0.75 t=0.67, 3.3 Grad vom Seed)",
+  "rad": [
+   -1.27223,
+   -0.19814803987067015,
+   -1.6769914548307834,
+   0.29624145483078357,
+   -1e-05,
+   2.24735
+  ],
+  "tcp_modell_mm": [
+   -3.0,
+   -208.3,
+   63.0
+  ],
+  "raum": "modell (Encoder - Versatz, seit 2026-09-20)"
+ },
+ "nest_44": {
+  "grad": [
+   -67.591,
+   -11.837,
+   -97.154,
+   18.818,
+   0.036,
+   128.701
+  ],
+  "notiz": "2026-09-11 bilinear aus den 4 Eckpunkten: TCP-Lage und Greiferorientierung im Modell interpoliert, IK nahe der Gelenkinterpolation (s=0.75 t=1.00, 2.6 Grad vom Seed)",
+  "rad": [
+   -1.17969,
+   -0.20659803987067016,
+   -1.6956514548307835,
+   0.32843145483078356,
+   0.00062,
+   2.24626
+  ],
+  "tcp_modell_mm": [
+   16.8,
+   -208.7,
+   60.8
+  ],
+  "raum": "modell (Encoder - Versatz, seit 2026-09-20)"
+ },
+ "nest_51": {
+  "grad": [
+   -84.569,
+   -22.573,
+   -76.207,
+   8.025,
+   -0.172,
+   126.796
+  ],
+  "proben": 10,
+  "quelle": "joint_states (Arm haelt selbst)",
+  "rad": [
+   -1.476,
+   -0.39396803987067014,
+   -1.3300614548307834,
+   0.14006145483078355,
+   -0.003,
+   2.213
+  ],
+  "streuung_grad": 0.0,
+  "tcp_mm": [
+   -43.16,
+   -225.94,
+   71.34
+  ],
+  "tcp_modell_mm": [
+   -43.2,
+   -225.9,
+   71.3
+  ],
+  "yaw": 180.0,
+  "zeit": "2026-09-11 14:32:12",
+  "raum": "modell (Encoder - Versatz, seit 2026-09-20)"
+ },
+ "nest_52": {
+  "grad": [
+   -79.486,
+   -20.884,
+   -80.643,
+   11.161,
+   -0.023,
+   127.049
+  ],
+  "notiz": "2026-09-11 bilinear aus den 4 Eckpunkten: TCP-Lage und Greiferorientierung im Modell interpoliert, IK nahe der Gelenkinterpolation (s=1.00 t=0.33, 1.4 Grad vom Seed)",
+  "rad": [
+   -1.3873,
+   -0.36448803987067013,
+   -1.4074814548307835,
+   0.19479145483078356,
+   -0.0004,
+   2.21742
+  ],
+  "tcp_modell_mm": [
+   -23.0,
+   -226.4,
+   68.4
+  ],
+  "raum": "modell (Encoder - Versatz, seit 2026-09-20)"
+ },
+ "nest_53": {
+  "grad": [
+   -74.435,
+   -20.223,
+   -83.677,
+   13.937,
+   0.091,
+   127.263
+  ],
+  "notiz": "2026-09-11 bilinear aus den 4 Eckpunkten: TCP-Lage und Greiferorientierung im Modell interpoliert, IK nahe der Gelenkinterpolation (s=1.00 t=0.67, 1.4 Grad vom Seed)",
+  "rad": [
+   -1.29913,
+   -0.35295803987067015,
+   -1.4604414548307834,
+   0.24325145483078356,
+   0.00158,
+   2.22116
+  ],
+  "tcp_modell_mm": [
+   -2.9,
+   -226.8,
+   65.6
+  ],
+  "raum": "modell (Encoder - Versatz, seit 2026-09-20)"
+ },
+ "nest_54": {
+  "grad": [
+   -69.5,
+   -20.567,
+   -85.374,
+   16.39,
+   0.172,
+   127.369
+  ],
+  "proben": 10,
+  "quelle": "joint_states (Arm haelt selbst)",
+  "rad": [
+   -1.213,
+   -0.35896803987067016,
+   -1.4900614548307836,
+   0.2860614548307836,
+   0.003,
+   2.223
+  ],
+  "streuung_grad": 0.0,
+  "tcp_mm": [
+   17.31,
+   -227.21,
+   62.67
+  ],
+  "tcp_modell_mm": [
+   17.3,
+   -227.2,
+   62.7
+  ],
+  "yaw": 180.0,
+  "zeit": "2026-09-11 14:14:05",
+  "raum": "modell (Encoder - Versatz, seit 2026-09-20)"
+ },
+ "trichter_ablager": {
+  "grad": [
+   -83.51,
+   -33.26,
+   -117.14,
+   78.48,
+   65.2,
+   70.3
+  ],
+  "rad": [
+   -1.45752,
+   -0.5804980398706701,
+   -2.0444814548307835,
+   1.3697314548307835,
+   1.13795,
+   1.22697
+  ],
+  "quelle": "2026-09-14 14:3x: versetze_soll ab dem alten Punkt (dx +8, dy +12, dz +2 mm; Soll J1-J5) + J6 von Hand (servo_frei, Encoder). Welle haengt am Kopf senkrecht, Spitze ueber dem Rohr - LOSLASS-Hoehe (ablage-dz 0) | J5 aus dem Encoder (65.2), weil beim Handdrehen mitbewegt",
+  "zeit": "2026-09-14 14:46:48",
+  "encoder_grad": [
+   -82.1,
+   -30.31,
+   -116.43,
+   79.47,
+   65.2,
+   70.3
+  ],
+  "hinweis": "ersetzt den mit verdrehtem Greifer angelernten Punkt (J6 +180 am Vormittag korrigiert)",
+  "raum": "modell (Encoder - Versatz, seit 2026-09-20)"
+ },
+ "trichter_ablager_alt_2026-09-12": {
+  "grad": [
+   -79.469,
+   -49.33,
+   -119.981,
+   109.095,
+   66.463,
+   87.892
+  ],
+  "notiz": "ALT: von Hand 00:18, Greifer 180 Grad verdreht (Wellenkopf zeigte nach unten). Ersetzt 12.9. Tag.",
+  "rad": [
+   -1.387,
+   -0.86096803987067,
+   -2.0940614548307837,
+   1.9040614548307835,
+   1.16,
+   1.534
+  ],
+  "streuung_grad": 0.0,
+  "zeit": "2026-09-12 00:18:57",
+  "raum": "modell (Encoder - Versatz, seit 2026-09-20)"
+ },
+ "trichter_ablager_hand_2026-09-11": {
+  "grad": [
+   -33.461,
+   -66.69,
+   -97.406,
+   138.373,
+   -7.448,
+   -47.957
+  ],
+  "notiz": "von Hand gefuehrt 22:32, Vorstufe; aktiv ist trichter_ablager (Soll +50 mm z, Welle fiel senkrecht in den Auslauf)",
+  "rad": [
+   -0.584,
+   -1.1639680398706702,
+   -1.7000614548307835,
+   2.415061454830784,
+   -0.13,
+   -0.837
+  ],
+  "streuung_grad": 0.0,
+  "zeit": "2026-09-11 22:32:30",
+  "raum": "modell (Encoder - Versatz, seit 2026-09-20)"
+ },
+ "trichter_greif": {
+  "grad": [
+   -42.88,
+   -7.7,
+   -121.92,
+   41.06,
+   1.37,
+   134.66
+  ],
+  "greifer_prozent_erwartet": "ganz zu (-0.74) kommandieren: leer = 0 %, Welle am Kopf ~15-22 % (Reibgummi). -0.62 taugt NICHT als Sensor (Firmware meldet dann den Kommandowert 13 %).",
+  "greifer_zu": -0.74,
+  "notiz": "2026-09-12 AKTUELL. Trichter r 181 (trichter_pose.xacro aus dem Handpunkt). Anfahren OFFEN: MoveIt auf +40 mm (ik_max_grad 35) -> gerade ab -> nachstellen. Heraus: --nur-heben --ueber 60 --blind-mm 30 (erste 30 mm ohne Kollisionspruefung: Modell-TCP hier ~10 mm zu tief, Finger stehen im Modell im Kragen). J6 im Trichter NIE drehen (Kabel, Waende).",
+  "quelle": "SOLL: Handpunkt 00:20 + versetze_soll radial +10 (Welle mittig zwischen den Fingern), z unveraendert; nachgestellt",
+  "rad": [
+   -0.7484,
+   -0.13438803987067016,
+   -2.1279014548307837,
+   0.7166314548307836,
+   0.02391,
+   2.35026
+  ],
+  "tcp_modell_mm": [
+   91.3,
+   -167.7,
+   33.7
+  ],
+  "yaw": null,
+  "zeit": "2026-09-12 02:28:30",
+  "raum": "modell (Encoder - Versatz, seit 2026-09-20)"
+ },
+ "trichter_greif_alt_2026-09-11": {
+  "grad": [
+   -40.508,
+   -10.248,
+   -113.163,
+   28.222,
+   0.521,
+   131.133
+  ],
+  "greifer_prozent_erwartet": "13-17 (Welle); 23-28 = Auslaufrand gefasst, dann 2 mm hoeher",
+  "greifer_zu": -0.62,
+  "notiz": "ARCHIV: Griffpunkt fuer die ALTE Trichterlage (vor dem Versetzen/Festkleben am 2026-09-11 Abend)",
+  "proben": 1,
+  "rad": [
+   -0.707,
+   -0.17886803987067013,
+   -1.9750614548307834,
+   0.49256145483078356,
+   0.0091,
+   2.2887
+  ],
+  "streuung_grad": 0.0,
+  "tcp_ist_mm_beim_griff": [
+   91.8,
+   -160.5,
+   34.8
+  ],
+  "tcp_mm": [
+   89.0,
+   -158.8
+  ],
+  "tcp_soll_mm": [
+   89.0,
+   -158.8,
+   32.1
+  ],
+  "yaw": 180.0,
+  "raum": "modell (Encoder - Versatz, seit 2026-09-20)"
+ },
+ "trichter_greif_hand_2026-09-11": {
+  "grad": [
+   -35.924,
+   -49.215,
+   -61.253,
+   21.661,
+   -1.833,
+   145.016
+  ],
+  "greifer_prozent_erwartet": "~17-22 (Welle am Kopf, mit Reibgummi 2026-09-11); 0 = leer",
+  "greifer_zu": -0.62,
+  "notiz": "ARCHIV: von Hand gefuehrt 23:20 (Greifer zu um den Kopf); aktiv ist trichter_greif = +10 mm x, +30 mm z davon",
+  "rad": [
+   -0.627,
+   -0.85896803987067,
+   -1.0690614548307835,
+   0.37806145483078357,
+   -0.032,
+   2.531
+  ],
+  "streuung_grad": 0.09,
+  "yaw": null,
+  "zeit": "2026-09-11 23:20:31",
+  "raum": "modell (Encoder - Versatz, seit 2026-09-20)"
+ },
+ "trichter_greif_hand_2026-09-12": {
+  "grad": [
+   -41.654,
+   -2.29,
+   -127.716,
+   41.486,
+   1.203,
+   135.848
+  ],
+  "notiz": "ARCHIV: von Hand gefuehrt 00:20 (Trichter zurueck bei r 181); aktiv ist trichter_greif = +10 mm radial (zur hohen Wand), z gleich",
+  "rad": [
+   -0.727,
+   -0.039968039870670144,
+   -2.229061454830784,
+   0.7240614548307835,
+   0.021,
+   2.371
+  ],
+  "streuung_grad": 0.09,
+  "zeit": "2026-09-12 00:20:41",
+  "raum": "modell (Encoder - Versatz, seit 2026-09-20)"
+ },
+ "trichter_greif_neu": {
+  "grad": [
+   -32.598,
+   -31.425,
+   -73.457,
+   15.853,
+   -2.036,
+   148.35
+  ],
+  "notiz": "2026-09-12 VORSCHLAG: trichter_greif radial -30 mm (Trichter 3 cm zum Roboter versetzt), IK nahe der alten Stellung. Noch nicht bestaetigt.",
+  "rad": [
+   -0.56894,
+   -0.5484780398706701,
+   -1.2820614548307834,
+   0.27668145483078355,
+   -0.03553,
+   2.5892
+  ],
+  "tcp_modell_mm": [
+   162.2,
+   -191.1,
+   57.0
+  ],
+  "raum": "modell (Encoder - Versatz, seit 2026-09-20)"
+ },
+ "trichter_greif_zu": {
+  "grad": [
+   -34.61,
+   -50.79,
+   -40.16,
+   1.99,
+   -1.92,
+   146.34
+  ],
+  "greifer_ist": -0.607,
+  "greifer_prozent_erwartet": "~17-22 (Welle am Kopf, Reibgummi); 0 = leer",
+  "greifer_prozent_ist": 15,
+  "greifer_zu": -0.62,
+  "notiz": "YEDEK/Backup: dieselbe Armstellung wie trichter_greif, Greifer ZU (-0.62 -> Firmware 15 %, Welle am Kopf gefasst, 2026-09-11 23:5x)",
+  "quelle": "SOLL: Handpunkt 23:20 + versetze_soll dx +10 (Zunge mittig) + dz +30 (offene Finger stehen hoeher; beim Schliessen senken sie sich), nachgestellt Nick -0.13",
+  "rad": [
+   -0.60406,
+   -0.8864480398706701,
+   -0.7009214548307836,
+   0.034731454830783555,
+   -0.03351,
+   2.55411
+  ],
+  "tcp_modell_mm": [
+   181.6,
+   -214.0,
+   57.0
+  ],
+  "yaw": null,
+  "zeit": "2026-09-11 23:43:44",
+  "raum": "modell (Encoder - Versatz, seit 2026-09-20)"
+ },
+ "trichter_ablager_alt_2026-09-13": {
+  "grad": [
+   -79.125,
+   -49.387,
+   -119.179,
+   109.267,
+   71.734,
+   -132.296
+  ],
+  "proben": 10,
+  "quelle": "joint_states (Arm haelt selbst)",
+  "rad": [
+   -1.381,
+   -0.86196803987067,
+   -2.080061454830784,
+   1.9070614548307834,
+   1.252,
+   -2.309
+  ],
+  "streuung_grad": 0.0,
+  "tcp_mm": [
+   140.01,
+   -177.03,
+   123.15
+  ],
+  "yaw": 180.0,
+  "zeit": "2026-09-12 14:51:21",
+  "notiz": "2026-09-12 Tag: Greifer von Hand gedreht (Servo 6 frei, tools/servo_frei.py), Welle im Greifer wie aus der Schale (Kopf oben). J6 -132.3 (vorher +87.9). Anfahrt: ueber +40 (Bahn) -> gerade ab +5 -> letzte 5 mm ohne Kollisionspruefung (Modell: greifer_mechanik in der Wandoberkante).",
+  "raum": "modell (Encoder - Versatz, seit 2026-09-20)"
+ },
+ "kamerapose": {
+  "grad": [
+   -0.63,
+   0.712,
+   0.713,
+   -0.168,
+   -90.0,
+   1.49
+  ],
+  "rad": [
+   -0.011,
+   0.012431960129329858,
+   0.012438545169216445,
+   -0.0029385451692164445,
+   -1.5708,
+   0.026
+  ],
+  "tcp_modell_mm": [
+   -12.3,
+   -245.2,
+   430.1
+  ],
+  "quelle": "kamerapose.py (Nullstellung + J5, Finger nach -y)",
+  "zeit": "2026-09-20 00:20:19",
+  "raum": "modell (Encoder - Versatz, seit 2026-09-20)"
+ },
+ "trichter_ablager_alt_2026-09-14_greifer_verdreht": {
+  "grad": [
+   -86.32,
+   -32.64,
+   -108.68,
+   59.88,
+   74.47,
+   -155.41
+  ],
+  "rad": [
+   -1.506568,
+   -0.5696750398706701,
+   -1.8968234548307834,
+   1.0451034548307834,
+   1.299747,
+   -2.712416
+  ],
+  "proben": 1,
+  "quelle": "SOLL-Gelenke (Kommando), nicht Encoder - reproduziert die gehaltene Stellung samt Durchhang",
+  "streuung_grad": 0.0,
+  "tcp_mm": [
+   120.01,
+   -197.03,
+   138.15
+  ],
+  "yaw": -81.2,
+  "zeit": "2026-09-13 23:25:41",
+  "ist_grad_beim_anlernen": [
+   -85.31,
+   -32.09,
+   -109.43,
+   58.16,
+   72.71,
+   -154.76
+  ],
+  "tcp_ist_modell_mm": [
+   121.35,
+   -191.58,
+   122.03
+  ],
+  "notiz": "2026-09-13 Abend: Trichter-Test OHNE Welle, Greifer ZU. Vom alten Punkt (12.9.) aus: dz +15 (Modell), dx -20, dy -20 (Benutzer: 'so lassen'); Hoehe vorerst so. Encoder standen dabei 10 mm tiefer als das Modell (Durchhang, J4 -12 Grad). Anfahrt: nest_anfahren --nur-ueber +60 -> versetze_soll --dz 40/25/15 (Bahnprobe). Gespeichert sind die SOLL-Winkel.",
+  "hinweis": "Stand vor 2026-09-14 10:5x: Greifer war um 180 Grad verdreht montiert -> J6 um 180 falsch",
+  "raum": "modell (Encoder - Versatz, seit 2026-09-20)"
+ },
+ "trichter_ablager_alt_2026-09-14_mittag": {
+  "grad": [
+   -86.322,
+   -32.64,
+   -108.682,
+   59.878,
+   74.467,
+   24.591
+  ],
+  "rad": [
+   -1.5066,
+   -0.56966803987067,
+   -1.8968614548307834,
+   1.0450614548307835,
+   1.2997,
+   0.4292
+  ],
+  "proben": 1,
+  "quelle": "SOLL-Gelenke (Kommando), nicht Encoder - reproduziert die gehaltene Stellung samt Durchhang",
+  "streuung_grad": 0.0,
+  "tcp_mm": [
+   120.01,
+   -197.03,
+   138.15
+  ],
+  "yaw": -81.2,
+  "zeit": "2026-09-13 23:25:41",
+  "ist_grad_beim_anlernen": [
+   -85.31,
+   -32.09,
+   -109.43,
+   58.16,
+   72.71,
+   -154.76
+  ],
+  "tcp_ist_modell_mm": [
+   121.35,
+   -191.58,
+   122.03
+  ],
+  "notiz": "2026-09-13 Abend: Trichter-Test OHNE Welle, Greifer ZU. Vom alten Punkt (12.9.) aus: dz +15 (Modell), dx -20, dy -20 (Benutzer: 'so lassen'); Hoehe vorerst so. Encoder standen dabei 10 mm tiefer als das Modell (Durchhang, J4 -12 Grad). Anfahrt: nest_anfahren --nur-ueber +60 -> versetze_soll --dz 40/25/15 (Bahnprobe). Gespeichert sind die SOLL-Winkel.",
+  "hinweis": "2026-09-14 10:5x: J6 +180 (Greifer wurde richtig herum montiert; angelernt war er verdreht -> Welle hing am Trichter verkehrt, stiess oben an) | ersetzt 2026-09-14 14:3x",
+  "zeit_j6_korrektur": "2026-09-14 11:00",
+  "raum": "modell (Encoder - Versatz, seit 2026-09-20)"
+ },
+ "nest_11_senkrecht_2026-09-19": {
+  "grad": [
+   -68.3,
+   49.56,
+   -149.09,
+   13.29,
+   0.0,
+   147.54
+  ],
+  "rad": [
+   -1.192059879112127,
+   0.8649851772883898,
+   -2.602111381798346,
+   0.2319542575900464,
+   0.0,
+   2.5750587783924335
+  ],
+  "tcp_modell_mm": [
+   -22.0,
+   -126.2,
+   42.1
+  ],
+  "modell_neigung_grad": {
+   "radial": 10.1,
+   "tangential": 4.6
+  },
+  "quelle": "2026-09-19 Handy-Wasserwaage: Greifer REAL senkrecht (0 Grad) bei nest_11; J4 von OBEN angefahren (21 -> 13), J5 0. Modell zeigt +10.1 radial / +4.6 tangential = Spiel hinter dem Getriebe. Spitzen noch NICHT mittig im Nest.",
+  "yaw": 180.0,
+  "zeit": "2026-09-19 21:24",
+  "raum": "modell (Encoder - Versatz, seit 2026-09-20)"
+ },
+ "nest_11_ablage_alt_2026-09-12": {
+  "grad": [
+   -83.21,
+   13.48,
+   -122.45,
+   17.14,
+   0.02,
+   132.28
+  ],
+  "notiz": "2026-09-12 01:5x ERSTER VOLLER ZYKLUS Trichter -> Platte: trichter_greif (offen, von oben) -> zu -0.74 (22 %) -> 30 mm blind + 30 mm gerade hoch -> nest_11 ueber +40 (gerader Bahn-Zweig) -> gerade ab -> nachstellen -> dx -6 -> AUF. Ablagepunkt ist um -6 mm x gegen nest_11 versetzt: die Welle haengt nicht mittig unter dem TCP (Griff am Kopf zwischen den Gummis). Fuer die anderen Nester denselben Versatz probieren.",
+  "quelle": "SOLL: nest_11 + versetze_soll dx -6 (Benutzer: Welle mittig ueber dem Nest), z = Nestpunkt; Welle am Kopf gefasst (Reibgummi), Greifer AUF -> Welle stand im Nest",
+  "rad": [
+   -1.45229,
+   0.23527196012932983,
+   -2.1371514548307835,
+   0.2991514548307836,
+   0.00035,
+   2.30872
+  ],
+  "tcp_modell_mm": [
+   -46.9,
+   -152.5,
+   55.7
+  ],
+  "yaw": null,
+  "zeit": "2026-09-12 02:54:09",
+  "raum": "modell (Encoder - Versatz, seit 2026-09-20)"
+ },
+ "nest_12_ablage": {
+  "grad": [
+   -74.123,
+   24.715,
+   -143.06,
+   32.073,
+   0.605,
+   147.239
+  ],
+  "rad": [
+   -1.2936846227499803,
+   0.4313582811002609,
+   -2.4968748345616247,
+   0.5597708647345038,
+   0.0105549885848342,
+   2.569804035410713
+  ],
+  "tcp_modell_mm": [
+   -25.2,
+   -149.4,
+   42.1
+  ],
+  "anfahrt": "J4 von OBEN (tools/gelenkspiel.py, Hub 8), dann nachstellen; Greifer 17-25 mm",
+  "modell_neigung_grad": {
+   "radial": 9.7,
+   "tangential": 5.2
+  },
+  "quelle": "2026-09-19 ABGELEITET aus nest_11_ablage (2. Fassung) + Plattenraster (+18.7, -0.3) mm; am Roboter NOCH NICHT geprueft",
+  "yaw": 180.0,
+  "zeit": "2026-09-19 23:33",
+  "raum": "modell (Encoder - Versatz, seit 2026-09-20)"
+ },
+ "nest_13_ablage": {
+  "grad": [
+   -64.733,
+   27.719,
+   -144.26,
+   30.286,
+   -0.383,
+   156.576
+  ],
+  "rad": [
+   -1.1298109573871689,
+   0.48379329599866555,
+   -2.517817195835412,
+   0.5285845927364872,
+   -0.006688217671178496,
+   2.7327721455834033
+  ],
+  "tcp_modell_mm": [
+   -6.4,
+   -149.6,
+   42.1
+  ],
+  "anfahrt": "J4 von OBEN (tools/gelenkspiel.py, Hub 8), dann nachstellen; Greifer 17-25 mm",
+  "modell_neigung_grad": {
+   "radial": 9.7,
+   "tangential": 5.2
+  },
+  "quelle": "2026-09-19 ABGELEITET aus nest_11_ablage (2. Fassung) + Plattenraster (+37.5, -0.4) mm; am Roboter NOCH NICHT geprueft",
+  "yaw": 180.0,
+  "zeit": "2026-09-19 23:33",
+  "raum": "modell (Encoder - Versatz, seit 2026-09-20)"
+ },
+ "nest_14_ablage": {
+  "grad": [
+   -55.864,
+   28.232,
+   -144.339,
+   29.722,
+   -1.308,
+   165.399
+  ],
+  "rad": [
+   -0.975002906430959,
+   0.49273334212106984,
+   -2.5191956650476266,
+   0.5187518258600452,
+   -0.022820833595362095,
+   2.8867553997947226
+  ],
+  "tcp_modell_mm": [
+   12.4,
+   -149.8,
+   42.1
+  ],
+  "anfahrt": "J4 von OBEN (tools/gelenkspiel.py, Hub 8), dann nachstellen; Greifer 17-25 mm",
+  "modell_neigung_grad": {
+   "radial": 9.7,
+   "tangential": 5.2
+  },
+  "quelle": "2026-09-19 ABGELEITET aus nest_11_ablage (2. Fassung) + Plattenraster (+56.3, -0.6) mm; am Roboter NOCH NICHT geprueft",
+  "yaw": 180.0,
+  "zeit": "2026-09-19 23:33",
+  "raum": "modell (Encoder - Versatz, seit 2026-09-20)"
+ },
+ "nest_21_ablage": {
+  "grad": [
+   -84.581,
+   7.301,
+   -132.643,
+   38.86,
+   1.685,
+   136.835
+  ],
+  "rad": [
+   -1.476208458432486,
+   0.1274221519329356,
+   -2.3150533162594136,
+   0.6782361899929397,
+   0.02940385345879253,
+   2.3882189666710336
+  ],
+  "tcp_modell_mm": [
+   -44.5,
+   -167.5,
+   42.1
+  ],
+  "anfahrt": "J4 von OBEN (tools/gelenkspiel.py, Hub 8), dann nachstellen; Greifer 17-25 mm",
+  "modell_neigung_grad": {
+   "radial": 9.7,
+   "tangential": 5.2
+  },
+  "quelle": "2026-09-19 ABGELEITET aus nest_11_ablage (2. Fassung) + Plattenraster (-0.6, -18.3) mm; am Roboter NOCH NICHT geprueft",
+  "yaw": 180.0,
+  "zeit": "2026-09-19 23:33",
+  "raum": "modell (Encoder - Versatz, seit 2026-09-20)"
+ },
+ "nest_22_ablage": {
+  "grad": [
+   -76.441,
+   10.638,
+   -135.248,
+   38.307,
+   0.847,
+   144.933
+  ],
+  "rad": [
+   -1.3341504633600483,
+   0.18566464688788376,
+   -2.3605144638771263,
+   0.6685811741005736,
+   0.014789439707458746,
+   2.5295653183433817
+  ],
+  "tcp_modell_mm": [
+   -25.4,
+   -167.8,
+   42.1
+  ],
+  "anfahrt": "J4 von OBEN (tools/gelenkspiel.py, Hub 8), dann nachstellen; Greifer 17-25 mm",
+  "modell_neigung_grad": {
+   "radial": 9.7,
+   "tangential": 5.2
+  },
+  "quelle": "2026-09-19 ABGELEITET aus nest_11_ablage (2. Fassung) + Plattenraster (+18.5, -18.7) mm; am Roboter NOCH NICHT geprueft",
+  "yaw": 180.0,
+  "zeit": "2026-09-19 23:33",
+  "raum": "modell (Encoder - Versatz, seit 2026-09-20)"
+ },
+ "nest_23_ablage": {
+  "grad": [
+   -68.28,
+   12.567,
+   -136.609,
+   37.799,
+   -0.01,
+   153.05
+  ],
+  "rad": [
+   -1.1917048996021113,
+   0.2193347853130973,
+   -2.384282663582802,
+   0.6597193524673125,
+   -0.00017294526707738937,
+   2.671221627558162
+  ],
+  "tcp_modell_mm": [
+   -6.2,
+   -168.1,
+   42.1
+  ],
+  "anfahrt": "J4 von OBEN (tools/gelenkspiel.py, Hub 8), dann nachstellen; Greifer 17-25 mm",
+  "modell_neigung_grad": {
+   "radial": 9.7,
+   "tangential": 5.2
+  },
+  "quelle": "2026-09-19 ABGELEITET aus nest_11_ablage (2. Fassung) + Plattenraster (+37.7, -19.0) mm; am Roboter NOCH NICHT geprueft",
+  "yaw": 180.0,
+  "zeit": "2026-09-19 23:33",
+  "raum": "modell (Encoder - Versatz, seit 2026-09-20)"
+ },
+ "nest_24_ablage": {
+  "grad": [
+   -60.488,
+   12.834,
+   -136.733,
+   37.599,
+   -0.828,
+   160.799
+  ],
+  "rad": [
+   -1.055712308796681,
+   0.2239936958106073,
+   -2.386439446108167,
+   0.6562276693617953,
+   -0.014452768669261292,
+   2.8064671331286446
+  ],
+  "tcp_modell_mm": [
+   12.9,
+   -168.3,
+   42.1
+  ],
+  "anfahrt": "J4 von OBEN (tools/gelenkspiel.py, Hub 8), dann nachstellen; Greifer 17-25 mm",
+  "modell_neigung_grad": {
+   "radial": 9.7,
+   "tangential": 5.2
+  },
+  "quelle": "2026-09-19 ABGELEITET aus nest_11_ablage (2. Fassung) + Plattenraster (+56.8, -19.1) mm; am Roboter NOCH NICHT geprueft",
+  "yaw": 180.0,
+  "zeit": "2026-09-19 23:33",
+  "raum": "modell (Encoder - Versatz, seit 2026-09-20)"
+ },
+ "nest_31_ablage": {
+  "grad": [
+   -85.402,
+   -3.217,
+   -123.19,
+   39.901,
+   1.768,
+   136.017
+  ],
+  "rad": [
+   -1.49054278130824,
+   -0.056145494808120575,
+   -2.1500759448053213,
+   0.6963968065376943,
+   0.030850676907570252,
+   2.3739513630162805
+  ],
+  "tcp_modell_mm": [
+   -45.0,
+   -185.9,
+   42.1
+  ],
+  "anfahrt": "J4 von OBEN (tools/gelenkspiel.py, Hub 8), dann nachstellen; Greifer 17-25 mm",
+  "modell_neigung_grad": {
+   "radial": 9.7,
+   "tangential": 5.2
+  },
+  "quelle": "2026-09-19 ABGELEITET aus nest_11_ablage (2. Fassung) + Plattenraster (-1.0, -36.7) mm; am Roboter NOCH NICHT geprueft",
+  "yaw": 180.0,
+  "zeit": "2026-09-19 23:33",
+  "raum": "modell (Encoder - Versatz, seit 2026-09-20)"
+ },
+ "nest_32_ablage": {
+  "grad": [
+   -78.174,
+   -0.698,
+   -125.851,
+   40.218,
+   1.027,
+   143.209
+  ],
+  "rad": [
+   -1.3643905782439758,
+   -0.012176529233547305,
+   -2.1965185149551756,
+   0.7019377907135874,
+   0.017925735942786,
+   2.499477190125701
+  ],
+  "tcp_modell_mm": [
+   -25.6,
+   -186.2,
+   42.1
+  ],
+  "anfahrt": "J4 von OBEN (tools/gelenkspiel.py, Hub 8), dann nachstellen; Greifer 17-25 mm",
+  "modell_neigung_grad": {
+   "radial": 9.7,
+   "tangential": 5.2
+  },
+  "quelle": "2026-09-19 ABGELEITET aus nest_11_ablage (2. Fassung) + Plattenraster (+18.4, -37.1) mm; am Roboter NOCH NICHT geprueft",
+  "yaw": 180.0,
+  "zeit": "2026-09-19 23:33",
+  "raum": "modell (Encoder - Versatz, seit 2026-09-20)"
+ },
+ "nest_33_ablage": {
+  "grad": [
+   -70.92,
+   0.706,
+   -127.255,
+   40.3,
+   0.268,
+   150.424
+  ],
+  "rad": [
+   -1.2377874585493427,
+   0.012321056903989255,
+   -2.2210192210830546,
+   0.7033670257792501,
+   0.004677550277671314,
+   2.6253956889818193
+  ],
+  "tcp_modell_mm": [
+   -6.1,
+   -186.5,
+   42.1
+  ],
+  "anfahrt": "J4 von OBEN (tools/gelenkspiel.py, Hub 8), dann nachstellen; Greifer 17-25 mm",
+  "modell_neigung_grad": {
+   "radial": 9.7,
+   "tangential": 5.2
+  },
+  "quelle": "2026-09-19 ABGELEITET aus nest_11_ablage (2. Fassung) + Plattenraster (+37.9, -37.4) mm; am Roboter NOCH NICHT geprueft",
+  "yaw": 180.0,
+  "zeit": "2026-09-19 23:33",
+  "raum": "modell (Encoder - Versatz, seit 2026-09-20)"
+ },
+ "nest_34_ablage": {
+  "grad": [
+   -63.939,
+   0.727,
+   -127.262,
+   40.275,
+   -0.467,
+   157.367
+  ],
+  "rad": [
+   -1.1159427572053437,
+   0.012681341300899429,
+   -2.2211476666725996,
+   0.7029248365621017,
+   -0.008145448949288321,
+   2.7465639471565724
+  ],
+  "tcp_modell_mm": [
+   13.4,
+   -186.9,
+   42.1
+  ],
+  "anfahrt": "J4 von OBEN (tools/gelenkspiel.py, Hub 8), dann nachstellen; Greifer 17-25 mm",
+  "modell_neigung_grad": {
+   "radial": 9.7,
+   "tangential": 5.2
+  },
+  "quelle": "2026-09-19 ABGELEITET aus nest_11_ablage (2. Fassung) + Plattenraster (+57.4, -37.7) mm; am Roboter NOCH NICHT geprueft",
+  "yaw": 180.0,
+  "zeit": "2026-09-19 23:33",
+  "raum": "modell (Encoder - Versatz, seit 2026-09-20)"
+ },
+ "nest_41_ablage": {
+  "grad": [
+   -86.112,
+   -12.574,
+   -112.559,
+   38.604,
+   1.839,
+   135.311
+  ],
+  "rad": [
+   -1.5029354608346532,
+   -0.21945397040426562,
+   -1.9645299562096714,
+   0.6737712743745983,
+   0.03209941555075324,
+   2.3616157746271647
+  ],
+  "tcp_modell_mm": [
+   -45.6,
+   -204.2,
+   42.1
+  ],
+  "anfahrt": "J4 von OBEN (tools/gelenkspiel.py, Hub 8), dann nachstellen; Greifer 17-25 mm",
+  "modell_neigung_grad": {
+   "radial": 9.7,
+   "tangential": 5.2
+  },
+  "quelle": "2026-09-19 ABGELEITET aus nest_11_ablage (2. Fassung) + Plattenraster (-1.7, -55.1) mm; am Roboter NOCH NICHT geprueft",
+  "yaw": 180.0,
+  "zeit": "2026-09-19 23:33",
+  "raum": "modell (Encoder - Versatz, seit 2026-09-20)"
+ },
+ "nest_42_ablage": {
+  "grad": [
+   -79.516,
+   -10.477,
+   -115.273,
+   39.394,
+   1.166,
+   141.874
+  ],
+  "rad": [
+   -1.3878201401468677,
+   -0.18285274125218748,
+   -2.0119005717943215,
+   0.6875485136456376,
+   0.020357464257348957,
+   2.4761706403037507
+  ],
+  "tcp_modell_mm": [
+   -25.7,
+   -204.6,
+   42.1
+  ],
+  "anfahrt": "J4 von OBEN (tools/gelenkspiel.py, Hub 8), dann nachstellen; Greifer 17-25 mm",
+  "modell_neigung_grad": {
+   "radial": 9.7,
+   "tangential": 5.2
+  },
+  "quelle": "2026-09-19 ABGELEITET aus nest_11_ablage (2. Fassung) + Plattenraster (+18.2, -55.5) mm; am Roboter NOCH NICHT geprueft",
+  "yaw": 180.0,
+  "zeit": "2026-09-19 23:34",
+  "raum": "modell (Encoder - Versatz, seit 2026-09-20)"
+ },
+ "nest_43_ablage": {
+  "grad": [
+   -72.975,
+   -9.422,
+   -116.61,
+   39.769,
+   0.484,
+   148.38
+  ],
+  "rad": [
+   -1.2736561528722028,
+   -0.16443850811204944,
+   -2.0352257854993554,
+   0.6940976696497989,
+   0.008450482843309256,
+   2.5897244225157046
+  ],
+  "tcp_modell_mm": [
+   -5.9,
+   -205.0,
+   42.1
+  ],
+  "anfahrt": "J4 von OBEN (tools/gelenkspiel.py, Hub 8), dann nachstellen; Greifer 17-25 mm",
+  "modell_neigung_grad": {
+   "radial": 9.7,
+   "tangential": 5.2
+  },
+  "quelle": "2026-09-19 ABGELEITET aus nest_11_ablage (2. Fassung) + Plattenraster (+38.0, -55.9) mm; am Roboter NOCH NICHT geprueft",
+  "yaw": 180.0,
+  "zeit": "2026-09-19 23:34",
+  "raum": "modell (Encoder - Versatz, seit 2026-09-20)"
+ },
+ "nest_44_ablage": {
+  "grad": [
+   -66.627,
+   -9.446,
+   -116.599,
+   39.799,
+   -0.184,
+   154.693
+  ],
+  "rad": [
+   -1.1628561189876436,
+   -0.16486007152646845,
+   -2.0350394112775545,
+   0.6946238008789982,
+   -0.0032121518286827256,
+   2.6999094345793555
+  ],
+  "tcp_modell_mm": [
+   13.9,
+   -205.4,
+   42.1
+  ],
+  "anfahrt": "J4 von OBEN (tools/gelenkspiel.py, Hub 8), dann nachstellen; Greifer 17-25 mm",
+  "modell_neigung_grad": {
+   "radial": 9.7,
+   "tangential": 5.2
+  },
+  "quelle": "2026-09-19 ABGELEITET aus nest_11_ablage (2. Fassung) + Plattenraster (+57.8, -56.2) mm; am Roboter NOCH NICHT geprueft",
+  "yaw": 180.0,
+  "zeit": "2026-09-19 23:34",
+  "raum": "modell (Encoder - Versatz, seit 2026-09-20)"
+ },
+ "nest_51_ablage": {
+  "grad": [
+   -86.622,
+   -21.34,
+   -100.807,
+   35.601,
+   1.89,
+   134.803
+  ],
+  "rad": [
+   -1.511842620673313,
+   -0.3724543730433478,
+   -1.7594068553952673,
+   0.6213589132610275,
+   0.0329883028264406,
+   2.352749340678708
+  ],
+  "tcp_modell_mm": [
+   -46.1,
+   -222.6,
+   42.1
+  ],
+  "anfahrt": "J4 von OBEN (tools/gelenkspiel.py, Hub 8), dann nachstellen; Greifer 17-25 mm",
+  "modell_neigung_grad": {
+   "radial": 9.7,
+   "tangential": 5.2
+  },
+  "quelle": "2026-09-19 ABGELEITET aus nest_11_ablage (2. Fassung) + Plattenraster (-2.2, -73.5) mm; am Roboter NOCH NICHT geprueft",
+  "yaw": 180.0,
+  "zeit": "2026-09-19 23:34",
+  "raum": "modell (Encoder - Versatz, seit 2026-09-20)"
+ },
+ "nest_52_ablage": {
+  "grad": [
+   -80.626,
+   -19.548,
+   -103.489,
+   36.657,
+   1.281,
+   140.77
+  ],
+  "rad": [
+   -1.4071929334753277,
+   -0.3411799396980963,
+   -1.8062175362479047,
+   0.6397853502752106,
+   0.02235538670271514,
+   2.456896610705854
+  ],
+  "tcp_modell_mm": [
+   -26.0,
+   -223.1,
+   42.1
+  ],
+  "anfahrt": "J4 von OBEN (tools/gelenkspiel.py, Hub 8), dann nachstellen; Greifer 17-25 mm",
+  "modell_neigung_grad": {
+   "radial": 9.7,
+   "tangential": 5.2
+  },
+  "quelle": "2026-09-19 ABGELEITET aus nest_11_ablage (2. Fassung) + Plattenraster (+17.9, -74.0) mm; am Roboter NOCH NICHT geprueft",
+  "yaw": 180.0,
+  "zeit": "2026-09-19 23:34",
+  "raum": "modell (Encoder - Versatz, seit 2026-09-20)"
+ },
+ "nest_53_ablage": {
+  "grad": [
+   -74.642,
+   -18.641,
+   -104.836,
+   37.198,
+   0.659,
+   146.722
+  ],
+  "rad": [
+   -1.3027516990546177,
+   -0.325340574216601,
+   -1.8297361887096666,
+   0.6492212393168387,
+   0.01150155458485661,
+   2.5607878521682235
+  ],
+  "tcp_modell_mm": [
+   -5.9,
+   -223.5,
+   42.1
+  ],
+  "anfahrt": "J4 von OBEN (tools/gelenkspiel.py, Hub 8), dann nachstellen; Greifer 17-25 mm",
+  "modell_neigung_grad": {
+   "radial": 9.7,
+   "tangential": 5.2
+  },
+  "quelle": "2026-09-19 ABGELEITET aus nest_11_ablage (2. Fassung) + Plattenraster (+38.0, -74.4) mm; am Roboter NOCH NICHT geprueft",
+  "yaw": 180.0,
+  "zeit": "2026-09-19 23:34",
+  "raum": "modell (Encoder - Versatz, seit 2026-09-20)"
+ },
+ "nest_54_ablage": {
+  "grad": [
+   -68.778,
+   -18.693,
+   -104.786,
+   37.236,
+   0.043,
+   152.554
+  ],
+  "rad": [
+   -1.2004054260006418,
+   -0.3262490102983465,
+   -1.828864649111012,
+   0.6498889829473377,
+   0.0007417678615878904,
+   2.6625685200513325
+  ],
+  "tcp_modell_mm": [
+   14.3,
+   -223.9,
+   42.1
+  ],
+  "anfahrt": "J4 von OBEN (tools/gelenkspiel.py, Hub 8), dann nachstellen; Greifer 17-25 mm",
+  "modell_neigung_grad": {
+   "radial": 9.7,
+   "tangential": 5.2
+  },
+  "quelle": "2026-09-19 ABGELEITET aus nest_11_ablage (2. Fassung) + Plattenraster (+58.2, -74.7) mm; am Roboter NOCH NICHT geprueft",
+  "yaw": 180.0,
+  "zeit": "2026-09-19 23:34",
+  "raum": "modell (Encoder - Versatz, seit 2026-09-20)"
+ },
+ "nest_11_ablage_plus50": {
+  "grad": [
+   -83.45,
+   26.15,
+   -112.88,
+   0.28,
+   1.57,
+   137.96
+  ],
+  "rad": [
+   -1.456477260789268,
+   0.4564035993965172,
+   -1.9701276596511992,
+   0.004886921905584122,
+   0.027401669256310976,
+   2.4078562360513773
+  ],
+  "tcp_modell_mm": [
+   -43.9,
+   -149.2,
+   92.1
+  ],
+  "quelle": "2026-09-19: nest_11_ablage + 50 mm senkrecht (gerade Bahn, Orientierung gleich); Hubprobe mit Welle im Greifer (9 %)",
+  "yaw": 180.0,
+  "zeit": "2026-09-19 23:58",
+  "raum": "modell (Encoder - Versatz, seit 2026-09-20)"
+ },
+ "nullstellung": {
+  "grad": [
+   -0.63,
+   0.71,
+   0.71,
+   -0.17,
+   0.06,
+   1.49
+  ],
+  "rad": [
+   -0.010995574287564275,
+   0.012391837689159746,
+   0.012391837689159739,
+   -0.0029670597283903604,
+   0.0010471975511965976,
+   0.02600540585471551
+  ],
+  "ist_grad": [
+   -0.63,
+   3.15,
+   0.97,
+   -0.29,
+   0.06,
+   1.49
+  ],
+  "quelle": "2026-09-20: REALE Nullstellung (Benutzer am Roboter, Augenmass/Handy): Arm steht senkrecht. Encoder-Nullpunkte J2 +2.3, J3 +0.3, J4 ~0 Grad verschoben (gelenk_nullpunkte.json). Ersetzt die Encoder-Null [0]*6 als Park-/Nullstellung in allen Werkzeugen.",
+  "zeit": "2026-09-20 00:18",
+  "raum": "modell (Encoder - Versatz, seit 2026-09-20)"
+ },
+ "_hinweis_versatz": "Alle Gelenkwinkel im MODELLRAUM: Encoder - _versatz_encoder_grad (gelenk_nullpunkte.json), umgestellt 2026-09-20; die Bruecke rechnet um. Alte Encoder-Fassung: teach_punkte_encoder_2026-09-20.json"
+}

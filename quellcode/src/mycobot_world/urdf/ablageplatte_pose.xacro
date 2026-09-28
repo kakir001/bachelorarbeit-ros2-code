@@ -1,0 +1,40 @@
+<?xml version="1.0"?>
+<!--
+  ================= ERZEUGTE DATEI - NICHT VON HAND AENDERN =================
+  Lage der Ablageplatte (robot_base -> ablageplatte) und die Nestbosse, erzeugt von
+  tools/ablageplatte_modell.py aus teach_punkte.json (20 Nester), 2026-09-12.
+  Masse in ablageplatte.xacro. Frame `ablageplatte`: Mitte der Platte, z = 0 =
+  Plattenunterseite (liegt auf der Grundplatte), +X = Spaltenrichtung (I 1..4).
+  Bossfeld im Modell 60.5 x 74.2 mm (real 51 x 68 - Modellraum, s. Werkzeugkopf).
+  ==========================================================================
+-->
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+  <xacro:property name="ablageplatte_x"   value="-0.012583"/>
+  <xacro:property name="ablageplatte_y"   value="-0.189833"/>
+  <xacro:property name="ablageplatte_z"   value="0.0"/>
+  <xacro:property name="ablageplatte_yaw" value="-0.009320"/>
+  <xacro:property name="ablageplatte_laenge_x" value="0.0805"/>
+  <xacro:property name="ablageplatte_laenge_y" value="0.0942"/>
+  <xacro:macro name="ablageplatte_bosse">
+    <xacro:ablageplatte_boss name="nest_11" x="-0.0287" y="0.0371" koerper="schwarz" streifen="rot"/>
+    <xacro:ablageplatte_boss name="nest_12" x="-0.0100" y="0.0370" koerper="schwarz" streifen="gruen"/>
+    <xacro:ablageplatte_boss name="nest_13" x="0.0088" y="0.0370" koerper="schwarz" streifen="weiss"/>
+    <xacro:ablageplatte_boss name="nest_14" x="0.0276" y="0.0370" koerper="schwarz" streifen="gelb"/>
+    <xacro:ablageplatte_boss name="nest_21" x="-0.0291" y="0.0188" koerper="gelb" streifen="schwarz"/>
+    <xacro:ablageplatte_boss name="nest_22" x="-0.0100" y="0.0186" koerper="gelb" streifen="rot"/>
+    <xacro:ablageplatte_boss name="nest_23" x="0.0092" y="0.0185" koerper="gelb" streifen="gruen"/>
+    <xacro:ablageplatte_boss name="nest_24" x="0.0283" y="0.0185" koerper="gelb" streifen="weiss"/>
+    <xacro:ablageplatte_boss name="nest_31" x="-0.0294" y="0.0004" koerper="weiss" streifen="gelb"/>
+    <xacro:ablageplatte_boss name="nest_32" x="-0.0100" y="0.0002" koerper="weiss" streifen="schwarz"/>
+    <xacro:ablageplatte_boss name="nest_33" x="0.0095" y="0.0001" koerper="weiss" streifen="rot"/>
+    <xacro:ablageplatte_boss name="nest_34" x="0.0290" y="-0.0001" koerper="weiss" streifen="gruen"/>
+    <xacro:ablageplatte_boss name="nest_41" x="-0.0299" y="-0.0180" koerper="gruen" streifen="weiss"/>
+    <xacro:ablageplatte_boss name="nest_42" x="-0.0100" y="-0.0182" koerper="gruen" streifen="gelb"/>
+    <xacro:ablageplatte_boss name="nest_43" x="0.0098" y="-0.0184" koerper="gruen" streifen="schwarz"/>
+    <xacro:ablageplatte_boss name="nest_44" x="0.0296" y="-0.0186" koerper="gruen" streifen="rot"/>
+    <xacro:ablageplatte_boss name="nest_51" x="-0.0302" y="-0.0364" koerper="rot" streifen="gruen"/>
+    <xacro:ablageplatte_boss name="nest_52" x="-0.0101" y="-0.0367" koerper="rot" streifen="weiss"/>
+    <xacro:ablageplatte_boss name="nest_53" x="0.0100" y="-0.0369" koerper="rot" streifen="gelb"/>
+    <xacro:ablageplatte_boss name="nest_54" x="0.0302" y="-0.0371" koerper="rot" streifen="schwarz"/>
+  </xacro:macro>
+</robot>

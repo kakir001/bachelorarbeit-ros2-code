@@ -1,0 +1,49 @@
+<?xml version="1.0"?>
+<!--
+  ====================== LAGE DES TRICHTERS (robot_base -> trichter) ======================
+
+  Diese Datei ist die EINZIGE Quelle der Trichterlage im Modell; mycobot_world.urdf.xacro
+  liest sie hier ein. Die MASSE stehen NICHT hier, sondern in trichter.xacro - die aendern
+  sich nicht, die Lage schon, sobald jemand den Trichter verschiebt (und das ist am
+  2026-09-10 zweimal passiert, beide Male durch den Greifer).
+
+  Ursprung des Frames `trichter` = Mitte der Auslaufbohrung auf dem Grund (z = 0),
+  +X = Richtung, in die sich der Kegel neigt.
+
+  x / y   :  aus dem angelernten Greifpunkt. Die Welle steht IM Auslauf, der Greifer
+             hat sie dort gefasst - die x/y des TCP beim Griff IST die Auslaufmitte,
+             bis auf das seitliche Spiel (rund 4 mm, siehe REZEPT_welle_aus_trichter.md).
+             Werte aus dem Rezept vom 2026-09-10: zeige_punkt.py mit x 94.4, y -164.9.
+  z       :  0. Der Trichter steht auf der Grundplatte, deren Oberseite z = 0 ist.
+  yaw     :  -60.2 Grad (Azimut 299.8 = Richtung Roboter -> Trichter, also VOM ROBOTER WEG).
+             Benutzer 2026-09-11: "die Muendung neigt sich genau vom Roboter weg" -
+             Augenmass, +-15 Grad. Die Schale (60-Grad-Bogen) steht damit hinter der
+             Welle, der Greifer davor. tools/trichter_lage_pruefen.py: die angelernten
+             Punkte sind bei JEDEM yaw frei - der Wert ist also fuer den Griff
+             unkritisch, er entscheidet nur, wo die Wand beim Anfahren von der Seite
+             steht.
+
+  ✅ 2026-09-11 ABEND: Trichter VERSETZT und festgeklebt (Benutzer). Neue Lage aus dem von
+             Hand angelernten Griffpunkt trichter_greif (23:20): TCP-Modell (172.0, -214.1) mm.
+             Vorher (94.4, -164.9). yaw wieder = Azimut Roboter -> Trichter (-51.2 Grad).
+             Kamera-Kalibrierung ist seit dem Ausrichten der Kamera UNGUELTIG -> nicht per Kamera.
+  ✅ 2026-09-12 00:20: Trichter NOCHMAL versetzt - zurueck nahe der urspruenglichen Stelle
+             (r 181 mm statt 280 am Arbeitsraumrand, wo nur 26 mm senkrechtes Ausheben ging).
+             Lage aus trichter_greif (von Hand): TCP (86.4, -159.1, 33.8).
+  ✅ 2026-09-14 Tag: Benutzer mass real vom Rohrmittelpunkt zu den 4 Plattenecken (72/95/140/155 mm);
+             Trilateration gegen die Modellplatte -> Rohr (89.5, -169.8), d.h. das Modell aus trichter_greif
+             lag 11 mm zu nah am Roboter (Getriebespiel im FK des angelernten Punkts). Passt zu "ROI 10 mm
+             neben dem Rohr", "Modell-TCP 10 mm zu tief", "Wolke 10-35 mm daneben". Fuss O120 -> O90
+             (vorlaeufig, Ecken real oval; Ecke B war im Modell 2 mm vor der Platte, real ~21 mm).
+  Zuletzt geaendert: 2026-09-14 (Rohrlage aus Plattenecken-Massen)
+  ========================================================================================
+-->
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <!-- robot_base -> trichter (Meter / Radiant) -->
+  <xacro:property name="trichter_x"   value="0.0895"/>
+  <xacro:property name="trichter_y"   value="-0.1698"/>
+  <xacro:property name="trichter_z"   value="0.0"/>
+  <xacro:property name="trichter_yaw" value="-1.0733"/>  <!-- -61.5 Grad = Azimut Roboter -> Trichter: Muendung neigt sich vom Roboter weg -->
+
+</robot>

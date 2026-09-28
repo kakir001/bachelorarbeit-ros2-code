@@ -34,7 +34,7 @@ def generate_launch_description():
             # (image + camera_info), Ausgabe-TF-Kette camera -> board.
             # min_corners=8 verwirft instabile Posen bei teilweise verdecktem Board.
             {'camera_frame': 'camera_color_optical_frame',
-             'board_frame':  'charuco_board',
+             'board_frame':  'charuco_gemessen',
              'image_topic':  '/camera/color/image_raw',
              'camera_info_topic': '/camera/color/camera_info',
              'publish_rate_hz': 5.0,

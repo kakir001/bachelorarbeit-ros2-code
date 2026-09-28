@@ -17,16 +17,39 @@
 
   <xacro:property name="PI" value="3.14159265358979323846"/>
 
+  <!-- Kamera-Pose (cam_x/y/z, cam_roll/pitch/yaw) kommt aus EINER erzeugten Datei.
+       tools/auto_camera_calibration.py schreibt sie nach jeder Messung neu; diese Datei
+       hier bleibt dabei unberührt. Kamera UND Kamera-Arm werden daraus nachgeführt. -->
+  <xacro:include filename="$(find mycobot_world)/urdf/camera_pose.xacro"/>
+
+  <!-- Bereitstellungsschale: Masse in schale.xacro, Lage in schale_pose.xacro
+       (erzeugt von tools/schale_pose_klicken.py, wie camera_pose.xacro). -->
+  <xacro:include filename="$(find mycobot_world)/urdf/schale.xacro"/>
+  <xacro:include filename="$(find mycobot_world)/urdf/schale_pose.xacro"/>
+
+  <!-- Trichter (Vereinzelung): Masse in trichter.xacro, Lage in trichter_pose.xacro. -->
+  <xacro:include filename="$(find mycobot_world)/urdf/trichter.xacro"/>
+  <xacro:include filename="$(find mycobot_world)/urdf/trichter_pose.xacro"/>
+  <!-- Ablageplatte (5x4 Nester): Masse in ablageplatte.xacro, Lage + Bosse aus den
+       angelernten Nestern (ablageplatte_pose.xacro, tools/ablageplatte_modell.py). -->
+  <xacro:include filename="$(find mycobot_world)/urdf/ablageplatte.xacro"/>
+  <xacro:include filename="$(find mycobot_world)/urdf/ablageplatte_pose.xacro"/>
+
+  <!-- x-Position der vertikalen Säule (Kamera-Arm reicht von hier zur Kamera). -->
+  <xacro:property name="column_x" value="0.385"/>
+
   <!-- Haupt-Referenzframe (Master-Plan vorgeschrieben) +
        physisches Basis-Gehäuse des Roboters (Box mit USB/HMI-Anschluss, zwischen Arm und Boden).
        ~15×11×11 cm, auf Armachse zentriert, sitzt auf der Plattform (z=0) auf → z=0..0.11.
        HINZUGEFUEGT 2026-06-15: zuvor war robot_base ein leeres Link → Gehäuse fehlte im
-       Kollisionsmodell → bei sehr naher Schraube faltet sich der Arm und stößt an dieses
+       Kollisionsmodell → bei sehr naher Welle faltet sich der Arm und stößt an dieses
        Gehäuse, MoveIt sah es nicht. Nur-Kollision (Visual ist bereits im joint1-Mesh). -->
+  <!-- ✅ 2026-09-11 NACHGEMESSEN (Benutzer): 11 cm in x, 15 cm in y, 11 cm hoch.
+       Vorher stand hier 0.15 x 0.11 - die Achsen waren VERTAUSCHT. -->
   <link name="robot_base">
     <collision>
       <origin xyz="0 0 0.055" rpy="0 0 0"/>
-      <geometry><box size="0.15 0.11 0.11"/></geometry>
+      <geometry><box size="0.11 0.15 0.11"/></geometry>
     </collision>
   </link>
 
@@ -59,7 +82,7 @@
 
   <!--
     Kaiser RS 2 XA Repro-Stand (Baseboard ist platform_top oben).
-    Drei Teile: Halte-Klemme (tutucu_kelepce), vertikale Säule (column),
+    Drei Teile: Halte-Klemme (halteklemme), vertikale Säule (column),
     von column zum Roboter reichender horizontaler Kamera-Arm (camera_arm).
 
     Geometrie (robot_base frame):
@@ -70,7 +93,7 @@
         column+Klemme ~5cm näher an Roboter gebracht, sodass der Stab an beide Enden anschließt.
   -->
 
-  <link name="tutucu_kelepce">
+  <link name="halteklemme">
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry><box size="0.05 0.11 0.07"/></geometry>
@@ -83,9 +106,9 @@
       <geometry><box size="0.05 0.11 0.07"/></geometry>
     </collision>
   </link>
-  <joint name="robot_base_to_tutucu_kelepce" type="fixed">
+  <joint name="robot_base_to_halteklemme" type="fixed">
     <parent link="robot_base"/>
-    <child  link="tutucu_kelepce"/>
+    <child  link="halteklemme"/>
     <!-- 2026-06-25: zur Mitte der fernen Kante der Platte zurückgesetzt (0.3225 -> 0.3725).
          Die vorherige Position vom 2026-06-07 hatte den Stab ~5cm vor die Plattenkante verschoben. -->
     <origin xyz="0.3725 -0.125 0.035" rpy="0 0 0"/>
@@ -111,20 +134,20 @@
          Außenfläche x=0.3975 ≈ Plattenkante 0.40. Y=-0.125 = Platten-Y-Mitte.
          (Das vorherige 0.335 hatte den Stab ~5cm vor die Kante verschoben; der Kamera-Arm
          war deshalb auf 12.5cm verkürzt worden — jetzt ist der Arm wieder verlängert.) -->
-    <origin xyz="0.385 -0.125 0.38" rpy="0 0 0"/>
+    <origin xyz="${column_x} -0.125 0.38" rpy="0 0 0"/>
   </joint>
 
   <link name="camera_arm">
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0"/>
-      <geometry><box size="0.229 0.025 0.025"/></geometry>
+      <geometry><box size="${column_x - cam_x} 0.025 0.025"/></geometry>
       <material name="arm_color">
         <color rgba="0.20 0.20 0.25 0.85"/>
       </material>
     </visual>
     <collision>
       <origin xyz="0 0 0" rpy="0 0 0"/>
-      <geometry><box size="0.229 0.025 0.025"/></geometry>
+      <geometry><box size="${column_x - cam_x} 0.025 0.025"/></geometry>
     </collision>
   </link>
   <joint name="robot_base_to_camera_arm" type="fixed">
@@ -140,8 +163,172 @@
          x: nahes Ende = neue Kamera x=0.156 (früher 0.21, Kamera näher gerückt), fernes Ende
          berührt bei 0.385 die column. Länge=0.385-0.156=0.229. Mitte=(0.156+0.385)/2=0.2705.
          column (0->0.76m) ist hoch genug, unverändert. -->
-    <origin xyz="0.2705 -0.125 0.450" rpy="0 0 0"/>
+    <origin xyz="${(cam_x + column_x) / 2} -0.125 ${cam_z}" rpy="0 0 0"/>
   </joint>
+
+  <!--
+    ===================== BEREITSTELLUNGSSCHALE =====================
+    Kreisringausschnitt, am Bauteil gemessen (2026-09-09):
+      Bogenwinkel 45.3 Grad | R 186.9 .. 301.9 mm | Wand 2 mm | Wandhoehe 17 mm
+      (Winkel 2026-09-12 mit der Kamera an der OBERKANTE gemessen: 45.3 Grad, 5 Frames,
+       Spannweite 0.2 Grad, Radien bestaetigt; die 39.9 Grad aus 130/210/115 mm Lineal
+       gehoeren wohl zum Innenboden - die Silhouette ist oben rund 148/239 mm.
+       Fuer die Kollision zaehlt die Oberkante.)
+    Aufbau und Begruendung der Zerlegung stehen im Kopf von schale.xacro,
+    die Lage in schale_pose.xacro.
+
+    Sie steht standardmaessig NICHT im Modell: die Lage ist noch nicht gemessen,
+    und eine Schale an der falschen Stelle verwirft gueltige Griffe stillschweigend.
+    Nach `tools/schale_pose_klicken.py` mit SCHALE_MONTIERT=1 einschalten.
+  -->
+  <xacro:arg name="schale_montiert" default="false"/>
+  <xacro:arg name="schale_boden"    default="false"/>
+
+  <xacro:property name="schale_r_innen"  value="0.1869"/>   <!-- Innenflaeche der inneren Wand -->
+  <xacro:property name="schale_r_aussen" value="0.3019"/>   <!-- Aussenflaeche der aeusseren Wand -->
+  <xacro:property name="schale_winkel"   value="${45.3 * PI / 180.0}"/>   <!-- Oberkante, Kamera 2026-09-12 (vorher 39.9 aus Lineal) -->
+  <xacro:property name="schale_wand"     value="0.002"/>    <!-- gemessen 2026-09-09 -->
+  <xacro:property name="schale_hoehe"    value="0.017"/>    <!-- gemessen 2026-09-09, Innenboden bis Oberkante -->
+  <xacro:property name="schale_boden_dicke" value="0.002"/> <!-- ANNAHME = Wandstaerke, nicht gemessen -->
+  <xacro:property name="schale_segmente" value="6"/>        <!-- Sehnen-Kaesten je Bogen, Fehler 0.51 mm -->
+
+  <xacro:if value="$(arg schale_montiert)">
+    <!-- 2026-09-14: Waende als STL-Mesh mit RUNDEN Kanten (Benutzer: keine eckigen Ecken - oben, unten, innen,
+         aussen); erzeugt von tools/schale_mesh.py (Ecken r 10 mm, Wandprofil oben/unten halbrund) aus denselben
+         Massen. schale_mesh:=false -> alte Sehnen-Kaesten. -->
+    <xacro:arg name="schale_mesh" default="true"/>
+    <link name="schale">
+      <xacro:if value="$(arg schale_mesh)">
+        <visual>
+          <geometry><mesh filename="package://mycobot_world/meshes/schale_wand.stl"/></geometry>
+          <material name="schale_wand_farbe"><color rgba="0.75 0.70 0.55 0.45"/></material>
+        </visual>
+        <collision>
+          <geometry><mesh filename="package://mycobot_world/meshes/schale_wand.stl"/></geometry>
+        </collision>
+        <visual>
+          <geometry><mesh filename="package://mycobot_world/meshes/schale_boden.stl"/></geometry>
+          <material name="schale_boden_farbe_mesh"><color rgba="0.55 0.62 0.75 0.9"/></material>
+        </visual>
+        <xacro:if value="$(arg schale_boden)">
+          <collision><geometry><mesh filename="package://mycobot_world/meshes/schale_boden.stl"/></geometry></collision>
+        </xacro:if>
+      </xacro:if>
+      <xacro:unless value="$(arg schale_mesh)">
+        <xacro:schale_ringausschnitt r_innen="${schale_r_innen}" r_aussen="${schale_r_aussen}"
+                                     winkel="${schale_winkel}" wand="${schale_wand}"
+                                     hoehe="${schale_hoehe}" segmente="${schale_segmente}"
+                                     mit_boden="$(arg schale_boden)" boden="${schale_boden_dicke}"/>
+      </xacro:unless>
+    </link>
+    <joint name="robot_base_to_schale" type="fixed">
+      <parent link="robot_base"/>
+      <child  link="schale"/>
+      <origin xyz="${schale_x} ${schale_y} ${schale_z}" rpy="0 0 ${schale_yaw}"/>
+    </joint>
+  </xacro:if>
+
+  <!--
+    ===================== ABLAGEPLATTE (5 x 4 Nester) =====================
+    Festgeklebt seit 2026-09-11 (vier Ecknester angelernt, 16 gerechnet). Standard AN.
+    Lage/Bosse aus den angelernten Nestern (Modellraum), Masse real - s. ablageplatte.xacro.
+    Abschalten: ABLAGEPLATTE_MONTIERT=0 (z.B. wenn die Platte zum Anlernen weggenommen ist).
+  -->
+  <xacro:arg name="ablageplatte_montiert" default="true"/>
+  <xacro:if value="$(arg ablageplatte_montiert)">
+    <link name="ablageplatte">
+      <xacro:ablageplatte_koerper laenge_x="${ablageplatte_laenge_x}" laenge_y="${ablageplatte_laenge_y}"/>
+    </link>
+    <xacro:ablageplatte_boss_links/>   <!-- farbige Bosse als eigene Links (nur visual) -->
+    <joint name="robot_base_to_ablageplatte" type="fixed">
+      <parent link="robot_base"/>
+      <child  link="ablageplatte"/>
+      <origin xyz="${ablageplatte_x} ${ablageplatte_y} ${ablageplatte_z}" rpy="0 0 ${ablageplatte_yaw}"/>
+    </joint>
+  </xacro:if>
+
+  <!--
+    ===================== TRICHTER (Vereinzelung) =====================
+    Auslaufrohr Ø 17 / 20 mm hoch, schraege KEGELSCHALE (nur ein ~90-Grad-Bogen,
+    auf der dem Roboter abgewandten Seite) bis "Ø 85" in 95 mm, Fussplatte Ø 120. Am Bauteil gemessen 2026-09-10 (messungen_trichter.txt);
+    Aufbau, Annahmen und Zerlegungsfehler stehen im Kopf von trichter.xacro,
+    die Lage in trichter_pose.xacro.
+
+    Er steht standardmaessig NICHT im Modell: die Neigungsrichtung (yaw) ist noch
+    nicht gemessen. Nach dem Messen mit TRICHTER_MONTIERT=1 einschalten - und
+    VOR jeder Fahrt in Trichternaehe: am 2026-09-10 hat sich der Greifer dort
+    verbogen, weil der Trichter im Modell fehlte.
+  -->
+  <xacro:arg name="trichter_montiert" default="false"/>
+
+  <xacro:property name="trichter_auslauf_r_aussen" value="0.0075"/>  <!-- Ø 15 aussen (Benutzer 2026-09-12; vorher 17) -->
+  <!-- Auslaufrohr: Wand 5 mm -> Bohrung Ø 5 (Benutzer 2026-09-12). Im Kollisionsmodell bleibt
+       das Rohr VOLL (ein Zylinder) - in die Bohrung faehrt nichts ausser der Welle. Nur Notiz. -->
+  <xacro:property name="trichter_auslauf_wand"     value="0.005"/>
+  <xacro:property name="trichter_auslauf_hoehe"    value="0.020"/>   <!-- Auslaufkante ueber Grund, gemessen -->
+  <!-- ✅ 2026-09-12 GEMESSEN (Benutzer, rechtwinkliges Dreieck ab OBERKANTE des Auslaufrohrs):
+       Ankathete 40 mm (waagerecht), Gegenkathete 95 mm (senkrecht), Hypotenuse ~100 (103) mm
+       -> Wand 22.8 Grad aus der Senkrechten, Oberkante 20 + 95 = 115 mm ueber Grund,
+       40 mm weiter aussen als die Rohrkante. Der Kragen (Ø 15 -> 30 auf 17 mm = 23.8 Grad)
+       liegt auf DERSELBEN Flanke - die Wand ist ab der Rohrkante eine gerade schraege Flaeche. -->
+  <xacro:property name="trichter_kegel_hoehe"      value="0.095"/>   <!-- Rohrkante (20) bis Muendung (115) -->
+  <xacro:property name="trichter_kegel_r_oben"     value="0.0475"/>  <!-- Rohrkante 7.5 + 40 mm (Dreieck 2026-09-12) -->
+  <xacro:property name="trichter_wand"             value="0.002"/>   <!-- gemessen (17-13)/2 -->
+  <!-- Achsneigung: Standard = halber Oeffnungswinkel -> nahe Wand senkrecht (Linealprobe).
+       atan((42.5 - 6.5) / 75) = 25.6 Grad. ANNAHME, siehe Kopf von trichter.xacro. -->
+  <!-- Kragen auf der Auslaufkante (Benutzer 2026-09-12): Ø 30 aussen, 17 mm hoch, Wand 1 mm (bestaetigt) -->
+  <xacro:property name="trichter_kragen_r"         value="0.015"/>
+  <xacro:property name="trichter_kragen_hoehe"     value="0.017"/>
+  <xacro:property name="trichter_kragen_wand"      value="0.002"/>   <!-- Wand 2 mm wie die ganze Flanke (Benutzer 2026-09-12) -->
+  <xacro:property name="trichter_wand2_hoehe"      value="0.020"/>   <!-- robotseitige Wand: nur 20 mm ab Auslaufkante (2026-09-12) -->
+  <xacro:property name="trichter_wand2_wand"       value="0.001"/>   <!-- robotseitige Wand: 1 mm dick (hohe Wand 2 mm) -->
+  <!-- 2026-09-12: KEINE Achsneigung mehr - jede Wand ist ein Kegelsegment um die Rohrachse,
+       die Schraege steckt allein im Radiuszuwachs (7.5 -> 47.5 auf 95 mm = 22.8 Grad). -->
+  <xacro:property name="trichter_neigung"          value="0.0"/>
+  <!-- Kegelfuss liegt HINTER dem Auslaufrohr (Foto 15.18.54): Rohr-Aussenradius +
+       Kegelfuss-Radius = 8.5 + 8.5. ANNAHME tangential; siehe Kopf von trichter.xacro. -->
+  <xacro:property name="trichter_kegel_versatz"    value="0.017"/>
+  <!-- Der Kegel ist eine SCHALE (Benutzer 2026-09-11: "1/6 des Umfangs"), auf der
+       dem Roboter abgewandten Seite = Neigungsrichtung +X. Benutzer korrigiert auf "1/4" = 90 Grad (vorher 1/6), bis
+       Sehne + Pfeilhoehe der Muendung gemessen sind. Siehe Kopf von trichter.xacro. -->
+  <xacro:property name="trichter_kegel_bogen"      value="${90.0 * PI / 180.0}"/>
+  <xacro:property name="trichter_scheiben"         value="15"/>      <!-- 5 mm je Scheibe, Fehler 2.3 mm nach innen -->
+  <xacro:property name="trichter_sehnen"           value="4"/>       <!-- 22.5 Grad je Sehne, Fehler 0.8 mm -->
+  <xacro:property name="trichter_fuss_r"           value="0.045"/>   <!-- Ø 90 VORLAEUFIG (14.9.: Ø 120 ragte 19 mm zu weit zur Platte; Ecken real oval) -->
+  <xacro:property name="trichter_fuss_dicke"       value="0.004"/>   <!-- ANNAHME -->
+  <!-- 2026-09-12 (Benutzer): Fussplatte ist ein HALBKREIS; die gerade Kante liegt an der
+       robotseitigen Aussenkante des Auslaufrohrs, der Halbkreis reicht nach +X. -->
+  <xacro:property name="trichter_fuss_kante_x"     value="${-trichter_auslauf_r_aussen}"/>
+  <xacro:property name="trichter_zunge_laenge"     value="0.025"/>   <!-- ANNAHME -->
+  <xacro:property name="trichter_zunge_breite"     value="0.015"/>   <!-- ANNAHME -->
+  <xacro:property name="trichter_zunge_hoehe"      value="0.020"/>   <!-- ANNAHME: bis Auslaufkante -->
+
+
+  <xacro:if value="$(arg trichter_montiert)">
+    <link name="trichter">
+      <xacro:trichter_koerper auslauf_r_aussen="${trichter_auslauf_r_aussen}"
+                              auslauf_hoehe="${trichter_auslauf_hoehe}"
+                              kegel_hoehe="${trichter_kegel_hoehe}"
+                              kegel_r_oben="${trichter_kegel_r_oben}"
+                              wand="${trichter_wand}" neigung="${trichter_neigung}"
+                              kegel_versatz="${trichter_kegel_versatz}"
+                              kegel_bogen="${trichter_kegel_bogen}"
+                              scheiben="${trichter_scheiben}" sehnen="${trichter_sehnen}"
+                              fuss_r="${trichter_fuss_r}" fuss_dicke="${trichter_fuss_dicke}"
+                              fuss_kante_x="${trichter_fuss_kante_x}"
+                              zunge_laenge="${trichter_zunge_laenge}"
+                              zunge_breite="${trichter_zunge_breite}"
+                              zunge_hoehe="${trichter_zunge_hoehe}"
+                              kragen_r="${trichter_kragen_r}" kragen_hoehe="${trichter_kragen_hoehe}"
+                              kragen_wand="${trichter_kragen_wand}" wand2_hoehe="${trichter_wand2_hoehe}"
+                              wand2_wand="${trichter_wand2_wand}" auslauf_wand="${trichter_auslauf_wand}"/>
+    </link>
+    <joint name="robot_base_to_trichter" type="fixed">
+      <parent link="robot_base"/>
+      <child  link="trichter"/>
+      <origin xyz="${trichter_x} ${trichter_y} ${trichter_z}" rpy="0 0 ${trichter_yaw}"/>
+    </joint>
+  </xacro:if>
 
   <!-- mycobot-Arm + adaptive gripper: upstream-URDF-Inhalt -->
   <xacro:include filename="$(find mycobot_description)/urdf/mycobot_280_jn/mycobot_280_jn_adaptive_gripper.urdf"/>
@@ -154,16 +341,413 @@
   </joint>
 
   <!--
-    TCP (Tool Center Point) — Mittelpunkt zwischen den beiden Greifer-Fingern.
-    Pose etwa 9 cm voraus in z-Achsen-Richtung von gripper_base.
-    Master-Plan: Pick/Place-Bewegungen werden vom tcp-Frame aus gesteuert.
+    ===================== GREIFERFINGER UND TCP =====================
+    Am 2026-09-09 wurden laengere Finger montiert. Der Nutzer hat nachgemessen:
+    vom Flansch bis zur Fingerspitze sind es jetzt 135 mm statt 110 mm.
+
+    Das passt genau: gripper_base sitzt im selben Ursprung wie joint6_flange
+    (das Gelenk joint6output_to_gripper_base hat origin "0 0 0"), die 110 mm
+    wurden also schon immer ab Flansch gerechnet. Die Finger sind um 25 mm
+    laenger geworden, also wandert die Spitze von 110 auf 135 mm.
+
+    Fingermass laut Nutzer (2026-09-09):
+      Laenge gesamt 50 mm; die ersten 25 mm durchgehend 20 mm breit,
+      die letzten 25 mm verjuengen sich von 20 mm auf 1 mm an der Spitze.
+      Vorher: 25 mm lang, 20 mm breit.
+    Daraus folgt: die Finger beginnen bei y = 135 - 50 = 85 mm.
+
+    WARUM DAS MODELLIERT WERDEN MUSS: bis hierher endete die gesamte
+    Greifergeometrie des Modells bei y ~ 42 mm (die Kollisionsbox von
+    gripper_base). Zwischen 42 mm und der Spitze bei 135 mm stand im Modell
+    NICHTS - weder sichtbar noch fuer die Kollisionspruefung. MoveIt konnte
+    also nicht sehen, wenn die Fingerspitzen in die Schale fahren. Mit den
+    25 mm laengeren Fingern ist genau das die Gefahr.
+
+    ⚠️ FOLGE FUER GRASP_Z_OFFSET: Der Wert -0.025 in run_pick_preview.sh ist
+    exakt so gross wie die Verlaengerung. Er hat sehr wahrscheinlich genau
+    diesen Modellfehler ausgeglichen (das Modell hielt die Spitze fuer 25 mm
+    zu weit oben, also musste der Griff 25 mm tiefer). Mit dem richtigen TCP
+    sollte er auf 0 gehen - ERST MESSEN, nicht blind beides aendern.
+
+    ANNAHME, die noch zu pruefen ist: die Dicke des Fingerblechs ist mit 6 mm
+    angesetzt (nicht gemessen), und die 20 mm Breite liegt quer zur
+    Schliessrichtung. In RViz gegen den echten Greifer vergleichen.
+    ================================================================
   -->
+
+  <!-- ⚠️ 2026-09-11 KORRIGIERT, -34 mm. Die 135 mm sind vom FLANSCH bis zur
+       Fingerspitze gemessen (2026-09-09). Diese Masse zaehlen aber ab dem
+       Ursprung von gripper_base, und der liegt NICHT am Flansch: das Upstream-
+       URDF setzt joint6_flange -> gripper_base auf xyz 0 0 0.034 (die Notiz vom
+       2026-09-09 "gleicher Ursprung" hatte die auskommentierte Zeile gelesen).
+       Also Spitze = 135 - 34 = 101 mm ab gripper_base. Am Aufbau bestaetigt:
+       am Greifpunkt (Modell-TCP z 8.2) mass der Benutzer die Fingerspitze
+       40-42 mm ueber der Grundplatte, 1 mm unter der Kopfoberkante der Welle
+       -> 33 mm Fehler, das ist der Flanschversatz. Dieselben 34 mm erklaeren
+       den alten GRASP_Z_OFFSET -0.025 (TCP 110 mit den alten Fingern war um
+       denselben Betrag zu lang). -->
+  <xacro:property name="flansch_versatz" value="0.034"/>  <!-- joint6_flange -> gripper_base, Upstream -->
+  <xacro:property name="finger_start"  value="${0.085 - flansch_versatz}"/>   <!-- ab gripper_base: 51 mm -->
+  <xacro:property name="finger_tip"    value="${0.135 - flansch_versatz}"/>   <!-- ab gripper_base: 101 mm (Flansch->Spitze 135 gemessen) -->
+  <!-- ✅ 2026-09-11 NACHGEMESSEN (Benutzer): Finger 50 mm lang, in Schliessrichtung
+       15 mm (nicht 20); ab der Haelfte laeuft er dreieckig auf die Spitze zu.
+       Der Keil ist ein echtes Dreiecksprisma (STL), Innenflaeche eben, Spitze scharf. -->
+  <xacro:property name="finger_breit"  value="0.015"/>   <!-- gemessen: gerader Teil, 15 mm -->
+  <!-- Keil-Masse (15 x 25 x finger_tief) stecken im STL; bei Aenderung neu erzeugen (DEVLOG 2026-09-11). -->
+  <xacro:property name="finger_tief"   value="0.020"/>   <!-- ANNAHME aus den Fotos, nicht gemessen: Plattentiefe -->
+  <!-- Wie weit die INNENFLAECHE des Fingers von der Mittellinie weg ist.
+       Die Finger sitzen NICHT auf dem Ursprung von gripper_left1/right1 - der
+       ist der Drehpunkt des Traegers, nicht die Platte. Auf dem Foto der
+       geschlossenen Finger beruehren sich die Innenflaechen in der Mitte.
+       Beim ersten Versuch standen die Finger deshalb 78 mm auseinander und
+       schwebten an den Aussenkanten des Greifers.
+
+       ⚠️ 2026-09-11 KORRIGIERT. Vorher stand hier traeger_x = 39 mm - das ist
+       der Traegerursprung bei GELENKWERT 0. Gelenkwert 0 ist aber NICHT
+       "geschlossen": der Bereich ist [-0.74 zu .. +0.15 auf], 0 liegt bei 83 %
+       auf. Folge im alten Modell: Finger bei "auf" (0.15) nur 6 mm auseinander,
+       bei "zu" (-0.62) 26 mm ineinander. Damit stiess der OFFENE Greifer im
+       Modell mitten in das Auslaufrohr des Trichters (trichter_lage_pruefen.py:
+       Kontakt der Fingerspitze bei dx -3, dy -4 - der Wellenachse).
+       Per FK (Sim-Stack, gripper_base-Frame) steht der Traeger bei:
+           +0.15 (auf)   x = +-41.1 mm
+            0.00         x = +-39.0
+           -0.62 (Griff) x = +-24.7
+           -0.74 (zu)    x = +-21.2   <- hier beruehren sich die Innenflaechen
+       Also: Innenflaeche = Traeger-x bei -0.74 minus finger_innen. Damit oeffnet
+       das Modell auf 42 mm; aus der Messung 6.8 mm bei 21 % folgen linear rund
+       32 mm - die Upstream-Kinematik ueberzeichnet den Hub also um ~5 mm je
+       Seite, mit dem Messschieber bei 100 % nachmessen. Bei -0.62 stehen die
+       Modellfinger 7 mm auseinander, die Firmware sagt 13 % ~ 4 mm. -->
+  <xacro:property name="finger_innen"  value="0.001"/>   <!-- Innenflaeche 1 mm neben der Mitte (geschlossen) -->
+  <xacro:property name="traeger_x"     value="0.0212"/>  <!-- Traeger-x bei GESCHLOSSEN (-0.74), per FK -->
+  <xacro:property name="finger_z"      value="-0.01"/>   <!-- gleiche Hoehe wie der tcp -->
+  <xacro:property name="gummi_dicke"   value="0.003"/>   <!-- Reibgummi an der Spitze, gemessen 2026-09-11 -->
+  <xacro:property name="gummi_kante"   value="0.013"/>   <!-- 13 x 13 mm -->
+
+  <!-- Ein Finger als zwei Quader: gerades Stueck + verjuengte Spitze.
+       seite = "links" oder "rechts"; x_link = x-Lage des tragenden Link im
+       gripper_base (die Finger sitzen bei -0.039 bzw. +0.039). -->
+  <xacro:macro name="greiferfinger" params="name parent x_link innen">
+    <link name="${name}">
+      <!-- Gerades Stueck (erste 25 mm): volle 15 mm in Schliessrichtung (x). -->
+      <visual>
+        <geometry>
+          <box size="${finger_breit} ${0.025} ${finger_tief}"/>
+        </geometry>
+        <origin xyz="${innen * (traeger_x - finger_innen - finger_breit/2)} ${finger_start + 0.0125 - 0.021} ${finger_z}" rpy="0 0 0"/>
+        <material name="finger_weiss"><color rgba="0.92 0.92 0.90 1.0"/></material>
+      </visual>
+      <!-- Keil (letzte 25 mm): echtes Dreiecksprisma als STL (meshes/finger_keil_*.stl,
+           Meter, erzeugt 2026-09-11): Innenflaeche eben, Aussenkante laeuft auf die
+           SPITZE zu. _neg = Koerper zu -x (linker Finger), _pos = zu +x (rechter).
+           Ursprung des Mesh = Innenflaeche am Keilfuss, z-mittig. -->
+      <xacro:property name="keil_datei" value="package://mycobot_world/meshes/finger_keil_${'neg' if innen > 0 else 'pos'}.stl"/>
+      <visual>
+        <geometry><mesh filename="${keil_datei}"/></geometry>
+        <origin xyz="${innen * (traeger_x - finger_innen)} ${finger_start + 0.025 - 0.021} ${finger_z}" rpy="0 0 0"/>
+        <material name="finger_weiss"><color rgba="0.92 0.92 0.90 1.0"/></material>
+      </visual>
+      <collision>
+        <geometry><mesh filename="${keil_datei}"/></geometry>
+        <origin xyz="${innen * (traeger_x - finger_innen)} ${finger_start + 0.025 - 0.021} ${finger_z}" rpy="0 0 0"/>
+      </collision>
+      <!-- ✅ 2026-09-11 Reibgummi (Benutzer): 13 x 13 mm, 3 mm dick, auf der
+           INNENFLAECHE an der Fingerspitze (untere Kante), links und rechts.
+           Die Innenflaeche liegt damit 3 mm naeher an der Mitte; ganz zu (-0.74)
+           ueberlappen die Gummis im Modell (Paar finger_links/rechts ist im SRDF
+           ausgeschaltet) - physisch stoppt der Greifer frueher, die Firmware
+           meldet trotzdem den KOMMANDIERTEN Wert (0 %). -->
+      <visual>
+        <geometry><box size="${gummi_dicke} ${gummi_kante} ${gummi_kante}"/></geometry>
+        <origin xyz="${innen * (traeger_x - finger_innen + gummi_dicke/2)} ${finger_tip - 0.021 - gummi_kante/2} ${finger_z}" rpy="0 0 0"/>
+        <material name="gummi_schwarz"><color rgba="0.15 0.15 0.15 1.0"/></material>
+      </visual>
+      <collision>
+        <geometry><box size="${gummi_dicke} ${gummi_kante} ${gummi_kante}"/></geometry>
+        <origin xyz="${innen * (traeger_x - finger_innen + gummi_dicke/2)} ${finger_tip - 0.021 - gummi_kante/2} ${finger_z}" rpy="0 0 0"/>
+      </collision>
+    </link>
+    <joint name="${parent}_to_${name}" type="fixed">
+      <parent link="${parent}"/>
+      <child  link="${name}"/>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+    </joint>
+  </xacro:macro>
+
+  <!-- Die Finger haengen an gripper_left1/right1, den aeussersten beweglichen
+       Gliedern; sie machen das Oeffnen und Schliessen also mit. -->
+  <xacro:greiferfinger name="finger_links"  parent="gripper_left1"  x_link="-0.039" innen="1"/>
+  <xacro:greiferfinger name="finger_rechts" parent="gripper_right1" x_link="0.039" innen="-1"/>
+
+  <!--
+    Oberseite des Greifers: bis 2026-09-11 standen hier ein weisser Vorsprung
+    ("halter_sockel", ab Werk) und darauf ein schwarzes P-foermiges Halteteil fuer die
+    Elephant-Kamera ("kamerahalter"). ✅ 2026-09-11: der Benutzer hat BEIDE entfernt -
+    Links, Joints und SRDF-Paare sind gestrichen. Die Masse unten bleiben nur als Notiz,
+    falls etwas davon wieder drankommt. Oberseite des Greiferkoerpers = greifer_huelle.
+  -->
+  <xacro:property name="halter_breite" value="0.025"/>   <!-- weisser Vorsprung, x -->
+  <xacro:property name="halter_laenge" value="0.035"/>   <!-- weisser Vorsprung, y -->
+  <xacro:property name="halter_hoehe"  value="0.020"/>   <!-- weisser Vorsprung, z -->
+  <xacro:property name="halter_x"      value="0.0"/>     <!-- mittig -->
+  <xacro:property name="halter_y"      value="0.020"/>   <!-- 2 cm vor dem Flanschanschluss -->
+  <xacro:property name="koerper_oben"  value="0.01734"/> <!-- Oberseite Greiferkoerper -->
+  <xacro:property name="halter_z"      value="${koerper_oben + halter_hoehe/2}"/>
+
+  <!-- Steg des P: liegt auf dem weissen Vorsprung -->
+  <xacro:property name="steg_laenge"   value="0.039"/>
+  <xacro:property name="steg_breite"   value="0.020"/>
+  <xacro:property name="steg_dicke"    value="0.010"/>
+  <xacro:property name="steg_z"        value="${koerper_oben + halter_hoehe + steg_dicke/2}"/>
+  <!-- Kopf des P: neben dem Vorsprung, auf dessen Hoehe -->
+  <xacro:property name="kopf_laenge"   value="0.030"/>
+  <xacro:property name="kopf_breite"   value="0.010"/>
+  <xacro:property name="kopf_y"        value="${halter_y + halter_laenge/2 + kopf_laenge/2}"/>
+  <!-- Der weisse Sockel unter dem Halter: er traegt die Platte und steht
+       genauso im Weg, gehoert also mit ins Modell. -->
+  <xacro:property name="sockel_hoehe"  value="0.025"/>
+  <xacro:property name="sockel_z"      value="${koerper_oben + sockel_hoehe/2}"/>
+
+  <!-- halter_sockel (weisser Vorsprung): ENTFERNT 2026-09-11, siehe oben. -->
+
+  <!-- kamerahalter (schwarzes P-Teil): ENTFERNT 2026-09-11, siehe oben. -->
+
+  <!--
+    Huelle fuer den Greiferkoerper.
+    Das Typenschild nennt 110 x 90 x 60 mm. Die 110 mm sind die GESAMTLAENGE bis
+    zur alten Fingerspitze - die Finger stehen inzwischen einzeln im Modell, die
+    Laenge wird hier also nicht angefasst. Quer dazu ist die Kollisionsbox des
+    Upstream-URDF aber deutlich zu klein: 58 statt 90 mm in x und 53.7 statt
+    60 mm in z. MoveIt hielt den Greifer also fuer schmaler und duenner als er
+    ist. Diese zusaetzliche Box legt sich ueber die vorhandene und bringt den
+    Querschnitt auf das echte Mass; die Upstream-Datei bleibt unberuehrt.
+  -->
+  <!-- ⚠️ 2026-09-10 NACHGEMESSEN: 55 mm breit, 25 mm dick (ohne den weissen
+       Vorsprung). Hier stand 90 x 60 mm - uebernommen vom TYPENSCHILD
+       (110 x 90 x 60). Das Typenschild meint offenbar die Huellmasse mit
+       gespreizten Fingern; die Finger stehen im Modell aber laengst einzeln.
+       Der Kasten war damit 35 mm zu breit und 35 mm zu dick, und ein zu grosser
+       Kollisionskoerper verwirft gueltige Griffe, ohne dass es auffaellt -
+       dieselbe Falle wie eine falsch platzierte Schale, nur andersherum.
+       Die 55 mm gelten ueber die ersten rund 40 mm ab dem Anschluss; danach wird
+       der Querschnitt ovaler und schmaler (Fingergelenke, Verschraubungen).
+       Die Laenge (y) bleibt unangetastet - dazu liegt keine neue Messung vor,
+       und Kuerzen waere die unsichere Richtung.
+
+       LAGE IN z, aus ZWEI voneinander unabhaengigen Messungen:
+         * die optische Messung legt die Oberseite der ChArUco-Platte auf -9.66 mm
+         * der Benutzer gibt zwischen Koerperunterseite und Platte rund 2 mm an
+       -> Koerperunterseite -7.66 mm, bei 25 mm Dicke also -7.66 .. +17.34 mm,
+          Mitte +4.84 mm. (Vorher: -53.2 .. +6.8 mm.)
+       ⚠️ Diese z-Lage ist rekonstruiert, nicht direkt gemessen - vor der naechsten
+       eigenstaendigen Fahrt in RViz gegen das echte Teil ansehen. -->
+  <link name="greifer_huelle">
+    <collision>
+      <geometry>
+        <box size="0.055 0.0715 0.025"/>
+      </geometry>
+      <origin xyz="0 0.0064 0.00484" rpy="0 0 0"/>
+    </collision>
+  </link>
+  <joint name="gripper_base_to_greifer_huelle" type="fixed">
+    <parent link="gripper_base"/>
+    <child  link="greifer_huelle"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </joint>
+
+  <!--
+    ===================== VIERGELENKKETTE =====================
+    Zwischen Greiferkoerper und Fingern klaffte im Kollisionsmodell eine Luecke
+    von 42.9 mm, in der GAR NICHTS stand. Nachgerechnet am 2026-09-09:
+
+      gripper_left2 / right2   y  -5.6 .. 14.4
+      gripper_left1 / right1   y  -5.5 .. 20.9
+      gripper_right3           y  -6.8 .. 29.0
+      gripper_left3            y  -6.8 .. 33.4
+      gripper_base / Huelle    y -29.4 .. 42.1   = weiteste Geometrie
+      neue Finger              y  85.0 .. 135.0  = Anfang der Finger
+                                   ____________
+      Luecke                          42.9 mm
+
+    Dort sitzt in Wirklichkeit die Viergelenkkette - die weissen Hebel, die vom
+    Koerper zu den Fingertraegern laufen (Foto der geschlossenen Finger,
+    2026-09-09). Das Upstream-Modell deckt damit nur etwa 40 % der Baulaenge des
+    Greifers kollisionsseitig ab. Beim Griff in die Schale ist genau dieser
+    Bereich einer der ersten, die an den Rand stossen - und MoveIt sah dort nichts.
+
+    Abgebildet als ZWEI Quader statt einem: die Hebel stehen am Koerper weit
+    auseinander und laufen zu den Fingern zusammen. Ein einziger Quader ueber die
+    volle Breite wuerde das Hineinfahren in die Schale unnoetig sperren.
+
+    Nur <collision>, kein <visual>: die Sichtmeshes des Greifers zeigen die
+    Hebel bereits richtig; ein Quader darueber waere ein Fremdkoerper in der Szene.
+    ============================================================
+  -->
+  <!-- ⚠️ 2026-09-11 NEU GESETZT. Mit finger_start = 51 mm (statt 85, siehe
+       Flanschversatz oben) ist die Luecke zwischen Huelle (42) und Fingern nur
+       noch 9 mm - dort sitzen die unteren Hebelgelenke (Foto 2026-09-09 01.53:
+       die Hebel laufen von der Huellenvorderkante zu den Fingertraegern, die
+       Fingerplatten beginnen direkt an den unteren Gelenken). Vorher deckten
+       die zwei Kaesten y 42..85 ab und lagen damit 34 mm weit UEBER den
+       Fingern - 90 mm breit, wo in Wirklichkeit nur zwei 20-mm-Finger sind.
+       Genau diese Kaesten standen im Trichtermodell bei jedem Gierwinkel in
+       der Kegelwand. Dicke: die Hebel liegen buendig in der Huellendicke
+       (25 mm), nicht in den 40 mm der Upstream-Box (die enthaelt das
+       Servogehaeuse). -->
+  <xacro:property name="mechanik_z_mitte" value="0.00484"/>  <!-- wie greifer_huelle -->
+  <xacro:property name="mechanik_z_hoehe" value="0.025"/>    <!-- wie greifer_huelle -->
+
+  <link name="greifer_mechanik_breit">
+    <collision>
+      <geometry><box size="0.070 0.005 ${mechanik_z_hoehe}"/></geometry>
+      <origin xyz="0 0.0445 ${mechanik_z_mitte}" rpy="0 0 0"/>   <!-- y 42 .. 47; 2026-09-12: 90 -> 70 mm (Griffstellung -0.62: Traeger +-25, Hebel ~+-35; die 90 galten fuer ganz offen) -->
+    </collision>
+  </link>
+  <joint name="gripper_base_to_greifer_mechanik_breit" type="fixed">
+    <parent link="gripper_base"/>
+    <child  link="greifer_mechanik_breit"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </joint>
+
+  <link name="greifer_mechanik_schmal">
+    <collision>
+      <geometry><box size="0.060 0.004 ${mechanik_z_hoehe}"/></geometry>
+      <origin xyz="0 0.049 ${mechanik_z_mitte}" rpy="0 0 0"/>   <!-- y 47 .. 51; 2026-09-12: 70 -> 60 mm -->
+    </collision>
+  </link>
+  <joint name="gripper_base_to_greifer_mechanik_schmal" type="fixed">
+    <parent link="gripper_base"/>
+    <child  link="greifer_mechanik_schmal"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </joint>
+
+  <!--
+    ===================== ChArUco AM GREIFER =====================
+    Am 2026-09-09 hat der Nutzer die ChArUco-Platte an der UNTERSEITE des
+    Greifers montiert, parallel zum Greifer und auf der dem schwarzen
+    Kamerahalter GEGENUEBERLIEGENDEN Seite (Foto 09:46).
+
+    Geometrie aus dem eigenen Erzeuger `generate_charuco_gripper.py`:
+      6 x 3 Felder, Feldkante 16.0 mm, Marker 12.0 mm, DICT_4X4_50
+      Aussenmass 96 x 48 mm
+    Das Muster auf dem Foto passt dazu (9 Marker in den weissen Feldern).
+
+    Wozu der eigene Link: fuer die Hand-Auge-Kalibrierung muss die Lage der
+    Platte gegenueber dem Flansch bekannt sein. Steht sie im Modell, liefert TF
+    sie direkt, und die Platte wird zugleich bei der Kollisionspruefung
+    beruecksichtigt - sie ragt nach unten heraus und ist beim Griff in die
+    Schale im Weg.
+
+    ⚠️ NOCH ZU BESTAETIGEN (aus dem Foto geschaetzt, nicht gemessen):
+      - Abstand ab Flansch entlang der Greiferachse (charuco_y)
+      - Abstand unter der Greiferflaeche (charuco_z)
+      - Plattendicke (charuco_dicke)
+    In RViz gegen den echten Aufbau vergleichen und hier korrigieren.
+
+    Abnehmbar: mit `charuco_montiert:=false` faellt sie aus dem Modell.
+    =============================================================
+  -->
+  <xacro:arg name="charuco_montiert" default="true"/>
+
+  <!-- Masse der TRAEGERPLATTE vom Nutzer: 100 x 49 x 20 mm (nachgemessen 2026-09-10).
+       ⚠️ Die Dicke stand bis dahin mit 4 mm im Modell - sie ist 20 mm. Das ist kein
+       Schoenheitsfehler: mit montierter Platte hat MoveIt das ueberstrichene Volumen
+       um 16 mm zu klein gerechnet, und genau mit dieser Platte am Greifer faehrt der
+       Arm die Kalibrierstellungen ab.
+       Die LAGE der Platte ist seit dem 2026-09-10 vollstaendig gemessen (siehe unten
+       bei charuco_x/y/z); geschaetzt ist nichts mehr daran.
+       Das aufgedruckte Muster ist mit 96 x 48 mm etwas kleiner und sitzt mittig
+       darauf (6 x 3 Felder à 16 mm). Fuer Kollision und Sichtbarkeit zaehlt die
+       Platte, fuer die Kalibrierung das Muster - deshalb stehen beide Masse hier. -->
+  <xacro:property name="charuco_breit"  value="0.100"/>   <!-- Platte, entlang der Greiferachse -->
+  <xacro:property name="charuco_hoch"   value="0.049"/>   <!-- Platte, quer dazu -->
+  <xacro:property name="charuco_dicke"  value="0.020"/>   <!-- Platte, gemessen 2026-09-10 -->
+  <xacro:property name="muster_breit"   value="0.096"/>   <!-- 6 x 16 mm Druckmuster -->
+  <xacro:property name="muster_hoch"    value="0.048"/>   <!-- 3 x 16 mm Druckmuster -->
+  <!-- ===== Lage der Platte: GEMESSEN am 2026-09-10, nicht mehr geschaetzt =====
+       Verfahren: Platte montiert, Arm in einer Kalibrierstellung STILLSTEHEND
+       (Stillstand geprueft, sonst misst man die noch fahrende Achse), Detektor
+       liefert camera -> charuco_gemessen, die FK liefert robot_base -> gripper_base.
+       Aus beidem folgt gripper_base -> Muster unmittelbar. 25 Mittelwerte,
+       Streuung 0.01 bis 0.03 mm.
+
+       Gemessene MUSTERMITTE (der Ursprung des Detektor-Frames liegt nach
+       OpenCV-Konvention in einer ECKE; die halbe Musterflaeche 95.25 x 47.625 mm
+       ist herausgerechnet):
+           x = +11.08 mm   y = +15.07 mm   z = -29.66 mm
+           Drehung gegen gripper_base (RPY): -0.2 / 1.7 / -176.6 Grad
+
+       WAS DAS KORRIGIERT - im Modell stand vorher x 0, y +60, z -88.2 mm, die
+       Platte sass also rund 58 mm neben ihrem wirklichen Platz. Zusaetzlich war
+       sie um 90 Grad verdreht eingetragen: die 95 mm lange Musterkante liegt in
+       Wirklichkeit entlang x von gripper_base, nicht entlang y.
+
+       SEITE GEKLAERT (Benutzer, 2026-09-10): das Muster sitzt auf der Flaeche, die
+       VOM GREIFER WEG zeigt - die Platte liegt also zwischen Muster und Greifer.
+       Damit ist die Plattenmitte 10 mm vom Muster aus in Richtung Greiferkoerper,
+       also bei z = -29.66 + 10 = -19.66 mm, und die Platte wieder 20 mm dick
+       (vorher stand hier vorsorglich 40 mm, weil die Seite offen war). -->
+  <xacro:property name="charuco_x"      value="0.01079"/>  <!-- gemessen 2026-09-10 (Plattenmitte) -->
+  <xacro:property name="charuco_y"      value="0.01502"/>  <!-- gemessen 2026-09-10 (Plattenmitte) -->
+  <xacro:property name="charuco_z"      value="-0.01966"/> <!-- Plattenmitte = Musterebene + 10 mm -->
+  <xacro:property name="charuco_yaw"    value="-3.0823"/>  <!-- -176.6 Grad -->
+
+  <xacro:if value="$(arg charuco_montiert)">
+    <link name="charuco_board">
+      <visual>
+        <geometry>
+          <box size="${charuco_breit} ${charuco_hoch} ${charuco_dicke}"/>
+        </geometry>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <material name="charuco_muster"><color rgba="0.95 0.95 0.95 1.0"/></material>
+      </visual>
+      <collision>
+        <geometry>
+          <box size="${charuco_breit} ${charuco_hoch} ${charuco_dicke}"/>
+        </geometry>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+      </collision>
+    </link>
+    <joint name="gripper_base_to_charuco_board" type="fixed">
+      <parent link="gripper_base"/>
+      <child  link="charuco_board"/>
+      <origin xyz="${charuco_x} ${charuco_y} ${charuco_z}" rpy="0 0 ${charuco_yaw}"/>
+    </joint>
+  </xacro:if>
+
+  <!--
+    Gemessene Lage des ChArUco-MUSTERS (2026-09-09, tools/measure_model_vs_charuco.py).
+
+    Der Detektor legt seinen Board-Ursprung nach OpenCV-Konvention in eine ECKE
+    des Musters, nicht in die Mitte der Platte. Deshalb gibt es hier ein eigenes
+    Frame: `charuco_board` bleibt die Platte (mittig, fuer die Kollision),
+    `charuco_muster` ist der Ursprung, den die Kamera misst.
+
+    Bestimmt wurde es aus 7 Stellungen: der feste Versatz zwischen Modell und
+    Messung wurde geschaetzt und eingerechnet. Auffaellig ist die Drehung von
+    -175.7 Grad um z - die Platte ist gegenueber der urspruenglichen Annahme
+    praktisch umgedreht montiert. Genau deshalb schlug die modellbasierte Suche
+    nach Stellungen, in denen das Board zur Kamera schaut, vorher fehl.
+
+    Wer die Platte neu montiert, muss diese Zahlen neu messen.
+  -->
+  <xacro:if value="$(arg charuco_montiert)">
+    <link name="charuco_muster"/>
+    <joint name="gripper_base_to_charuco_muster" type="fixed">
+      <parent link="gripper_base"/>
+      <child  link="charuco_muster"/>
+      <origin xyz="0.062690 0.041876 -0.027031" rpy="-0.013738 0.072117 -3.066605"/>
+    </joint>
+  </xacro:if>
+
   <link name="tcp"/>
   <joint name="gripper_base_to_tcp" type="fixed">
     <parent link="gripper_base"/>
     <child  link="tcp"/>
-    <!-- Greifer-Körper gemessen = 110mm (2026-06-07): 0.105 -> 0.110. -->
-    <origin xyz="0 0.110 -0.01" rpy="0 0 0"/>
+    <!-- Vom Flansch bis zur Fingerspitze, gemessen: 110 mm (alte Finger,
+         2026-06-07) -> 135 mm (neue Finger, 2026-09-09). -->
+    <origin xyz="0 ${finger_tip} -0.01" rpy="0 0 0"/>
   </joint>
 
   <!-- IntelRealSense offizielles D435i-URDF-Makro -->
@@ -190,6 +774,19 @@
        *** 2026-08-31 — KAMERA AUF 45 cm HERUNTERGESETZT (GEOMETRISCHE NACHFÜHRUNG, KEINE
        NEUE KALIBRIERUNG) ***
        Der Benutzer hat die Kamera von ~66 cm auf 45 cm abgesenkt. Angenommen wurde eine
+       2026-09-07 GEMESSEN: Die Kamera wurde vom Benutzer physisch auf ~51 cm angehoben,
+       weil in der Nullstellung zu wenig Abstand zwischen Greifer und Kamera blieb
+       (Kollisionsgefahr). Die Höhe ist mit tools/measure_camera_height.py gemessen
+       (RANSAC-Ebene in der Tiefenkarte, 3 Durchläufe, Streuung 0.13 mm): das
+       Tiefen-Optikzentrum steht 509.9 mm über der Plattformoberkante (= robot_base z=0).
+       Daraus folgt sensor-Origin z = 0.52131 (Versatz Optikzentrum -> Origin = -0.01141).
+       Querprobe der Orientierung: die URDF-Kette liefert eine optische Achse 2.27° von der
+       Senkrechten, die Messung 1.05° von der Plattformnormalen — die Orientierung stimmt
+       also, falsch war nur die Höhe (vorher 0.45000, mithin 71 mm zu tief).
+       Sicherung: calibration_backups/2026-09-07_kamera_51cm_gemessen/
+       WEITERHIN KEINE KALIBRIERUNG: gemessen ist nur die Höhe; x/y und die volle
+       Orientierung liefert erst easy_handeye2 (Park/Horaud, Tsai-Lenz bleibt verboten).
+
        REIN VERTIKALE Verschiebung entlang der column: x, y und rpy bleiben unverändert,
        nur z: 0.66987 -> 0.45000 (Delta -0.21987 m).
        Daraus folgt robot_base->camera_color_optical_frame z: 0.65809 -> 0.43822
@@ -200,7 +797,7 @@
        Origin ersetzen. Ebenfalls veraltet: .place_offset.json, GRASP_Z_OFFSET,
        calib_check_points.json (am 66-cm-Extrinsic gemessen). -->
   <xacro:sensor_d435i parent="robot_base" use_nominal_extrinsics="true" name="camera" use_mesh="true">
-    <origin xyz="0.15598 -0.11415 0.45000" rpy="-2.46695 1.53111 0.68173"/>
+    <origin xyz="${cam_x} ${cam_y} ${cam_z}" rpy="${cam_roll} ${cam_pitch} ${cam_yaw}"/>
   </xacro:sensor_d435i>
 
   <!--
@@ -214,8 +811,10 @@
   <!-- command_speed: Servo-Geschwindigkeit, die die Bridge jedem send_radians gibt (0-100, offene Schleife).
        Freiraum (home/hover/Rückkehr-zu-Null) wird real durch DIESEN Wert begrenzt (nicht MoveIt-velocity-
        scaling). 15→30: Freiraum ~2× schneller; descend bleibt großteils erhalten, da er durch langsames
-       MoveIt-scaling zusätzlich begrenzt ist. Wenn descend ruckelt, auf 20-25 reduzieren. -->
-  <xacro:arg name="command_speed" default="30"/>
+       MoveIt-scaling zusätzlich begrenzt ist. Wenn descend ruckelt, auf 20-25 reduzieren.
+       30→50 (2026-09-11, Benutzer: "nicht langsam, kleine Schritte aber zuegig"): zusammen mit
+       hole_welle.py (Option tempo 2). Wirkt erst nach Neustart des Stacks. -->
+  <xacro:arg name="command_speed" default="50"/>
 
   <ros2_control name="mycobot_hardware" type="system">
     <hardware>

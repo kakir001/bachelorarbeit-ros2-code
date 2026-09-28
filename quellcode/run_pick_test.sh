@@ -1,13 +1,13 @@
 #!/bin/bash
 # =====================================================================
-#  run_pick_test.sh — Schrauben-pick&place-Test, KOMPLETT über Terminal.
+#  run_pick_test.sh — Wellen-pick&place-Test, KOMPLETT über Terminal.
 #  KEIN Claude nötig. KEIN RViz (Nano RAM-Ersparnis). Alles wird geloggt.
 #
 #  Ablauf:
 #    1) Systemvorbereitung (locale, rmem, USB power, GPU fan)  [fragt sudo]
 #    2) Stack starten: demo.launch.py use_camera:=true use_rviz:=false
 #    3) Warten bis Controller active sind
-#    4) vida_detector starten, warten bis "Modell bereit" + erstes "ZIEL" kommt
+#    4) wellen_detektor starten, warten bis "Modell bereit" + erstes "ZIEL" kommt
 #    5) pick_place_cartesian AUSFUEHREN (auf Bildschirm + Log)
 #    6) Beim Beenden ALLE Hintergrund-nodes aufräumen (keine Geister hinterlassen)
 #
@@ -15,7 +15,7 @@
 #    cd ~/ros2_ws && ./run_pick_test.sh
 #    # Place-Punkt ändern:
 #    PLACE_X=0.12 PLACE_Y=-0.10 PLACE_Z=0.05 ./run_pick_test.sh
-#    # Abstiegs-Offset zur Schraube (in Schraubenoberseite versenken/anheben):
+#    # Abstiegs-Offset zur Welle (in Wellenoberseite versenken/anheben):
 #    GRASP_Z_OFFSET=0.005 ./run_pick_test.sh
 #    # NUR Simulation (ohne Roboter):
 #    SIM=1 ./run_pick_test.sh
@@ -75,7 +75,7 @@ kill_group() {
 # Port/Socket-Konflikt. Daher bridge + veraltete Sockets UNBEDINGT aufräumen.
 sweep_ros_ghosts() {
   pkill -f "view_overlay.py"        2>/dev/null
-  pkill -f "vida_detector"          2>/dev/null
+  pkill -f "wellen_detektor"          2>/dev/null
   pkill -f "pick_place_cartesian"   2>/dev/null
   pkill -f "pick_place.launch.py"   2>/dev/null
   pkill -f "demo.launch.py"         2>/dev/null
@@ -167,8 +167,8 @@ done
 [ "$ok" = "1" ] || { err "Controller wurde nicht aktiv innerhalb ${CTRL_WAIT}s. Siehe $STACK_LOG"; exit 1; }
 
 # ---- 4) Detector starten, auf Modell + erstes ZIEL warten ------------
-log "vida_detector wird gestartet → $DET_LOG"
-setsid bash -c "exec ros2 run vida_vision vida_detector" >"$DET_LOG" 2>&1 &
+log "wellen_detektor wird gestartet → $DET_LOG"
+setsid bash -c "exec ros2 run wellenerkennung wellen_detektor" >"$DET_LOG" 2>&1 &
 DET_PID=$!
 
 log "Auf Detector-Bereitschaft warten: 'Modell bereit' (max ${DETECTOR_WAIT}s)..."
@@ -180,7 +180,7 @@ for i in $(seq 1 "$DETECTOR_WAIT"); do
 done
 [ "$ok" = "1" ] || { err "Modell nicht geladen innerhalb ${DETECTOR_WAIT}s. Siehe $DET_LOG"; exit 1; }
 
-# ---- 4b) Live-Overlay-Fenster (gewählte Schraube GRUEN + ZIEL) ------
+# ---- 4b) Live-Overlay-Fenster (gewählte Welle GRUEN + ZIEL) ------
 if [ "$VIEW" = "1" ]; then
   if [ -n "${DISPLAY:-}" ]; then
     log "Overlay-Viewer wird geoeffnet (DISPLAY=$DISPLAY) — im Fenster 'q'/ESC = schliessen"
@@ -189,27 +189,27 @@ if [ "$VIEW" = "1" ]; then
     VIEW_PID=$!
   else
     warn "Kein DISPLAY — Overlay-Fenster uebersprungen. Fuer Headless-PNG:"
-    warn "  SAVE_ONLY=1 python3 $WS/view_overlay.py  (→ /tmp/vida/overlay_latest.png)"
+    warn "  SAVE_ONLY=1 python3 $WS/view_overlay.py  (→ /tmp/welle/overlay_latest.png)"
   fi
 fi
 
-log "Auf erstes Schrauben-Ziel ('ZIEL') warten (max 60s)..."
+log "Auf erstes Wellen-Ziel ('ZIEL') warten (max 60s)..."
 ok=0
 for i in $(seq 1 60); do
   kill -0 "$DET_PID" 2>/dev/null || { err "Detector gestorben! Siehe $DET_LOG"; exit 1; }
   if grep -q "ZIEL" "$DET_LOG" 2>/dev/null; then
     ok=1
-    log "Schraube gefunden → $(grep 'ZIEL' "$DET_LOG" | tail -n1)"
+    log "Welle gefunden → $(grep 'ZIEL' "$DET_LOG" | tail -n1)"
     break
   fi
-  # auch 'keine Schraube' melden, damit wir nicht blind warten
+  # auch 'keine Welle' melden, damit wir nicht blind warten
   if [ $((i % 10)) -eq 0 ]; then
     warn "  ...noch kein Ziel (${i}s). Detector letzte Zeile: $(tail -n1 "$DET_LOG")"
   fi
   sleep 1
 done
 if [ "$ok" != "1" ]; then
-  err "Innerhalb 60s keine Schraube erkannt. Ist eine Schraube im Kamerabild? Siehe $DET_LOG"
+  err "Innerhalb 60s keine Welle erkannt. Ist eine Welle im Kamerabild? Siehe $DET_LOG"
   err "pick_place wird trotzdem versucht (hat eigenen 10s-Timeout)..."
 fi
 

@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+<!--
+  ================= AUTOMATISCH ERZEUGTE DATEI — NICHT VON HAND AENDERN =================
+
+  Kamera-Pose (robot_base -> camera_bottom_screw_frame). Diese Datei ist die EINZIGE
+  Quelle der Kamera-Lage im Modell; mycobot_world.urdf.xacro liest sie hier ein und
+  fuehrt Kamera UND Kamera-Arm daraus nach.
+
+  Geschrieben von : tools/auto_camera_calibration.py
+  Zuletzt         : 2026-09-12 15:30
+  Verfahren       : geometrische Messung gegen die bekannte Grundplatte
+                    (50 x 40 cm, Mitte in robot_base (0.150, -0.125),
+                    Oberkante z = 0), 5 Durchlaeufe, 848x480x15, 40 Frames.
+  Messguete       : Platte erkannt als 49.5 x 39.0 cm, RMS 1.44 mm,
+                    Streuung Position 4.6 mm / Rotation 0.24 Grad.
+  Vorher          : xyz 0.168610 -0.126149 0.609088 | rpy 1.746009 1.547885 -1.388759
+  Sprung          : dx +1.6 mm  dy +11.6 mm  dz +2.3 mm  Rotation 1.30 Grad
+  Sicherung       : calibration_backups/2026-09-12_auto_153038
+
+  ACHTUNG: Das ist eine geometrische MESSUNG gegen die Platte, KEINE Hand-Auge-
+  Kalibrierung. Sie setzt voraus, dass der ROBOTER unveraendert auf der Platte sitzt.
+  Fuer Praezisions-Picks bleibt easy_handeye2 (Park/Horaud; Tsai-Lenz verboten)
+  das Mass der Dinge.
+  ======================================================================================
+-->
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <!-- robot_base -> camera_bottom_screw_frame (Meter / Radiant) -->
+  <xacro:property name="cam_x"     value="0.170172"/>
+  <xacro:property name="cam_y"     value="-0.114547"/>
+  <xacro:property name="cam_z"     value="0.611409"/>
+  <xacro:property name="cam_roll"  value="2.355315"/>
+  <xacro:property name="cam_pitch" value="1.567003"/>
+  <xacro:property name="cam_yaw"   value="-0.790446"/>
+
+</robot>

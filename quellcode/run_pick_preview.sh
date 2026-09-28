@@ -1,14 +1,15 @@
 #!/bin/bash
+export CYCLONEDDS_URI="${CYCLONEDDS_URI:-file://$HOME/ros2_ws/cyclonedds_loopback.xml}"   # DDS nur loopback, s. Datei
 # =====================================================================
 #  run_pick_preview.sh — ZWEIPHASIGER pick: VISION → (detector aus) → RViz VORSCHAU.
 #
 #  Idee (Benutzer, 2026-06-15): Auf dem Nano passen detector(2.1GB)+RViz nicht gleichzeitig
-#  in den RAM. Schraube STATISCH → Koordinate einmal erfassen und SPEICHERN, detector+Kamera
+#  in den RAM. Welle STATISCH → Koordinate einmal erfassen und SPEICHERN, detector+Kamera
 #  BEENDEN (RAM wird frei), RViz öffnen, gespeicherten Punkt markieren, in RViz die Trajektorie+
 #  KOLLISION (rot) sehen, bestätigen, echten Roboter ausführen.
 #
 #  PHASE A (detector an, kein RViz): stack + Kamera + cam_viewer + detector.
-#     Schraube hinlegen, Erkennung im Overlay stabilisieren → in cam_viewer/Terminal ENTER (capture).
+#     Welle hinlegen, Erkennung im Overlay stabilisieren → in cam_viewer/Terminal ENTER (capture).
 #  UEBERGANG: detector + cam_viewer + record_cam + Kamera BEENDEN (RAM wird frei).
 #  PHASE B (RViz an, kein detector): RViz + Ziel-replay (marker) + pick_tilt.
 #     In RViz Trajektorie+Kollision prüfen → im Terminal ENTER = BESTAETIGUNG (×2).
@@ -22,10 +23,20 @@ set -u
 APPROACH_HEIGHT="${APPROACH_HEIGHT:-0.10}"
 # Standardwert des erfolgreichen pick-Rezepts (2026-06-15): TCP ~2.5cm überdefiniert → Pflaster.
 # Override: GRASP_Z_OFFSET=-0.03 ./run_pick_preview.sh
-GRASP_Z_OFFSET="${GRASP_Z_OFFSET:--0.025}"
+# ⚠️ 2026-09-11: Default -0.025 -> 0.0. Die -25 mm glichen einen Modellfehler aus
+# (TCP um den Flanschversatz 34 mm zu lang, siehe mycobot_world.urdf.xacro,
+# finger_tip). Der ist behoben. Mit -0.025 wuerde der Greifer jetzt 25 mm ZU TIEF
+# fahren - in die Platte. Vor dem naechsten Kamera-Pick mit PREVIEW_CONFIRM=1
+# pruefen und den Rest (Durchhaengen ~5 mm) neu bestimmen.
+GRASP_Z_OFFSET="${GRASP_Z_OFFSET:-0.0}"
 # Modell-Laden (~15s) + ERSTE CUDA/cuDNN-Inferenz (~100s Warmup auf dem Nano) —
 # der Detector meldet "Modell bereit" erst NACH dem Warmup (Sitzung 2026-07-16).
-DETECTOR_WAIT="${DETECTOR_WAIT:-240}"
+# DETECTOR_WAIT: Wartezeit auf "Modell bereit" (Laden + erste CUDA-Inferenz).
+# 2026-09-09 auf 420 s erhoeht: 240 s reichten NICHT mehr. Der Nano hat 4 GB; laufen
+# neben dem Stack noch andere Speicherfresser (an dem Tag rund 1 GB), geht das System
+# in den Auslagerungsspeicher und der Warmup zieht sich weit ueber die sonst
+# ueblichen 1-2 Minuten. Der Lauf brach dann ab, OBWOHL der Detektor noch arbeitete.
+DETECTOR_WAIT="${DETECTOR_WAIT:-420}"
 CTRL_WAIT="${CTRL_WAIT:-60}"
 CAM_WAIT="${CAM_WAIT:-40}"
 # Kamera-Profil: 848x480 statt 424x240 — schaerferes Fenster + bessere Erkennung
@@ -39,7 +50,7 @@ CAM_PROFILE="${CAM_PROFILE:-848x480x15}"
 CONF="${CONF:-0.70}"
 MODE_CONSENSUS="${MODE_CONSENSUS:-3}"
 STICKY_RADIUS="${STICKY_RADIUS:-0.05}"
-# IK-Innengrenze (m): der ROTE innere Kreis im Overlay. Schrauben mit Base-XY-Radius
+# IK-Innengrenze (m): der ROTE innere Kreis im Overlay. Wellen mit Base-XY-Radius
 # kleiner als dieser sind dem Roboter ZU NAHE (beim Top-Down-Grasp überbiegt der Arm) → kein Ziel.
 # Override: REACH_MIN=0.16 ./run_pick_preview.sh
 REACH_MIN="${REACH_MIN:-0.15}"
@@ -56,13 +67,40 @@ export LC_ALL=C LC_NUMERIC=C LANG=C PYTHONUNBUFFERED=1
 # estop_button-Meldungen im 4KB-stdout-Puffer stecken und gehen bei SIGKILL
 # verloren (estop_button.log war beim Vorfall 2026-07-16 deshalb LEER).
 export RCUTILS_LOGGING_BUFFERED_STREAM=0
-export APPROACH_HEIGHT GRASP_Z_OFFSET PREVIEW_CONFIRM DESCEND_VEL_SCALE RAPID_VEL_SCALE
+# NACHFUEHREN: vor dem Abstieg die Sollstellung nachfahren, bis der Encoder sie
+# bestaetigt (confirm_key.py, erster ENTER). Die Servos kommen unter Last nicht am
+# kommandierten Winkel an — 2026-09-08 bis zu 15.2 Grad gemessen, ohne dass MoveIt
+# etwas meldet; der Fehler wandert sonst direkt in den Greifpunkt. Kostet ~30-50 s.
+# Abschalten: NACHFUEHREN=0 ./run_pick_preview.sh
+NACHFUEHREN="${NACHFUEHREN:-1}"
+
+# PREGRASP_OPEN: wie weit der Greifer im Hover aufgeht (Gelenkeinheiten; 0.15 = ganz
+# auf = 40 mm, -0.74 = zu = 0 mm). Bei home bleibt er ZU (freie Kamerasicht).
+#
+# Der Wert -0.335 stammt aus einer Messung am Greifer (2026-09-09, Messschieber,
+# Abstand der FINGERSPITZEN; messungen_greiferoeffnung.txt):
+#     0 % -> 0 mm | 20 % -> 6 mm | 40 % -> 21 mm | 60 % -> 30 mm
+#    80 % -> 35 mm | 100 % -> 40 mm      (deutlich nichtlinear!)
+# -0.335 entspricht 23.5 mm Spitzenabstand.
+#
+# VOLLSTAENDIG NACHGEMESSEN am Bauteil (2026-09-09, Messschieber):
+#   Gesamtlaenge 43 mm · Ringvorsprung 13 mm lang, Ø 10 mm ·
+#   darueber und darunter Ø 7 mm · vom Bund bis zur unteren Spitze 21 mm
+#   DICKSTE STELLE: der nur 1 mm starke Bund direkt unter den Ringen, Ø 13-14 mm.
+# Damit ist -0.335 = 23.5 mm Spitzenabstand = 13.5 mm + 10 mm Luft — passend.
+#
+# Nebenbefund: die Dickenangabe `dck` des Detektors (~13.5 mm) stimmt also. Sie taugt
+# fuer eine spaetere Automatik, die die Greifweite je Werkstueck selbst bestimmt,
+# statt einen festen Wert zu benutzen.
+PREGRASP_OPEN="${PREGRASP_OPEN:--0.335}"
+
+export APPROACH_HEIGHT GRASP_Z_OFFSET PREVIEW_CONFIRM DESCEND_VEL_SCALE RAPID_VEL_SCALE NACHFUEHREN PREGRASP_OPEN
 
 WS="$HOME/ros2_ws"
 STAMP="$(date +%Y%m%d_%H%M%S)"
 LOGDIR="$WS/logs/pick_preview_$STAMP"
 mkdir -p "$LOGDIR"
-TARGET_FILE="$WS/.vida_target_latch.json"
+TARGET_FILE="$WS/.welle_ziel_latch.json"
 RVIZ_CFG="$WS/rviz_preview.rviz"
 
 STACK_LOG="$LOGDIR/stack.log";  CAM_LOG="$LOGDIR/camera.log"
@@ -95,7 +133,7 @@ sweep_ros_ghosts() {
   pkill -f "cam_viewer.py"        2>/dev/null
   pkill -f "target_latch.py"      2>/dev/null
   pkill -f "confirm_key.py"       2>/dev/null
-  pkill -f "vida_detector"        2>/dev/null
+  pkill -f "wellen_detektor"        2>/dev/null
   pkill -f "mycobot_demo/pick_tilt" 2>/dev/null
   pkill -f "pick_tilt.launch.py"  2>/dev/null
   pkill -f "demo.launch.py"       2>/dev/null
@@ -126,6 +164,36 @@ goto_zero() {
       >/dev/null 2>&1 && log "Roboter bei Punkt 0." || warn "Senden zu 0 nicht abgeschlossen."
   else
     warn "arm_controller action nicht vorhanden — Senden zu 0 nicht moeglich."
+  fi
+}
+
+# --- BEOBACHTUNGSSTELLUNG ------------------------------------------------------
+# Waehrend die Kamera schaut, steht der Arm senkrecht und der Greifer haengt direkt
+# unter der Kamera. Zwei gemessene Folgen (2026-09-09):
+#   * die Finger verdecken einen Teil der Arbeitsflaeche,
+#   * YOLO erkennt die Finger SELBST als Welle (conf 0.87-0.91, BASE z ~ 424-433 mm);
+#     abgefangen wird das bisher nur von der z-Schranke [-20,120] des Detektors.
+# Deshalb wird die 6. Achse gedreht, damit die Finger hochkant zur Kamera stehen und
+# weniger verdecken, und der Greifer bleibt dabei ZU.
+# Winkel in Grad, abschaltbar mit BEOBACHTEN_J6=0.
+BEOBACHTEN_J6="${BEOBACHTEN_J6:-90}"
+GRIPPER_JOINTS="[gripper_controller]"
+goto_beobachten() {
+  local secs="${1:-5}"; command -v ros2 >/dev/null 2>&1 || return 0
+  local rad
+  rad=$(python3 -c "import math;print('%.5f' % math.radians($BEOBACHTEN_J6))")
+  if ros2 action list 2>/dev/null | grep -q "/arm_controller/follow_joint_trajectory"; then
+    log "Beobachtungsstellung (Achse 6 = ${BEOBACHTEN_J6} Grad, Greifer zu)..."
+    timeout 20 ros2 action send_goal /arm_controller/follow_joint_trajectory \
+      control_msgs/action/FollowJointTrajectory \
+      "{trajectory: {joint_names: $ARM_JOINTS, points: [{positions: [0.0,0.0,0.0,0.0,0.0,$rad], time_from_start: {sec: $secs}}]}}" \
+      >/dev/null 2>&1 && log "Beobachtungsstellung erreicht." || warn "Beobachtungsstellung nicht abgeschlossen."
+    timeout 15 ros2 action send_goal /gripper_controller/follow_joint_trajectory \
+      control_msgs/action/FollowJointTrajectory \
+      "{trajectory: {joint_names: $GRIPPER_JOINTS, points: [{positions: [-0.74], time_from_start: {sec: 2}}]}}" \
+      >/dev/null 2>&1 && log "Greifer zu." || warn "Greifer-Schliessen nicht abgeschlossen."
+  else
+    warn "arm_controller action nicht vorhanden — Beobachtungsstellung nicht moeglich."
   fi
 }
 
@@ -168,7 +236,14 @@ try:
         time.sleep(1.0)
         if mc.is_moving() == 0: break
     try:
-        mc.set_gripper_value(100, 50, 1)   # beim Park Finger OFFEN (gehaltene Schraube loslassen)
+        # Beim Park erst OEFFNEN (eine gehaltene Welle muss fallen koennen), dann
+        # wieder SCHLIESSEN. Grund fuer das Schliessen (Benutzer, 2026-09-09): in der
+        # Nullstellung haengt der Greifer direkt unter der Kamera; offene Finger
+        # verdecken die Arbeitsflaeche und werden vom Detektor sogar selbst als Welle
+        # erkannt. 100 = offen, 0 = zu, die 1 waehlt den adaptiven Greifer.
+        mc.set_gripper_value(100, 50, 1)
+        time.sleep(1.5)
+        mc.set_gripper_value(0, 50, 1)
         time.sleep(1.0)
     except Exception as ge: print("Greifer-Oeffnen Warnung:", ge)
     a = mc.get_radians()
@@ -228,9 +303,62 @@ cd "$WS" || { err "ros2_ws nicht vorhanden"; exit 1; }
 export USE_FAKE_HARDWARE="${USE_FAKE_HARDWARE:-false}"
 [ "$USE_FAKE_HARDWARE" = "true" ] && warn "FAKE HARDWARE (sim) — kein Roboter"
 
+# --- ChArUco-Platte im Modell? ----------------------------------------------
+# Default ist "montiert" (= xacro-Default, Kalibrieraufbau). Zum Greifen MUSS die
+# Platte ab sein: sie sitzt vorn am Greifer und steht der Welle im Weg. Bleibt sie
+# im Modell, plant MoveIt um einen Kasten herum, den es real nicht gibt — der
+# Greifversuch scheitert dann, ohne dass etwas darauf hinweist.
+export CHARUCO_MONTIERT="${CHARUCO_MONTIERT:-true}"
+if [ "$CHARUCO_MONTIERT" = "0" ] || [ "$CHARUCO_MONTIERT" = "false" ]; then
+  log "ChArUco-Platte: NICHT im Modell — Greifer frei"
+else
+  warn "ChArUco-Platte STEHT NOCH IM MODELL (Kollisionskasten am Greifer)."
+  warn "  Zum Greifen abschrauben und mit CHARUCO_MONTIERT=0 ./run_pick_preview.sh starten."
+fi
+
+# --- Bereitstellungsschale im Modell? ---------------------------------------
+# Kreisringausschnitt (39.9 Grad, R 186.9..301.9 mm, Wand 2 mm, Wandhoehe 17 mm),
+# damit MoveIt Griffe dicht am Schalenrand von selbst verwirft. Default AUS, weil
+# die LAGE der Schale gemessen sein muss (tools/schale_pose_klicken.py schreibt sie
+# nach urdf/schale_pose.xacro). Ein Kollisionskoerper an der falschen Stelle ist
+# schlimmer als gar keiner - er verwirft gueltige Griffe, ohne dass es auffaellt.
+export SCHALE_MONTIERT="${SCHALE_MONTIERT:-false}"
+if [ "$SCHALE_MONTIERT" = "1" ] || [ "$SCHALE_MONTIERT" = "true" ]; then
+  log "Bereitstellungsschale: im Modell (Lage aus urdf/schale_pose.xacro)"
+else
+  warn "Bereitstellungsschale NICHT im Modell - Lage noch nicht gemessen."
+  warn "  Griffe dicht am Schalenrand werden deshalb nicht verworfen."
+  warn "  Messen: tools/schale_pose_klicken.py , dann SCHALE_MONTIERT=1 ./run_pick_preview.sh"
+fi
+
+# Trichter: am 2026-09-10 hat sich der Greifer daran verbogen, weil er im Modell
+# fehlte. Default AUS, bis die Neigungsrichtung (urdf/trichter_pose.xacro) gemessen ist.
+export TRICHTER_MONTIERT="${TRICHTER_MONTIERT:-false}"
+if [ "$TRICHTER_MONTIERT" = "1" ] || [ "$TRICHTER_MONTIERT" = "true" ]; then
+  log "Trichter: im Modell (Lage aus urdf/trichter_pose.xacro)"
+else
+  warn "Trichter NICHT im Modell - Neigungsrichtung noch nicht gemessen."
+  warn "  NICHT in Trichternaehe fahren. Messen, dann TRICHTER_MONTIERT=1 ./run_pick_preview.sh"
+fi
+
 # =====================================================================
 #  PHASE A — VISION
 # =====================================================================
+# --- Kamera-Pose automatisch nachfuehren (VOR dem Stack) --------------------
+# Nach jedem Kamera-Umbau stimmen URDF/.calib sonst nicht mehr. Hier wird die
+# Kamera gegen die bekannte Grundplatte gemessen und bei echter Abweichung
+# urdf/camera_pose.xacro + .calib neu geschrieben — danach liest der gleich
+# startende Stack bereits die neuen Werte. Braucht die Kamera EXKLUSIV, deshalb
+# genau hier (Geister sind gefegt, realsense2_camera laeuft noch nicht).
+# Abschalten: AUTO_CAM_CALIB=0 ./run_pick_preview.sh
+if [ "${AUTO_CAM_CALIB:-1}" = "1" ]; then
+  log "Kamera-Pose pruefen (tools/auto_camera_calibration.py, ~${AUTO_CAM_REPEAT:-2} Durchlaeufe)..."
+  timeout 240 python3 "$WS/tools/auto_camera_calibration.py" \
+      --repeat "${AUTO_CAM_REPEAT:-2}" 2>&1 | sed 's/^/[cam-calib] /'
+  rc=${PIPESTATUS[0]}
+  [ "$rc" = "0" ] || warn "Kamera-Nachfuehrung uebersprungen (rc=$rc) — bisheriger Stand gilt."
+fi
+
 log "########## PHASE A — VISION (detector an) ##########"
 log "Stack (move_group+control+bridge, OHNE KAMERA, KEIN RViz) → $STACK_LOG"
 setsid bash -c "exec ros2 launch mycobot_moveit_config demo.launch.py \
@@ -258,26 +386,38 @@ else
   warn "  ros2 topic pub --once --qos-durability transient_local /estop std_msgs/msg/Bool \"{data: true}\""
 fi
 
-goto_zero 5
+goto_beobachten 5
 
 # Detector FRUEH starten: Modell-Laden (~15s) + CUDA-Warmup (~100s) laufen dann
 # PARALLEL zum Kamera-Start statt danach (Sitzung 2026-07-16: 3-4min → ~2min).
 # Er wartet einfach mit "noch kein color"-Warnungen, bis die Kamera sendet.
 # Wahrnehmungs-Offset (Lineal-Messung: Kamera liest ~+7/+11mm versetzt) aus
 # .place_offset.json — DIESELBE Quelle wie click_place_moveit.py. Der Detector
-# addiert die Korrektur auf das veroeffentlichte /vida/target (2026-07-16:
+# addiert die Korrektur auf das veroeffentlichte /welle/ziel (2026-07-16:
 # vorher wurde die gemessene Korrektur im Pick-Pfad NIE angewendet).
-read -r OFF_X OFF_Y OFF_Z <<< "$(python3 -c "
+# Abschaltbar: WAHRNEHMUNGS_OFFSET=0 ./run_pick_preview.sh
+# Noetig nach einer neuen Hand-Auge-Kalibrierung: die Werte in .place_offset.json
+# wurden gegen die ALTE Extrinsik ausgemessen. Liegen sie auf einer inzwischen
+# korrigierten Kalibrierung obendrauf, misst man eine Doppelkorrektur statt des
+# tatsaechlichen Restfehlers — genau wie bei GRASP_Z_OFFSET.
+WAHRNEHMUNGS_OFFSET="${WAHRNEHMUNGS_OFFSET:-1}"
+if [ "$WAHRNEHMUNGS_OFFSET" = "0" ] || [ "$WAHRNEHMUNGS_OFFSET" = "false" ]; then
+  OFF_X=0.0; OFF_Y=0.0; OFF_Z=0.0
+  warn "Wahrnehmungs-Offset ABGESCHALTET (0/0/0) — .place_offset.json wird ignoriert."
+  warn "  Der Detektor veroeffentlicht die ROHE Kameramessung; so misst man den Restfehler."
+else
+  read -r OFF_X OFF_Y OFF_Z <<< "$(python3 -c "
 import json
 try:
     d = json.load(open('$WS/.place_offset.json'))
     print(d.get('x', 0.0), d.get('y', 0.0), d.get('z', 0.0))
 except Exception:
     print(0.0, 0.0, 0.0)")"
-log "Wahrnehmungs-Offset: x=$OFF_X y=$OFF_Y z=$OFF_Z m (aus .place_offset.json)"
+  log "Wahrnehmungs-Offset: x=$OFF_X y=$OFF_Y z=$OFF_Z m (aus .place_offset.json)"
+fi
 
-log "vida_detector VORAB gestartet (conf=$CONF, reach_min=${REACH_MIN}m) → $DET_LOG"
-setsid bash -c "exec ros2 run vida_vision vida_detector --ros-args \
+log "wellen_detektor VORAB gestartet (conf=$CONF, reach_min=${REACH_MIN}m) → $DET_LOG"
+setsid bash -c "exec ros2 run wellenerkennung wellen_detektor --ros-args \
   -p conf:=$CONF -p mode_consensus:=$MODE_CONSENSUS -p sticky_radius:=$STICKY_RADIUS \
   -p reach_radius_min:=$REACH_MIN \
   -p offset_x:=$OFF_X -p offset_y:=$OFF_Y -p offset_z:=$OFF_Z" >"$DET_LOG" 2>&1 &
@@ -315,11 +455,14 @@ done
 [ "$ok" = "1" ] || { err "Modell nicht geladen. Siehe $DET_LOG"; exit 1; }
 
 log "=============================================="
-log " SCHRAUBE HINLEGEN (150-190mm, 20-30° geneigt). Wenn die Erkennung im Overlay stabil ist:"
+log " WELLE HINLEGEN (150-190mm, 20-30° geneigt). Wenn die Erkennung im Overlay stabil ist:"
 log " IN DIESEM TERMINAL ENTER = Ziel SPEICHERN (danach werden detector+Kamera beendet)."
 log "=============================================="
 # capture FOREGROUND — wenn der Benutzer ENTER drückt, wird das Ziel gespeichert und kehrt zurück
-python3 "$WS/target_latch.py" capture "$TARGET_FILE" 2>&1 | tee "$CAP_LOG"
+# ZIEL_SCREENSHOT_DIR: beim ENTER wird das Overlay-Bild der BESTAETIGTEN Welle hier
+# abgelegt. Danach ist die Kamera aus und RViz zeigt nur noch die Farbe - bei mehreren
+# gleichfarbigen Wellen waere sonst nicht mehr nachvollziehbar, welche gewaehlt wurde.
+ZIEL_SCREENSHOT_DIR="$LOGDIR" python3 "$WS/target_latch.py" capture "$TARGET_FILE" 2>&1 | tee "$CAP_LOG"
 [ -f "$TARGET_FILE" ] || { err "Ziel nicht gespeichert — wird beendet."; exit 1; }
 
 # =====================================================================
@@ -349,7 +492,7 @@ else
   warn "Kein DISPLAY — RViz uebersprungen (keine Vorschau moeglich, pick laeuft trotzdem)."
 fi
 
-log "Ziel-replay (/vida/target 5Hz + /vida/preview_marker) → $REPLAY_LOG"
+log "Ziel-replay (/welle/ziel 5Hz + /welle/vorschau_marker) → $REPLAY_LOG"
 setsid bash -c "exec python3 '$WS/target_latch.py' replay '$TARGET_FILE'" >"$REPLAY_LOG" 2>&1 &
 REPLAY_PID=$!
 sleep 1
@@ -364,7 +507,7 @@ TAIL_PID=$!
 log "=============================================="
 log " In RViz die Trajektorie + KOLLISION (rot) pruefen."
 log " Fuer die BESTAETIGUNG in DIESEM TERMINAL ENTER druecken (pick_tilt wartet 2 mal):"
-log "   1) nach HOVER — wenn die Trajektorie sicher ist ENTER → abstieg+greifen"
+log "   1) nach HOVER — wenn die Trajektorie sicher ist ENTER → nachfuehren, dann abstieg+greifen"
 log "   2) nach dem Greifen — wenn gehalten ENTER → anheben"
 log " Ctrl+C = alles beenden + Roboter zu 0 parken."
 log "=============================================="

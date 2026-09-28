@@ -1,139 +1,545 @@
 Panels:
-- Class: rviz_common/Displays
-  Help Height: 78
-  Name: Displays
-  Property Tree Widget:
-    Expanded: null
-    Splitter Ratio: 0.5
-  Tree Height: 78
+  - Class: rviz_common/Displays
+    Help Height: 78
+    Name: Displays
+    Property Tree Widget:
+      Expanded: ~
+      Splitter Ratio: 0.5
+    Tree Height: 225
 Visualization Manager:
-  Class: ''
+  Class: ""
   Displays:
-  - Alpha: 0.5
-    Cell Size: 0.10000000149011612
-    Class: rviz_default_plugins/Grid
-    Color: 160; 160; 164
-    Enabled: true
-    Line Style:
-      Line Width: 0.029999999329447746
-      Value: Lines
-    Name: Grid
-    Normal Cell Count: 0
-    Offset:
-      X: 0
-      Y: 0
-      Z: 0
-    Plane: XY
-    Plane Cell Count: 10
-    Reference Frame: <Fixed Frame>
-    Value: true
-  - Acceleration_Scaling_Factor: 0.1
-    Class: moveit_rviz_plugin/MotionPlanning
-    Enabled: true
-    Move Group Namespace: ''
-    MoveIt_Allow_Approximate_IK: false
-    MoveIt_Allow_External_Program: false
-    MoveIt_Allow_Replanning: false
-    MoveIt_Allow_Sensor_Positioning: false
-    MoveIt_Planning_Attempts: 10
-    MoveIt_Planning_Time: 5
-    MoveIt_Use_Cartesian_Path: false
-    MoveIt_Use_Constraint_Aware_IK: true
-    MoveIt_Workspace:
-      Center:
+    - Alpha: 0.5
+      Cell Size: 0.10000000149011612
+      Class: rviz_default_plugins/Grid
+      Color: 160; 160; 164
+      Enabled: true
+      Line Style:
+        Line Width: 0.029999999329447746
+        Value: Lines
+      Name: Grid
+      Normal Cell Count: 0
+      Offset:
         X: 0
         Y: 0
         Z: 0
-      Size:
-        X: 2
-        Y: 2
-        Z: 2
-    Name: MotionPlanning
-    Planned Path:
-      Color Enabled: false
-      Interrupt Display: false
-      Links:
-        All Links Enabled: true
-        Expand Joint Details: false
-        Expand Link Details: false
-        Expand Tree: false
-        Link Tree Style: Links in Alphabetic Order
-      Loop Animation: false
-      Robot Alpha: 0.5
-      Robot Color: 150; 50; 150
-      Show Robot Collision: false
-      Show Robot Visual: true
-      Show Trail: false
-      State Display Time: 0.05 s
-      Trail Step Size: 1
-      Trajectory Topic: display_planned_path
-    Planning Metrics:
-      Payload: 1
-      Show Joint Torques: false
-      Show Manipulability: false
-      Show Manipulability Index: false
-      Show Weight Limit: false
-      TextHeight: 0.07999999821186066
-    Planning Request:
-      Colliding Link Color: 255; 0; 0
-      Goal State Alpha: 1
-      Goal State Color: 250; 128; 0
-      Interactive Marker Size: 0.029999999329447746
-      Joint Violation Color: 255; 0; 255
-      Planning Group: arm
-      Query Goal State: true
-      Query Start State: false
-      Show Workspace: false
-      Start State Alpha: 1
-      Start State Color: 0; 255; 0
-    Planning Scene Topic: monitored_planning_scene
-    Robot Description: robot_description
-    Scene Geometry:
-      Scene Alpha: 0.8999999761581421
-      Scene Color: 50; 230; 50
-      Scene Display Time: 9.999999747378752e-05
-      Show Scene Geometry: true
-      Voxel Coloring: Z-Axis
-      Voxel Rendering: Occupied Voxels
-    Scene Robot:
-      Attached Body Color: 150; 50; 150
-      Links:
-        All Links Enabled: true
-        Expand Joint Details: false
-        Expand Link Details: false
-        Expand Tree: false
-        Link Tree Style: Links in Alphabetic Order
-      Robot Alpha: 1
-      Show Robot Collision: false
-      Show Robot Visual: true
-    Value: true
-    Velocity_Scaling_Factor: 0.1
-  - Class: rviz_default_plugins/MarkerArray
-    Enabled: true
-    Name: ReachRings
-    Namespaces: {}
-    Topic:
-      Depth: 5
-      Durability Policy: Transient Local
-      History Policy: Keep Last
-      Reliability Policy: Reliable
-      Value: /reach_rings
-    Value: true
-  - Class: rviz_default_plugins/PointCloud2
-    Color Transformer: RGB8
-    Decay Time: 0
-    Enabled: false
-    Name: DepthCloud
-    Position Transformer: XYZ
-    Size (m): 0.003
-    Style: Points
-    Topic:
-      Depth: 5
-      Durability Policy: Volatile
-      History Policy: Keep Last
-      Reliability Policy: Best Effort
-      Value: /camera/depth/color/points
-    Value: false
+      Plane: XY
+      Plane Cell Count: 10
+      Reference Frame: <Fixed Frame>
+      Value: true
+    - Acceleration_Scaling_Factor: 0.1
+      Class: moveit_rviz_plugin/MotionPlanning
+      Enabled: true
+      Move Group Namespace: ""
+      MoveIt_Allow_Approximate_IK: true
+      MoveIt_Allow_External_Program: true
+      MoveIt_Allow_Replanning: true
+      MoveIt_Allow_Sensor_Positioning: true
+      MoveIt_Planning_Attempts: 10
+      MoveIt_Planning_Time: 5
+      MoveIt_Use_Cartesian_Path: true
+      MoveIt_Use_Constraint_Aware_IK: true
+      MoveIt_Warehouse_Host: 127.0.0.1
+      MoveIt_Warehouse_Port: 33829
+      MoveIt_Workspace:
+        Center:
+          X: 0
+          Y: 0
+          Z: 0
+        Size:
+          X: 2
+          Y: 2
+          Z: 2
+      Name: MotionPlanning
+      Planned Path:
+        Color Enabled: false
+        Interrupt Display: false
+        Links:
+          All Links Enabled: true
+          Expand Joint Details: false
+          Expand Link Details: false
+          Expand Tree: false
+          Link Tree Style: Links in Alphabetic Order
+          camera_accel_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          camera_accel_optical_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          camera_arm:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          camera_bottom_screw_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          camera_color_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          camera_color_optical_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          camera_depth_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          camera_depth_optical_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          camera_gyro_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          camera_gyro_optical_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          camera_infra1_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          camera_infra1_optical_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          camera_infra2_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          camera_infra2_optical_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          camera_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          column:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          finger_links:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          finger_rechts:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          greifer_huelle:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          greifer_mechanik_breit:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          greifer_mechanik_schmal:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          gripper_base:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          gripper_left1:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          gripper_left2:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          gripper_left3:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: false
+          gripper_right1:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          gripper_right2:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          gripper_right3:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: false
+          halteklemme:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          joint1:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          joint2:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          joint3:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          joint4:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          joint5:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          joint6:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          joint6_flange:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          platform_top:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          robot_base:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          tcp:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          trichter:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+        Loop Animation: false
+        Robot Alpha: 0.5
+        Robot Color: 150; 50; 150
+        Show Robot Collision: false
+        Show Robot Visual: true
+        Show Trail: false
+        State Display Time: 0.05 s
+        Trail Step Size: 1
+        Trajectory Topic: display_planned_path
+      Planning Metrics:
+        Payload: 1
+        Show Joint Torques: false
+        Show Manipulability: false
+        Show Manipulability Index: false
+        Show Weight Limit: false
+        TextHeight: 0.07999999821186066
+      Planning Request:
+        Colliding Link Color: 255; 0; 0
+        Goal State Alpha: 1
+        Goal State Color: 250; 128; 0
+        Interactive Marker Size: 0.029999999329447746
+        Joint Violation Color: 255; 0; 255
+        Planning Group: arm
+        Query Goal State: true
+        Query Start State: false
+        Show Workspace: false
+        Start State Alpha: 1
+        Start State Color: 0; 255; 0
+      Planning Scene Topic: monitored_planning_scene
+      Robot Description: robot_description
+      Scene Geometry:
+        Scene Alpha: 0.8999999761581421
+        Scene Color: 50; 230; 50
+        Scene Display Time: 9.999999747378752e-05
+        Show Scene Geometry: true
+        Voxel Coloring: Z-Axis
+        Voxel Rendering: Occupied Voxels
+      Scene Robot:
+        Attached Body Color: 150; 50; 150
+        Links:
+          All Links Enabled: true
+          Expand Joint Details: false
+          Expand Link Details: false
+          Expand Tree: false
+          Link Tree Style: Links in Alphabetic Order
+          camera_accel_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          camera_accel_optical_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          camera_arm:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          camera_bottom_screw_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          camera_color_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          camera_color_optical_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          camera_depth_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          camera_depth_optical_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          camera_gyro_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          camera_gyro_optical_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          camera_infra1_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          camera_infra1_optical_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          camera_infra2_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          camera_infra2_optical_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          camera_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          column:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          finger_links:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          finger_rechts:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          greifer_huelle:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          greifer_mechanik_breit:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          greifer_mechanik_schmal:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          gripper_base:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          gripper_left1:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          gripper_left2:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          gripper_left3:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: false
+          gripper_right1:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          gripper_right2:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          gripper_right3:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: false
+          halteklemme:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          joint1:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          joint2:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          joint3:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          joint4:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          joint5:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          joint6:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          joint6_flange:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          platform_top:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          robot_base:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          tcp:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          trichter:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+        Robot Alpha: 1
+        Show Robot Collision: false
+        Show Robot Visual: true
+      Value: true
+      Velocity_Scaling_Factor: 0.1
+    - Class: rviz_default_plugins/MarkerArray
+      Enabled: true
+      Name: ReachRings
+      Namespaces:
+        {}
+      Topic:
+        Depth: 5
+        Durability Policy: Transient Local
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /reach_rings
+      Value: true
+    - Class: rviz_default_plugins/Marker
+      Enabled: true
+      Name: KlickPunkt
+      Namespaces:
+        {}
+      Topic:
+        Depth: 5
+        Durability Policy: Transient Local
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /punkt_klicken/marker
+      Value: true
+    - Alpha: 1
+      Autocompute Intensity Bounds: true
+      Autocompute Value Bounds:
+        Max Value: 10
+        Min Value: -10
+        Value: true
+      Axis: Z
+      Channel Name: intensity
+      Class: rviz_default_plugins/PointCloud2
+      Color: 255; 255; 255
+      Color Transformer: RGB8
+      Decay Time: 0
+      Enabled: true
+      Invert Rainbow: false
+      Max Color: 255; 255; 255
+      Max Intensity: 4096
+      Min Color: 0; 0; 0
+      Min Intensity: 0
+      Name: DepthCloud
+      Position Transformer: XYZ
+      Selectable: true
+      Size (Pixels): 3
+      Size (m): 0.003000000026077032
+      Style: Points
+      Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        Filter size: 10
+        History Policy: Keep Last
+        Reliability Policy: Best Effort
+        Value: /camera/arbeitsraum/points
+      Use Fixed Frame: true
+      Use rainbow: true
+      Value: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -141,11 +547,11 @@ Visualization Manager:
     Frame Rate: 30
   Name: root
   Tools:
-  - Class: rviz_default_plugins/Interact
-    Hide Inactive Objects: true
-  - Class: rviz_default_plugins/MoveCamera
-  - Class: rviz_default_plugins/Select
-  - Class: rviz_default_plugins/FocusCamera
+    - Class: rviz_default_plugins/Interact
+      Hide Inactive Objects: true
+    - Class: rviz_default_plugins/MoveCamera
+    - Class: rviz_default_plugins/Select
+    - Class: rviz_default_plugins/FocusCamera
   Transformation:
     Current:
       Class: rviz_default_plugins/TF
@@ -153,29 +559,37 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz_default_plugins/Orbit
-      Distance: 0.5159747004508972
+      Distance: 0.45
       Enable Stereo Rendering:
+        Stereo Eye Separation: 0.05999999865889549
+        Stereo Focal Distance: 1
+        Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 0
-        Y: 0
-        Z: 0.30000001192092896
+        X: 0.09
+        Y: -0.16
+        Z: 0.05
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
-      Near Clip Distance: 0.009999999776482582
-      Pitch: 0.8799999952316284
+      Near Clip Distance: 0.01
+      Pitch: 1.45
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz_default_plugins)
-      Yaw: 5.858185291290283
-    Saved: null
+      Yaw: -1.0
+    Saved: ~
 Window Geometry:
   Displays:
     collapsed: false
-  Height: 700
+  Height: 1030
   Hide Left Dock: false
   Hide Right Dock: true
-  Width: 1024
+  MotionPlanning:
+    collapsed: false
+  MotionPlanning - Trajectory Slider:
+    collapsed: false
+  QMainWindow State: 000000ff00000000fd0000000100000000000002b3000003aafc0200000003fb00000044004d006f00740069006f006e0050006c0061006e006e0069006e00670020002d0020005400720061006a006500630074006f0072007900200053006c00690064006500720000000000ffffffff0000004800fffffffb0000001c004d006f00740069006f006e0050006c0061006e006e0069006e0067010000003f000002360000016400fffffffb000000100044006900730070006c006100790073010000027a0000016f000000dc00ffffff000004c8000003aa00000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
+  Width: 1920
   X: 0
   Y: 24
