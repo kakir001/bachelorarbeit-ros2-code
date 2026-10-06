@@ -1,0 +1,7 @@
+# Nur fuer die Offline-Demo (ohne Roboter, ohne Kamera, ohne ROS 2) - Windows, Linux, macOS; Python 3.9 bis 3.12.
+# Installation:  pip install -r requirements-offline.txt
+ultralytics>=8.4.31     # YOLO11-seg; installiert PyTorch (CPU genuegt) mit. Training der Gewichte: 8.4.31, Versuch: 8.4.33
+opencv-python>=4.8      # cv2
+numpy>=1.24
+scipy>=1.10             # von quellcode/tools/schale_finden*.py verwendet
+Pillow

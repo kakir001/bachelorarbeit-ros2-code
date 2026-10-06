@@ -1,0 +1,183 @@
+diff --git a/trac_ik_kinematics_plugin/CMakeLists.txt b/trac_ik_kinematics_plugin/CMakeLists.txt
+index 0d7d7d3..0f320c7 100644
+--- a/trac_ik_kinematics_plugin/CMakeLists.txt
++++ b/trac_ik_kinematics_plugin/CMakeLists.txt
+@@ -12,12 +12,8 @@ find_package(pluginlib REQUIRED)
+ find_package(class_loader REQUIRED)
+ find_package(urdf REQUIRED)
+ find_package(tf2_kdl REQUIRED)
+-find_package(generate_parameter_library REQUIRED)
+ find_package(trac_ik_lib REQUIRED)
+ 
+-# Generate parameter library
+-generate_parameter_library(${PROJECT_NAME}_parameters src/trac_ik_kinematics_plugin_parameters.yaml)
+-
+ # Build
+ add_library(${PROJECT_NAME} SHARED src/trac_ik_kinematics_plugin.cpp)
+ target_include_directories(${PROJECT_NAME}
+@@ -26,22 +22,22 @@ target_include_directories(${PROJECT_NAME}
+     $<INSTALL_INTERFACE:include>)
+ target_link_libraries(${PROJECT_NAME}
+   PUBLIC
+-    ${PROJECT_NAME}_parameters
+-    class_loader::class_loader
+-    moveit_core::moveit_kinematics_base
+-    moveit_core::moveit_robot_model
+-    moveit_core::moveit_robot_state
+-    rclcpp::rclcpp
+-    tf2_kdl::tf2_kdl
+-    trac_ik_lib::trac_ik
+-    urdf::urdf)
++    trac_ik_lib::trac_ik)
++ament_target_dependencies(${PROJECT_NAME}
++  PUBLIC
++    class_loader
++    moveit_core
++    pluginlib
++    rclcpp
++    tf2_kdl
++    urdf)
+ 
+ # Install
+ install(
+   DIRECTORY include/
+   DESTINATION include)
+ install(
+-  TARGETS ${PROJECT_NAME} ${PROJECT_NAME}_parameters
++  TARGETS ${PROJECT_NAME}
+   EXPORT export_${PROJECT_NAME}
+   ARCHIVE DESTINATION lib
+   LIBRARY DESTINATION lib
+@@ -61,7 +57,6 @@ pluginlib_export_plugin_description_file(moveit_core
+ ament_export_targets(export_${PROJECT_NAME} HAS_LIBRARY_TARGET)
+ ament_export_dependencies(
+   class_loader
+-  generate_parameter_library
+   moveit_core
+   pluginlib
+   rclcpp
+diff --git a/trac_ik_kinematics_plugin/include/trac_ik/trac_ik_kinematics_plugin.hpp b/trac_ik_kinematics_plugin/include/trac_ik/trac_ik_kinematics_plugin.hpp
+index 1baf29f..9c3c138 100644
+--- a/trac_ik_kinematics_plugin/include/trac_ik/trac_ik_kinematics_plugin.hpp
++++ b/trac_ik_kinematics_plugin/include/trac_ik/trac_ik_kinematics_plugin.hpp
+@@ -31,16 +31,11 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
+ #ifndef TRAC_IK_KINEMATICS_PLUGIN_
+ #define TRAC_IK_KINEMATICS_PLUGIN_
+ 
+-#include <moveit/kinematics_base/kinematics_base.hpp>
+-#include <moveit/robot_model/robot_model.hpp>
++#include <moveit/kinematics_base/kinematics_base.h>
++#include <moveit/robot_model/robot_model.h>
+ #include <kdl/chain.hpp>
+ #include <kdl/jntarray.hpp>
+ 
+-// Forward declaration
+-namespace trac_ik_kinematics {
+-  class ParamListener;
+-  class Params;
+-}
+ 
+ namespace trac_ik_kinematics_plugin
+ {
+@@ -200,8 +195,7 @@ private:
+ 
+   std::string solve_type;
+ 
+-  std::shared_ptr<trac_ik_kinematics::ParamListener> param_listener_;
+-  std::shared_ptr<trac_ik_kinematics::Params> params_;
++  double epsilon_;
+ 
+   std::shared_ptr<random_numbers::RandomNumberGenerator> rng_;
+ 
+diff --git a/trac_ik_kinematics_plugin/package.xml b/trac_ik_kinematics_plugin/package.xml
+index bcd0fa2..76be0fc 100644
+--- a/trac_ik_kinematics_plugin/package.xml
++++ b/trac_ik_kinematics_plugin/package.xml
+@@ -13,7 +13,6 @@
+   <depend>moveit_core</depend>
+   <depend>pluginlib</depend>
+   <depend>class_loader</depend>
+-  <depend>generate_parameter_library</depend>
+   <depend>urdf</depend>
+   <depend>tf2_kdl</depend>
+   <depend>trac_ik_lib</depend>
+diff --git a/trac_ik_kinematics_plugin/src/trac_ik_kinematics_plugin.cpp b/trac_ik_kinematics_plugin/src/trac_ik_kinematics_plugin.cpp
+index 7f7c1c6..423b15e 100644
+--- a/trac_ik_kinematics_plugin/src/trac_ik_kinematics_plugin.cpp
++++ b/trac_ik_kinematics_plugin/src/trac_ik_kinematics_plugin.cpp
+@@ -29,16 +29,15 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
+ ********************************************************************************/
+ 
+ 
+-#include <urdf/model.hpp>
+-#include <tf2_kdl/tf2_kdl.hpp>
++#include <urdf/model.h>
++#include <tf2_kdl/tf2_kdl.h>
+ #include <algorithm>
+ #include <kdl/tree.hpp>
+ #include <kdl_parser/kdl_parser.hpp>
+ #include <trac_ik/trac_ik.hpp>
+ #include <trac_ik/trac_ik_kinematics_plugin.hpp>
+ #include <limits>
+-#include <moveit/robot_state/robot_state.hpp>
+-#include <trac_ik_kinematics_plugin/trac_ik_kinematics_plugin_parameters.hpp>
++#include <moveit/robot_state/robot_state.h>
+ 
+ namespace trac_ik_kinematics_plugin
+ {
+@@ -53,10 +52,18 @@ bool TRAC_IKKinematicsPlugin::initialize(const rclcpp::Node::SharedPtr &node,
+ {
+   node_ = node;
+ 
+-  // Get Solver Parameters
+-  std::string kinematics_param_prefix = "robot_description_kinematics." + group_name;
+-  param_listener_ = std::make_shared<trac_ik_kinematics::ParamListener>(node, kinematics_param_prefix);
+-  params_ = std::make_shared<trac_ik_kinematics::Params>(param_listener_->get_params());
++  std::string prefix = "robot_description_kinematics." + group_name + ".";
++  auto declare_if_missing = [&](const std::string& name, const rclcpp::ParameterValue& val) {
++    if (!node->has_parameter(prefix + name))
++      node->declare_parameter(prefix + name, val);
++  };
++  declare_if_missing("epsilon", rclcpp::ParameterValue(1e-5));
++  declare_if_missing("position_only_ik", rclcpp::ParameterValue(false));
++  declare_if_missing("solve_type", rclcpp::ParameterValue(std::string("Distance")));
++
++  epsilon_ = node->get_parameter(prefix + "epsilon").as_double();
++  bool param_position_only_ik = node->get_parameter(prefix + "position_only_ik").as_bool();
++  std::string param_solve_type = node->get_parameter(prefix + "solve_type").as_string();
+ 
+   storeValues(robot_model, group_name, base_frame, tip_frames, search_discretization);
+ 
+@@ -135,8 +142,8 @@ bool TRAC_IKKinematicsPlugin::initialize(const rclcpp::Node::SharedPtr &node,
+     }
+   }
+ 
+-  position_ik_ = params_->position_only_ik;
+-  solve_type = params_->solve_type;
++  position_ik_ = param_position_only_ik;
++  solve_type = param_solve_type;
+   RCLCPP_INFO(LOGGER, "Using solve type %s", solve_type.c_str());
+ 
+   rng_ = std::make_shared<random_numbers::RandomNumberGenerator>();
+@@ -367,7 +374,7 @@ bool TRAC_IKKinematicsPlugin::searchPositionIK(const geometry_msgs::msg::Pose &i
+   while (std::chrono::system_clock::now() < end_time)
+   {
+     double solver_timeout = std::chrono::duration<double>(end_time - std::chrono::system_clock::now()).count();
+-    TRAC_IK::TRAC_IK ik_solver(node_, chain, joint_min, joint_max, solver_timeout, params_->epsilon, solvetype);
++    TRAC_IK::TRAC_IK ik_solver(node_, chain, joint_min, joint_max, solver_timeout, epsilon_, solvetype);
+ 
+     int rc = ik_solver.CartToJnt(in, frame, out, bounds);
+ 
+diff --git a/trac_ik_lib/src/trac_ik.cpp b/trac_ik_lib/src/trac_ik.cpp
+index e4ec2e3..49fe7e7 100644
+--- a/trac_ik_lib/src/trac_ik.cpp
++++ b/trac_ik_lib/src/trac_ik.cpp
+@@ -34,7 +34,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
+ #include <rclcpp/rclcpp.hpp>
+ #include <limits>
+ #include <kdl_parser/kdl_parser.hpp>
+-#include <urdf/model.hpp>
++#include <urdf/model.h>
+ 
+ namespace TRAC_IK
+ {

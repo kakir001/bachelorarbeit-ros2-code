@@ -1,0 +1,230 @@
+diff --git a/mycobot_280/mycobot_280jn/launch/slider_control_adaptive_gripper.launch.py b/mycobot_280/mycobot_280jn/launch/slider_control_adaptive_gripper.launch.py
+index e63e510..c64bede 100644
+--- a/mycobot_280/mycobot_280jn/launch/slider_control_adaptive_gripper.launch.py
++++ b/mycobot_280/mycobot_280jn/launch/slider_control_adaptive_gripper.launch.py
+@@ -78,7 +78,7 @@ def generate_launch_description():
+     res.append(rviz_node)
+     
+     slider_control_node = Node(
+-        package="mycobot_280pi",
++        package="mycobot_280jn",
+         executable="slider_control_adaptive_gripper",
+         parameters=[
+             {'port': LaunchConfiguration('port')},
+diff --git a/mycobot_280/mycobot_280jn/setup.cfg b/mycobot_280/mycobot_280jn/setup.cfg
+index 0012bd4..4402133 100644
+--- a/mycobot_280/mycobot_280jn/setup.cfg
++++ b/mycobot_280/mycobot_280jn/setup.cfg
+@@ -1,6 +1,6 @@
+ 
+ [develop]
+-script-dir=$base/lib/mycobot_280jn
++script_dir=$base/lib/mycobot_280jn
+ 
+ [install]
+-install-scripts=$base/lib/mycobot_280jn
++install_scripts=$base/lib/mycobot_280jn
+diff --git a/mycobot_description/setup.cfg b/mycobot_description/setup.cfg
+index 7c320d6..0e2e073 100644
+--- a/mycobot_description/setup.cfg
++++ b/mycobot_description/setup.cfg
+@@ -1,6 +1,6 @@
+ 
+ [develop]
+-script-dir=$base/lib/mycobot_description
++script_dir=$base/lib/mycobot_description
+ 
+ [install]
+-install-scripts=$base/lib/mycobot_description
++install_scripts=$base/lib/mycobot_description
+diff --git a/mycobot_description/urdf/mycobot_280_jn/mycobot_280_jn_adaptive_gripper.urdf b/mycobot_description/urdf/mycobot_280_jn/mycobot_280_jn_adaptive_gripper.urdf
+index 77101e4..3be72e5 100644
+--- a/mycobot_description/urdf/mycobot_280_jn/mycobot_280_jn_adaptive_gripper.urdf
++++ b/mycobot_description/urdf/mycobot_280_jn/mycobot_280_jn_adaptive_gripper.urdf
+@@ -12,6 +12,10 @@
+       </geometry>
+     <origin xyz = "0.0 0 0 " rpy = " 0 0 3.14159"/>
+     </visual>
++    <collision>
++      <origin xyz="0 0 0.078" rpy="0 0 0"/>
++      <geometry><cylinder radius="0.045" length="0.156"/></geometry>
++    </collision>
+   </link>
+ 
+   <link name="joint2">
+@@ -21,17 +25,25 @@
+       </geometry>
+     <origin xyz = "0.0 0 -0.06096 " rpy = " 0 0 -1.5708"/>
+     </visual>
++    <collision>
++      <origin xyz="0 0 0" rpy="0 0 0"/>
++      <geometry><box size="0.055 0.055 0.065"/></geometry>
++    </collision>
+   </link>
+ 
+ 
+   <link name="joint3">
+     <visual>
+       <geometry>
+-       
++
+        <mesh filename="package://mycobot_description/urdf/mycobot_280_jn/joint3.dae"/>
+       </geometry>
+     <origin xyz = "0.0 0 0.03256 " rpy = " 0 -1.5708 0"/>
+     </visual>
++    <collision>
++      <origin xyz="-0.055 0 0" rpy="0 1.5708 0"/>
++      <geometry><cylinder radius="0.032" length="0.110"/></geometry>
++    </collision>
+   </link>
+ 
+ 
+@@ -43,6 +55,10 @@
+       </geometry>
+     <origin xyz = "0.0 0 0.03056 " rpy = " 0 -1.5708 0"/>
+     </visual>
++    <collision>
++      <origin xyz="-0.048 0 0" rpy="0 1.5708 0"/>
++      <geometry><cylinder radius="0.030" length="0.096"/></geometry>
++    </collision>
+   </link>
+ 
+ 
+@@ -56,6 +72,10 @@
+       </geometry>
+     <origin xyz = "0.0 0 -0.03356 " rpy = " 0 -1.5708 1.5708"/>
+     </visual>
++    <collision>
++      <origin xyz="0 0 0" rpy="0 0 0"/>
++      <geometry><box size="0.050 0.050 0.065"/></geometry>
++    </collision>
+   </link>
+ 
+ 
+@@ -67,6 +87,10 @@
+       </geometry>
+     <origin xyz = "0 0.00 -0.038 " rpy = " 0 0 0"/>
+     </visual>
++    <collision>
++      <origin xyz="0 0 0" rpy="0 0 0"/>
++      <geometry><box size="0.050 0.050 0.055"/></geometry>
++    </collision>
+   </link>
+ 
+ 
+@@ -78,6 +102,10 @@
+       </geometry>
+     <origin xyz = "0.0 0 -0.012 " rpy = " 0 0 0"/>
+     </visual>
++    <collision>
++      <origin xyz="0 0 -0.008" rpy="0 0 0"/>
++      <geometry><cylinder radius="0.024" length="0.016"/></geometry>
++    </collision>
+   </link>
+ 
+ 
+@@ -86,7 +114,7 @@
+ 
+     <joint name="joint2_to_joint1" type="revolute">
+     <axis xyz="0 0 1"/>
+-    <limit effort = "1000.0" lower = "-2.932"1 upper = "2.9321" velocity = "0"/>
++    <limit effort = "1000.0" lower = "-2.9321" upper = "2.9321" velocity = "0"/>
+     <parent link="joint1"/>
+     <child link="joint2"/>
+     <origin xyz= "0 0 0.15756" rpy = "0 0 0"/>  
+@@ -142,7 +170,10 @@
+     <parent link="joint6_flange"/>
+     <child link="gripper_base"/>
+     <!-- <origin xyz= "0 0.0 0" rpy = "-1.5708 0 0"/>   -->
+-    <origin xyz= "0 0 0.034" rpy = "1.579 0 0"/>  
++    <!-- yaw 0 -> 0.8406 (48.16°): der Greifer sitzt ~48° verdreht am Flansch. Zum Angleichen
++         des Modells um die Werkzeugachse gedreht (2026-06-07); bei joint6=0 zeigt RViz nun
++         dieselbe Schraeglage wie der echte Roboter. Vorzeichen in RViz pruefen (ggf. -0.8406). -->
++    <origin xyz= "0 0 0.034" rpy = "1.579 0 0.8406"/>
+   </joint>
+ 
+   <link name="gripper_base">
+@@ -154,9 +185,9 @@
+     </visual>
+     <collision>
+       <geometry>
+-       <mesh filename="package://mycobot_description/urdf/adaptive_gripper/gripper_base.dae"/>
++        <box size="0.058 0.0715 0.0537"/>
+       </geometry>
+-    <origin xyz = "0.0 0 -0.012 " rpy = " 0 0 0"/>
++      <origin xyz="0.0 0.0064 -0.0201" rpy="0 0 0"/>
+     </collision>
+   </link>
+ 
+@@ -169,9 +200,9 @@
+     </visual>
+     <collision>
+       <geometry>
+-       <mesh filename="package://mycobot_description/urdf/adaptive_gripper/gripper_left1.dae"/>
++        <box size="0.0593 0.0264 0.0223"/>
+       </geometry>
+-        <origin xyz = "0.039 -0.0133 -0.012 " rpy = " 0 0 0"/>
++      <origin xyz="0.0369 -0.0133 -0.0112" rpy="0 0 0"/>
+     </collision>
+   </link>
+ 
+@@ -184,9 +215,9 @@
+     </visual>
+     <collision>
+       <geometry>
+-       <mesh filename="package://mycobot_description/urdf/adaptive_gripper/gripper_left2.dae"/>
++        <box size="0.04 0.02 0.009"/>
+       </geometry>
+-        <origin xyz = "0.005 -0.0195 -0.012 " rpy = " 0 0 0"/>
++      <origin xyz="0.005 -0.0226 -0.012" rpy="0 0 0"/>
+     </collision>
+   </link>
+ 
+@@ -199,9 +230,9 @@
+     </visual>
+     <collision>
+       <geometry>
+-       <mesh filename="package://mycobot_description/urdf/adaptive_gripper/gripper_left3.dae"/>
++        <box size="0.006 0.0402 0.0401"/>
+       </geometry>
+-    <origin xyz = "0.012 0.0025 -0.012 " rpy = " 0 0 0"/>
++      <origin xyz="0.014 0.0083 -0.0179" rpy="0 0 0"/>
+     </collision>
+   </link>
+ 
+@@ -214,9 +245,9 @@
+     </visual>
+     <collision>
+       <geometry>
+-       <mesh filename="package://mycobot_description/urdf/adaptive_gripper/gripper_right1.dae"/>
++        <box size="0.0593 0.0264 0.0223"/>
+       </geometry>
+-        <origin xyz = "-0.039 -0.0133 -0.012 " rpy = " 0 0 0"/>
++      <origin xyz="-0.0411 -0.0133 -0.0112" rpy="0 0 0"/>
+     </collision>
+   </link>
+ 
+@@ -229,9 +260,9 @@
+     </visual>
+     <collision>
+       <geometry>
+-       <mesh filename="package://mycobot_description/urdf/adaptive_gripper/gripper_right2.dae"/>
++        <box size="0.04 0.02 0.009"/>
+       </geometry>
+-        <origin xyz = "-0.005 -0.0195 -0.012 " rpy = " 0 0 0"/>
++      <origin xyz="-0.005 -0.0226 -0.012" rpy="0 0 0"/>
+     </collision>
+   </link>
+ 
+@@ -244,9 +275,9 @@
+     </visual>
+     <collision>
+       <geometry>
+-       <mesh filename="package://mycobot_description/urdf/adaptive_gripper/gripper_right3.dae"/>
++        <box size="0.006 0.0358 0.0438"/>
+       </geometry>
+-    <origin xyz = "-0.012 0.0025 -0.012" rpy = " 0 0 0"/>
++      <origin xyz="-0.01 0.0061 -0.0197" rpy="0 0 0"/>
+     </collision>
+   </link>
+ 

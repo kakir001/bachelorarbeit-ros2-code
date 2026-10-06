@@ -1,0 +1,22 @@
+diff --git a/easy_handeye2/easy_handeye2/handeye_sampler.py b/easy_handeye2/easy_handeye2/handeye_sampler.py
+index 0c5fe05..e46ae7b 100644
+--- a/easy_handeye2/easy_handeye2/handeye_sampler.py
++++ b/easy_handeye2/easy_handeye2/handeye_sampler.py
+@@ -84,7 +84,7 @@ class HandeyeSampler:
+         self.node.get_logger().info('All expected transforms are available on tf; ready to take samples')
+         return True
+ 
+-    def _get_transforms(self, time: Optional[rclpy.time.Time] = None) -> Sample | None:
++    def _get_transforms(self, time: Optional[rclpy.time.Time] = None) -> Optional[Sample]:
+         """
+         Samples the transforms at the given time.
+         """
+@@ -113,7 +113,7 @@ class HandeyeSampler:
+         ret.tracking = tracking.transform
+         return ret
+ 
+-    def current_transforms(self) -> Sample | None:
++    def current_transforms(self) -> Optional[Sample]:
+         return self._get_transforms()
+ 
+     def take_sample(self) -> bool:

@@ -1,0 +1,15 @@
+# Python-Abhängigkeiten der eigenen Pakete und Werkzeuge (Versionen wie im Versuch, Tabelle 5-1/5-2 der Arbeit).
+# ROS-2-Pakete (rclpy, tf2_ros, moveit_msgs, ...) kommen aus der ROS-2-Galactic-Installation, nicht aus pip.
+# Python 3.8 (Ubuntu 20.04).
+ultralytics==8.4.33          # YOLO11-seg-Inferenz (wellenerkennung)
+opencv-python==4.8.0.76      # cv2, cv2.aruco (CharucoDetector ab OpenCV 4.7)
+numpy<2                      # PCA, Median/MAD, RANSAC (im Versuch 1.24.4)
+scipy                        # tools/schale_finden.py, tools/schale_finden_kontur.py (im Versuch 1.10.1)
+pymycobot==4.0.4             # nur für den realen Roboter; im Versuch 4.0.4b5 (Vorabversion, auf PyPI nicht mehr erhältlich)
+pyrealsense2                 # nur für einzelne Kamera-Messwerkzeuge in tools/
+Pillow                       # Bildanzeige in der Ablaufsteuerung (tkinter)
+matplotlib                   # Auswertungsdiagramme einzelner Messwerkzeuge
+PyYAML
+# Nicht ueber pip: tkinter fuer tools/zyklus_gui.py und tools/jog_gui.py (Ubuntu: sudo apt install python3-tk python3-pil.imagetk).
+# PyTorch wird von ultralytics mitinstalliert; auf dem Jetson Nano das NVIDIA-Wheel fuer JetPack verwenden (im Versuch torch 1.13).
+# Nur fuer die Offline-Demo ohne ROS (Windows/Linux/macOS, Python 3.9-3.12): offline_demo/requirements-offline.txt

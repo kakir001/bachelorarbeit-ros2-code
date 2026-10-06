@@ -1,0 +1,5 @@
+ausgabe/
+.venv/
+welle_gross.pt
+*.teil
+__pycache__/
