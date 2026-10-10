@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Offline-Demo 1: modellbasierte Wellen- und Kopfseitenerkennung auf aufgezeichneten Szenen.
+"""Offline-Demo 1: Wellen- und Kopfseitenerkennung mit klassischer Bildverarbeitung (ohne KI) auf aufgezeichneten Szenen.
 
 Laeuft OHNE Roboter, OHNE Kamera und OHNE ROS 2 (Windows, Linux, macOS). Ausgefuehrt wird
 der UNVERAENDERTE Code der Arbeit:
@@ -143,7 +143,7 @@ for frame in frames:
     tabelle.append((name, len(wellen), sicher))
 
 print("\n" + "=" * 78)
-print("ZUSAMMENFASSUNG (Offline-Demo 1, modellbasierte Erkennung)")
+print("ZUSAMMENFASSUNG (Offline-Demo 1, klassische Bildverarbeitung)")
 print("%-44s %8s" % ("Szene", "Wellen"))
 for name, n, _ in tabelle:
     print("%-44s %8d" % (name, n))

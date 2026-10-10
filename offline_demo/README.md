@@ -29,7 +29,7 @@ python yolo_offline.py
 
 | Skript | Inhalt | Abschnitt der Arbeit | Code der Arbeit, der ausgeführt wird |
 |---|---|---|---|
-| `wellenerkennung_offline.py` | modellbasierte Wellenerkennung in der Schale: Stabanpassung, Kopfseite aus Breitenprofil und Markierungsringen, Körper- und Streifenfarbe, Bewertung 0–100 je Kandidat | 5.3.3, 5.8.2, 5.9.1 | `quellcode/tools/test_welle_finden.py` → `welle_finden_schale.py` (`welle_in_frame`) |
+| `wellenerkennung_offline.py` | Wellenerkennung in der Schale mit klassischer Bildverarbeitung (ohne KI, wie im Gesamtzyklus): Stabanpassung, Kopfseite aus Breitenprofil und Markierungsringen, Körper- und Streifenfarbe, Bewertung 0–100 je Kandidat | 5.3.3, 5.8.2, 5.9.1 | `quellcode/tools/test_welle_finden.py` → `welle_finden_schale.py` (`welle_in_frame`) |
 | `yolo_offline.py` | Instanzsegmentierung mit dem trainierten YOLO11l-seg-Modell, Mittelpunkt und Längsachse je Maske per PCA | 5.3.2, 5.4.1, 5.4.4 | `quellcode/src/wellenerkennung/wellenerkennung/erkennung.py` (`wellen_erkennen`, `get_mask_orientation`, `kopf_bewusster_griff`) |
 
 Eingabe sind die am 13.09.2026 am Versuchsaufbau aufgezeichneten RGB-D-Szenen in `quellcode/testdaten/` (Farbbild 1280 × 720, Tiefenbild, Kameraparameter, Kamerapose, Lage der Schale):
@@ -43,7 +43,7 @@ Eingabe sind die am 13.09.2026 am Versuchsaufbau aufgezeichneten RGB-D-Szenen in
 
 ## Erwartete Ausgabe
 
-### Demo 1 (modellbasiert)
+### Demo 1 (klassische Bildverarbeitung, ohne KI)
 
 Je Szene entstehen `<szene>_mosaik.png` (jeder Kandidat als Ausschnitt, auf die Achse gedreht, **Kopf links**; rot = Kopfende, blau = Spitze, grün = Griffpunkt am Flansch, magenta = Achse) und `<szene>_uebersicht.png` (ganzes Kamerabild mit denselben Marken). Die Mosaike sind bildpunktgleich mit den am 19.09.2026 auf dem Jetson erzeugten Bildern in `quellcode/testdaten/mosaik/` (geprüft am 05.10.2026).
 

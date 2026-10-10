@@ -262,7 +262,7 @@ Die folgenden Dateien waren im Stand vom 28.09.2026 nicht im Repository. In `que
 | `testdaten/schale_hintergrund_2026-09-13.npz` | Referenzbild der leeren Schale zu diesen Szenen |
 | `testdaten/mosaik/*_mosaik.png` | am 19.09.2026 von `tools/test_welle_finden.py` erzeugte Mosaike (ein Ausschnitt je gefundener Welle) |
 | `schale_hintergrund.npz`, `trichter_hintergrund.npz` | Referenzbilder der leeren Schale bzw. des leeren Trichters, von `tools/welle_finden_schale.py` und `tools/kamera_pruefung.py` verwendet |
-| `zyklus_protokoll.txt`, `zyklus_log.jsonl` | Rohprotokoll der Ablaufsteuerung `tools/zyklus_gui.py` (Text bzw. ein JSON-Eintrag je Schritt) |
+| `zyklus_protokoll.txt`, `zyklus_log.jsonl` | Protokoll der Ablaufsteuerung `tools/zyklus_gui.py` (Text bzw. ein JSON-Eintrag je Schritt); nur Läufe über die Bedienoberfläche (14., 23., 24.09.2026), nicht die Datengrundlage der Tabelle 6-2 (Laborbuch) |
 
 ### `offline_demo/` (neu)
 
