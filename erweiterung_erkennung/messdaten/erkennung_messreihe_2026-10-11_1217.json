@@ -1,0 +1,235 @@
+{
+ "datum": "2026-10-11 12:17",
+ "n": 10,
+ "zusatz": [
+  "--ohne-ik-probe"
+ ],
+ "reihen": {
+  "yolo": [
+   {
+    "lauf": 1,
+    "exit": 0,
+    "t_suche_s": 67.91,
+    "mem_min_mb": 70,
+    "temp_max": 66.5,
+    "t_segmentierung_s": 19.892,
+    "t_inferenz_s": 8.87,
+    "t_gesamt_s": 55.84,
+    "anzahl": 13,
+    "konfidenz": 71.6,
+    "koerper": "gelb",
+    "streifen": "gruen",
+    "mitte_mm": [
+     187.4,
+     -17.4
+    ],
+    "yaw_grad": -89.1,
+    "greifbar": 5
+   },
+   {
+    "lauf": 2,
+    "exit": 0,
+    "t_suche_s": 48.13,
+    "mem_min_mb": 174,
+    "temp_max": 65.5,
+    "t_segmentierung_s": 7.264,
+    "t_inferenz_s": 2.988,
+    "t_gesamt_s": 36.5,
+    "anzahl": 14,
+    "konfidenz": 72.3,
+    "koerper": "gelb",
+    "streifen": "gruen",
+    "mitte_mm": [
+     191.1,
+     -13.5
+    ],
+    "yaw_grad": -90.6,
+    "greifbar": 6
+   },
+   {
+    "lauf": 3,
+    "exit": 0,
+    "t_suche_s": 40.01,
+    "mem_min_mb": 199,
+    "temp_max": 65.0,
+    "t_segmentierung_s": 6.826,
+    "t_inferenz_s": 2.852,
+    "t_gesamt_s": 28.34,
+    "anzahl": 13,
+    "konfidenz": 72.0,
+    "koerper": "gelb",
+    "streifen": "gruen",
+    "mitte_mm": [
+     191.0,
+     -12.9
+    ],
+    "yaw_grad": -90.5,
+    "greifbar": 5
+   },
+   {
+    "lauf": 4,
+    "exit": 0,
+    "t_suche_s": 32.41,
+    "mem_min_mb": 234,
+    "temp_max": 69.5,
+    "t_segmentierung_s": 3.755,
+    "t_inferenz_s": 2.438,
+    "t_gesamt_s": 21.1,
+    "anzahl": 12,
+    "konfidenz": 68.2,
+    "koerper": "gruen",
+    "streifen": "weiss",
+    "mitte_mm": [
+     196.4,
+     -62.8
+    ],
+    "yaw_grad": -138.1,
+    "greifbar": 5
+   },
+   {
+    "lauf": 5,
+    "exit": 0,
+    "t_suche_s": 40.8,
+    "mem_min_mb": 282,
+    "temp_max": 69.0,
+    "t_segmentierung_s": 10.235,
+    "t_inferenz_s": 1.83,
+    "t_gesamt_s": 31.53,
+    "anzahl": 13,
+    "konfidenz": 71.8,
+    "koerper": "gelb",
+    "streifen": "gruen",
+    "mitte_mm": [
+     191.0,
+     -12.9
+    ],
+    "yaw_grad": -90.4,
+    "greifbar": 6
+   },
+   {
+    "lauf": 6,
+    "exit": 0,
+    "t_suche_s": 47.34,
+    "mem_min_mb": 285,
+    "temp_max": 69.5,
+    "t_segmentierung_s": 8.679,
+    "t_inferenz_s": 1.187,
+    "t_gesamt_s": 38.1,
+    "anzahl": 13,
+    "konfidenz": 71.5,
+    "koerper": "gelb",
+    "streifen": "gruen",
+    "mitte_mm": [
+     187.3,
+     -17.2
+    ],
+    "yaw_grad": -89.3,
+    "greifbar": 5
+   },
+   {
+    "lauf": 7,
+    "exit": 0,
+    "t_suche_s": 33.12,
+    "mem_min_mb": 303,
+    "temp_max": 69.5,
+    "t_segmentierung_s": 4.21,
+    "t_inferenz_s": 0.745,
+    "t_gesamt_s": 24.87,
+    "anzahl": 13,
+    "konfidenz": 71.5,
+    "koerper": "gelb",
+    "streifen": "gruen",
+    "mitte_mm": [
+     187.3,
+     -17.4
+    ],
+    "yaw_grad": -89.2,
+    "greifbar": 5
+   },
+   {
+    "lauf": 8,
+    "exit": 0,
+    "t_suche_s": 48.53,
+    "mem_min_mb": 322,
+    "temp_max": 69.0,
+    "t_segmentierung_s": 5.489,
+    "t_inferenz_s": 0.754,
+    "t_gesamt_s": 40.84,
+    "anzahl": 11,
+    "konfidenz": 78.2,
+    "koerper": "gruen",
+    "streifen": "weiss",
+    "mitte_mm": [
+     196.5,
+     -62.5
+    ],
+    "yaw_grad": -137.4,
+    "greifbar": 5
+   },
+   {
+    "lauf": 9,
+    "exit": 0,
+    "t_suche_s": 46.38,
+    "mem_min_mb": 381,
+    "temp_max": 69.5,
+    "t_segmentierung_s": 7.732,
+    "t_inferenz_s": 0.759,
+    "t_gesamt_s": 38.23,
+    "anzahl": 12,
+    "konfidenz": 75.3,
+    "koerper": "gruen",
+    "streifen": "weiss",
+    "mitte_mm": [
+     196.4,
+     -62.6
+    ],
+    "yaw_grad": -138.0,
+    "greifbar": 5
+   },
+   {
+    "lauf": 10,
+    "exit": 0,
+    "t_suche_s": 18.84,
+    "mem_min_mb": 364,
+    "temp_max": 69.5,
+    "t_segmentierung_s": 1.62,
+    "t_inferenz_s": 0.754,
+    "t_gesamt_s": 11.22,
+    "anzahl": 13,
+    "konfidenz": 65.6,
+    "koerper": "gruen",
+    "streifen": "weiss",
+    "mitte_mm": [
+     199.8,
+     -59.0
+    ],
+    "yaw_grad": -139.6,
+    "greifbar": 6
+   }
+  ]
+ },
+ "dienst": {
+  "zustand": "bereit",
+  "seit": 1791713873.1596804,
+  "t_bereit_s": 53.6,
+  "pid": 78284,
+  "backend": "pytorch",
+  "anfragen": 0,
+  "t_laden_s": 29.7,
+  "t_aufwaermen_s": 23.9,
+  "t_bereit_gemessen_s": 54.1,
+  "mem_min_beim_laden_mb": 216
+ },
+ "zusammenfassung": {
+  "yolo": {
+   "n_ok": 10,
+   "t_suche_median": 43.59,
+   "t_suche_min": 18.84,
+   "t_suche_max": 67.91,
+   "t_seg_median": 7.045,
+   "anzahl_median": 13.0,
+   "mem_min_mb": 70,
+   "temp_max": 69.5
+  }
+ }
+}

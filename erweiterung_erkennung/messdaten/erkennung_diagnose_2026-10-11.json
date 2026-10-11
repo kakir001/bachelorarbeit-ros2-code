@@ -1,0 +1,391 @@
+{
+ "system": {
+  "datum": "2026-10-11 11:26",
+  "nvpmodel": "NV Power Mode: MAXN\n0\nNVPM ERROR: Error opening /sys/kernel/nvpmodel_emc_cap/emc_iso_cap: 13\nNVPM ERROR: failed to read PARAM EMC: ARG MAX_FREQ: PATH /sys/kernel/nvpmodel_emc_cap/emc_iso_cap",
+  "jetson_clocks": "SOC family:tegra210  Machine:NVIDIA Jetson Nano Developer Kit\nError: Run this script(/usr/bin/jetson_clocks) as a root user",
+  "swap": "NAME       TYPE        SIZE   USED PRIO\n/dev/zram0 partition 494,5M 332,2M    5\n/dev/zram1 partition 494,5M 332,1M    5\n/dev/zram2 partition 494,5M 331,6M    5\n/dev/zram3 partition 494,5M 333,3M    5",
+  "speicher": {
+   "frei_mb": 1395,
+   "verfuegbar_mb": 2368,
+   "swap_belegt_mb": 1330
+  },
+  "temperatur": {
+   "AO-therm": 52.5,
+   "CPU-therm": 44.5,
+   "GPU-therm": 41.5,
+   "PLL-therm": 44.5,
+   "PMIC-Die": 50.0,
+   "thermal-fan-est": 43.75,
+   "iwlwifi_1": 48.0
+  },
+  "speicherfresser": "USER         PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND\ner         13011  9.0 10.5 6071332 425700 pts/0  Sl+  08:02  18:24 claude\ner         12253  2.6  3.6 3015080 147176 tty2   Sl+  08:01   5:24 /usr/lib/firefox/firefox -contentproc -isForBrowser -prefsHandle 0 -prefsLen 38059 \ner         11492  2.1  1.5 3755952 62276 tty2    Sl+  08:01   4:25 /usr/lib/firefox/firefox\ner          7761  0.1  0.5 1451756 23228 tty2    Sl+  07:58   0:13 /usr/bin/caja\nroot        7424  1.5  0.4 6587184 19456 tty2    Sl+  07:58   3:18 /usr/lib/xorg/Xorg vt2 -displayfd 3 -auth /run/user/1001/gdm/Xauthority -background\ner          7816  0.1  0.3 971640 12344 tty2     Sl+  07:58   0:21 nm-applet\ner         55911 20.0  0.2  20568 11060 ?        S    11:26   0:00 /usr/bin/python3 tools/erkennung_diagnose.py --n 20",
+  "rviz_laeuft": false,
+  "desktop": "graphical.target",
+  "CUDA_CACHE_MAXSIZE": null,
+  "CUDA_CACHE_PATH": null,
+  "compute_cache_vorher": "168",
+  "torch": "1.13.0a0+git7c98e70 10.2 8201 ['sm_53', 'sm_62', 'sm_72']",
+  "sm_53_im_build": true,
+  "compute_cache_nachher": "168"
+ },
+ "varianten": [
+  {
+   "variante": "u",
+   "half": false,
+   "retina": true,
+   "roi": false,
+   "cache": false,
+   "t_import_torch": 3.8151990060014214,
+   "t_cuda_kontext": 12.287030366000181,
+   "t_erstes_conv2d": 11.165299763000803,
+   "cudnn_benchmark": false,
+   "t_yolo_laden": 2.205866033998973,
+   "t_erste_inferenz": 74.48575187300048,
+   "anzahl_erste": 0,
+   "t_inferenz_mittel": 0.5466147167001509,
+   "t_inferenz_median": 0.542325301999881,
+   "t_inferenz_min": 0.537273712001479,
+   "t_inferenz_max": 0.6413588630002778,
+   "anzahl": 0,
+   "peak_rss_mb": 2258.34765625,
+   "t_prozess_gesamt": 169.90209168300134,
+   "speicher_vorher": {
+    "frei_mb": 1212,
+    "verfuegbar_mb": 2362,
+    "swap_belegt_mb": 1320
+   },
+   "temperatur_nachher": {
+    "AO-therm": 55.5,
+    "CPU-therm": 47.0,
+    "GPU-therm": 44.0,
+    "PLL-therm": 46.5,
+    "PMIC-Die": 50.0,
+    "thermal-fan-est": 45.25
+   }
+  },
+  {
+   "variante": "a",
+   "half": false,
+   "retina": true,
+   "roi": false,
+   "cache": false,
+   "t_import_torch": 8.948861781000232,
+   "t_cuda_kontext": 12.267144432998975,
+   "t_erstes_conv2d": 28.905591280999943,
+   "cudnn_benchmark": false,
+   "t_yolo_laden": 13.352371204999145,
+   "t_erste_inferenz": 1.5258482090011967,
+   "anzahl_erste": 5,
+   "t_inferenz_mittel": 0.56916559149995,
+   "t_inferenz_median": 0.5688366340000357,
+   "t_inferenz_min": 0.5610545279996586,
+   "t_inferenz_max": 0.5963353979987005,
+   "anzahl": 5,
+   "klassen": [
+    "rot",
+    "schwarz",
+    "schwarz",
+    "weiss",
+    "weiss"
+   ],
+   "conf": [
+    0.91,
+    0.908,
+    0.882,
+    0.844,
+    0.814
+   ],
+   "peak_rss_mb": 2091.3984375,
+   "t_prozess_gesamt": 116.73557989500114,
+   "speicher_vorher": {
+    "frei_mb": 1555,
+    "verfuegbar_mb": 2143,
+    "swap_belegt_mb": 1176
+   },
+   "temperatur_nachher": {
+    "AO-therm": 57.0,
+    "CPU-therm": 49.5,
+    "GPU-therm": 46.0,
+    "PLL-therm": 48.0,
+    "PMIC-Die": 50.0,
+    "thermal-fan-est": 47.75,
+    "iwlwifi_1": 49.0
+   }
+  },
+  {
+   "variante": "b",
+   "half": true,
+   "retina": true,
+   "roi": false,
+   "cache": false,
+   "t_import_torch": 6.610591335000208,
+   "t_cuda_kontext": 11.878420565999477,
+   "t_erstes_conv2d": 9.207225685000594,
+   "cudnn_benchmark": false,
+   "t_yolo_laden": 18.259824426000705,
+   "t_erste_inferenz": 4.905910196999685,
+   "anzahl_erste": 5,
+   "t_inferenz_mittel": 0.690674466350174,
+   "t_inferenz_median": 0.6729028780009685,
+   "t_inferenz_min": 0.6657357930016587,
+   "t_inferenz_max": 1.030239765999795,
+   "anzahl": 5,
+   "klassen": [
+    "rot",
+    "schwarz",
+    "schwarz",
+    "weiss",
+    "weiss"
+   ],
+   "conf": [
+    0.911,
+    0.908,
+    0.882,
+    0.844,
+    0.814
+   ],
+   "peak_rss_mb": 2316.32421875,
+   "t_prozess_gesamt": 86.6245510509998,
+   "speicher_vorher": {
+    "frei_mb": 1912,
+    "verfuegbar_mb": 2752,
+    "swap_belegt_mb": 603
+   },
+   "temperatur_nachher": {
+    "AO-therm": 58.5,
+    "CPU-therm": 50.0,
+    "GPU-therm": 47.5,
+    "PLL-therm": 49.5,
+    "PMIC-Die": 50.0,
+    "thermal-fan-est": 48.75,
+    "iwlwifi_1": 49.0
+   }
+  },
+  {
+   "variante": "d",
+   "half": false,
+   "retina": true,
+   "roi": [
+    397,
+    169,
+    677,
+    362
+   ],
+   "cache": false,
+   "t_import_torch": 7.183915476000038,
+   "t_cuda_kontext": 11.925400092000928,
+   "t_erstes_conv2d": 8.775004553999679,
+   "cudnn_benchmark": false,
+   "t_yolo_laden": 11.569960408000043,
+   "t_erste_inferenz": 4.168032137000409,
+   "anzahl_erste": 10,
+   "t_inferenz_mittel": 0.6624851254499845,
+   "t_inferenz_median": 0.6436586340005306,
+   "t_inferenz_min": 0.6378622119991633,
+   "t_inferenz_max": 1.0145141929988313,
+   "anzahl": 10,
+   "klassen": [
+    "rot",
+    "gelb",
+    "weiss",
+    "gruen",
+    "weiss",
+    "schwarz",
+    "weiss",
+    "schwarz",
+    "rot",
+    "weiss"
+   ],
+   "conf": [
+    0.947,
+    0.933,
+    0.931,
+    0.926,
+    0.924,
+    0.913,
+    0.883,
+    0.868,
+    0.844,
+    0.819
+   ],
+   "peak_rss_mb": 2527.8046875,
+   "t_prozess_gesamt": 74.93848577599965,
+   "speicher_vorher": {
+    "frei_mb": 2103,
+    "verfuegbar_mb": 2814,
+    "swap_belegt_mb": 652
+   },
+   "temperatur_nachher": {
+    "AO-therm": 59.5,
+    "CPU-therm": 51.5,
+    "GPU-therm": 48.5,
+    "PLL-therm": 51.0,
+    "PMIC-Die": 50.0,
+    "thermal-fan-est": 49.25,
+    "iwlwifi_1": 51.0
+   }
+  },
+  {
+   "variante": "e",
+   "half": false,
+   "retina": true,
+   "roi": false,
+   "cache": false,
+   "t_import_torch": 7.189990818000297,
+   "t_cuda_kontext": 11.802717126998687,
+   "t_erstes_conv2d": 8.740649293999013,
+   "cudnn_benchmark": false,
+   "t_yolo_laden": 13.01560062399949,
+   "t_erste_inferenz": 2.3355617779998283,
+   "anzahl_erste": 5,
+   "t_inferenz_mittel": 0.5673389643501651,
+   "t_inferenz_median": 0.5664416159997927,
+   "t_inferenz_min": 0.5604658249994827,
+   "t_inferenz_max": 0.5797142320006969,
+   "anzahl": 5,
+   "klassen": [
+    "rot",
+    "schwarz",
+    "schwarz",
+    "weiss",
+    "weiss"
+   ],
+   "conf": [
+    0.91,
+    0.908,
+    0.882,
+    0.844,
+    0.814
+   ],
+   "peak_rss_mb": 2402.7421875,
+   "t_prozess_gesamt": 73.92382248600006,
+   "speicher_vorher": {
+    "frei_mb": 2047,
+    "verfuegbar_mb": 2792,
+    "swap_belegt_mb": 657
+   },
+   "temperatur_nachher": {
+    "AO-therm": 60.5,
+    "CPU-therm": 52.0,
+    "GPU-therm": 49.5,
+    "PLL-therm": 52.0,
+    "PMIC-Die": 50.0,
+    "thermal-fan-est": 50.5,
+    "iwlwifi_1": 51.0
+   }
+  },
+  {
+   "variante": "f",
+   "half": false,
+   "retina": true,
+   "roi": false,
+   "cache": true,
+   "t_import_torch": 7.107078557000932,
+   "t_cuda_kontext": 11.94652237199989,
+   "t_erstes_conv2d": 8.762072404000719,
+   "cudnn_benchmark": false,
+   "t_yolo_laden": 12.322097604001101,
+   "t_erste_inferenz": 2.9910916999997426,
+   "anzahl_erste": 5,
+   "t_inferenz_mittel": 0.5702923256998474,
+   "t_inferenz_median": 0.5681206839999504,
+   "t_inferenz_min": 0.5620335519997752,
+   "t_inferenz_max": 0.6317132679996575,
+   "anzahl": 5,
+   "klassen": [
+    "rot",
+    "schwarz",
+    "schwarz",
+    "weiss",
+    "weiss"
+   ],
+   "conf": [
+    0.91,
+    0.908,
+    0.882,
+    0.844,
+    0.814
+   ],
+   "peak_rss_mb": 2437.86328125,
+   "t_prozess_gesamt": 75.44347469100103,
+   "speicher_vorher": {
+    "frei_mb": 2071,
+    "verfuegbar_mb": 2797,
+    "swap_belegt_mb": 648
+   },
+   "temperatur_nachher": {
+    "AO-therm": 61.0,
+    "CPU-therm": 53.0,
+    "GPU-therm": 50.0,
+    "PLL-therm": 52.0,
+    "PMIC-Die": 50.0,
+    "thermal-fan-est": 51.5,
+    "iwlwifi_1": 51.0
+   }
+  },
+  {
+   "variante": "g",
+   "half": true,
+   "retina": false,
+   "roi": [
+    397,
+    169,
+    677,
+    362
+   ],
+   "cache": false,
+   "t_import_torch": 7.011383572000341,
+   "t_cuda_kontext": 11.422925082000802,
+   "t_erstes_conv2d": 8.943124250001347,
+   "cudnn_benchmark": false,
+   "t_yolo_laden": 11.004108961000384,
+   "t_erste_inferenz": 3.4854776169995603,
+   "anzahl_erste": 10,
+   "t_inferenz_mittel": 0.7797089748997678,
+   "t_inferenz_median": 0.7802856210000755,
+   "t_inferenz_min": 0.7739933659995586,
+   "t_inferenz_max": 0.7842885259997274,
+   "anzahl": 10,
+   "klassen": [
+    "rot",
+    "gelb",
+    "weiss",
+    "gruen",
+    "weiss",
+    "schwarz",
+    "weiss",
+    "schwarz",
+    "rot",
+    "weiss"
+   ],
+   "conf": [
+    0.947,
+    0.933,
+    0.931,
+    0.926,
+    0.924,
+    0.913,
+    0.883,
+    0.868,
+    0.844,
+    0.819
+   ],
+   "peak_rss_mb": 2490.31640625,
+   "t_prozess_gesamt": 77.2104038159996,
+   "speicher_vorher": {
+    "frei_mb": 2063,
+    "verfuegbar_mb": 2790,
+    "swap_belegt_mb": 652
+   },
+   "temperatur_nachher": {
+    "AO-therm": 62.0,
+    "CPU-therm": 53.5,
+    "GPU-therm": 50.5,
+    "PLL-therm": 53.0,
+    "PMIC-Die": 50.0,
+    "thermal-fan-est": 51.75,
+    "iwlwifi_1": 53.0
+   }
+  }
+ ]
+}

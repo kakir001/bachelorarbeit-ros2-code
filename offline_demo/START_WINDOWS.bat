@@ -16,23 +16,28 @@ if errorlevel 1 (
 )
 
 if not exist ".venv\Scripts\python.exe" (
-    echo [1/4] Lege virtuelle Umgebung an ...
+    echo [1/5] Lege virtuelle Umgebung an ...
     %PY% -m venv .venv
     if errorlevel 1 goto fehler
 )
-echo [2/4] Installiere Pakete (beim ersten Mal einige Minuten, ca. 1 GB) ...
+echo [2/5] Installiere Pakete (beim ersten Mal einige Minuten, ca. 1 GB) ...
 ".venv\Scripts\python.exe" -m pip install --upgrade pip
 ".venv\Scripts\python.exe" -m pip install -r requirements-offline.txt
 if errorlevel 1 goto fehler
 
 echo.
-echo [3/4] Demo 1: Wellen- und Kopfseitenerkennung (klassische Bildverarbeitung, ohne KI) ...
+echo [3/5] Demo 1: Wellen- und Kopfseitenerkennung (klassische Bildverarbeitung, ohne KI) ...
 ".venv\Scripts\python.exe" wellenerkennung_offline.py
 if errorlevel 1 goto fehler
 
 echo.
-echo [4/4] Demo 2: YOLO11l-seg-Instanzsegmentierung ...
+echo [4/5] Demo 2: YOLO11l-seg-Instanzsegmentierung ...
 ".venv\Scripts\python.exe" yolo_offline.py
+if errorlevel 1 goto fehler
+
+echo.
+echo [5/5] Demo 3: Vergleich klassische Bildverarbeitung / KI (YOLO) mit derselben Geometrie ...
+".venv\Scripts\python.exe" vergleich_offline.py
 if errorlevel 1 goto fehler
 
 echo.
