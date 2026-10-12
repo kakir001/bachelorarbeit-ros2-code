@@ -239,7 +239,7 @@ Automatisch erzeugt aus den Docstrings bzw. Kopfkommentaren der Dateien in `quel
 | `tools/versetze_soll.py` | 97 | Kleine gerade Verschiebung, gerechnet auf SOLL (gespeicherte Gelenkwinkel), nicht auf Ist. |
 | `tools/versetze_tcp.py` | 147 | Verschiebt den TCP um einen kleinen Betrag — geradlinig, ohne den Greifer zu drehen. |
 | `tools/welle_farbe.py` | 225 | Koerper- und STREIFENFARBE einer liegenden Welle aus dem Kamerabild (2026-09-13). |
-| `tools/welle_finden_schale.py` | 890 | Eine Welle in der Schale im Kamerabild finden - ohne YOLO - und als MODELL in RViz zeigen. |
+| `tools/welle_finden_schale.py` | 890 | Eine Welle in der Schale im Kamerabild finden - Abgabestand: klassische Bildverarbeitung - und als MODELL in RViz zeigen. Fassung mit Wahl YOLO11-seg / klassisch: `erweiterung_erkennung/tools/welle_finden_schale.py` |
 | `tools/zeichne_greifer.py` | 131 | Zeichnet das KOLLISIONSMODELL des Greifers massstaeblich, zum Vergleich mit dem Foto. |
 | `tools/zeige_punkt.py` | 180 | Faehrt den TCP senkrecht ueber einen Punkt und LAESST IHN DORT STEHEN. |
 | `tools/zyklus_gui.py` | 556 | PROGRAMMABLAUF mit Fenster (Benutzerwunsch 2026-09-14): Schale -> Griff -> Kamerakontrolle -> Trichter -> Kamerakontrolle -> Griff am Kopf -> Ablageplatte nach Farbe, bis die Schale leer ist. |

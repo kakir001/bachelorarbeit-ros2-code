@@ -6,6 +6,8 @@ Stand 11.10.2026. Dieser Ordner ergänzt den Abgabestand in `../quellcode/`, der
 
 Die Arbeit beschreibt die Bestimmung der Zielwelle mit YOLO11-seg. Im Gesamtzyklus des Versuchs (`tools/zyklus_gui.py`) lief dagegen die klassische Bildverarbeitung (`tools/welle_finden_schale.py`), weil der YOLO-Detektor auf dem Jetson Nano zu lange anlief und zu viel Speicher brauchte (README Abschnitte 2 und 7). Mit dieser Erweiterung sind **beide** Verfahren im Gesamtzyklus wählbar und unter gleichen Bedingungen vermessen.
 
+**Zeitlicher Ablauf:** Bis zur Abgabe (03.10.2026) war das YOLO11-seg-Modell trainiert und als ROS-2-Detektorknoten im Einsatz, die Einbindung in den Gesamtzyklus aber nicht fertig. Nach der Abgabe und vor dem Kolloquium (11.10.2026) wurde YOLO11-seg in den Gesamtzyklus eingebunden. Seitdem sind beide Verfahren vorhanden und werden je nach Wahl beim Start ausgeführt.
+
 ## Was sich ändert
 
 * **Beim Start der Ablaufsteuerung** fragt `tools/zyklus_gui.py` zuerst:

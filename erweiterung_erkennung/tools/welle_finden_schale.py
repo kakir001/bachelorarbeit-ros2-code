@@ -1,10 +1,15 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Eine Welle in der Schale im Kamerabild finden - ohne YOLO - und als MODELL in RViz zeigen.
+"""Wellen in der Schale im Kamerabild finden und als MODELL in RViz zeigen.
 
-Warum ohne YOLO: der Detektor (YOLO11l-seg) laeuft auf dem Nano ohne Luefter nicht (4 min
-Warmup, 80 Grad). Fuer EINE Welle in der leeren, hellgrauen Schale reicht klassische
-Bildverarbeitung: alles, was sich in Helligkeit oder Saettigung von der Schale abhebt.
+SEGMENTIERUNG wahlweise (--verfahren, seit 2026-10-11; zyklus_gui fragt beim Start):
+  yolo       YOLO11l-seg-Instanzmasken (Klasse = Koerperfarbe) vom Erkennungsdienst
+             (tools/erkennung_dienst.py, Modell bleibt geladen; tools/yolo_segmentierung.py)
+  klassisch  Referenzbild der leeren Schale, HSV-Farbklassen, Morphologie, Wasserscheide
+Die Geometrie danach (Stab, Kopfseite, Farben, Konfidenz, IK-Probe) ist fuer beide gleich.
+Geschichte: bis zur Abgabe (03.10.2026) nur klassisch, weil der Detektor auf dem Nano damals
+4 min zum Aufwaermen brauchte; die Ursache (NaN bei der Conv-BN-Fusion auf der CPU) ist behoben.
+Ohne --verfahren rechnet das Werkzeug klassisch (Aufruf von Hand ohne laufenden Dienst).
 
 Was bestimmt wird (alles in robot_base, ueber die Kamerakalibrierung):
   * Mitte und LAENGSACHSE (PCA der Maskenpixel, Gierwinkel)
