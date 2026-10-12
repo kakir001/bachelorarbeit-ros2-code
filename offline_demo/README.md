@@ -30,7 +30,7 @@ python vergleich_offline.py        # Demo 3, nach der Abgabe ergänzt (11.10.202
 
 | Skript | Inhalt | Abschnitt der Arbeit | Code der Arbeit, der ausgeführt wird |
 |---|---|---|---|
-| `wellenerkennung_offline.py` | Wellenerkennung in der Schale mit klassischer Bildverarbeitung (ohne KI, wie im Gesamtzyklus): Stabanpassung, Kopfseite aus Breitenprofil und Markierungsringen, Körper- und Streifenfarbe, Bewertung 0–100 je Kandidat | 5.3.3, 5.8.2, 5.9.1 | `quellcode/tools/test_welle_finden.py` → `welle_finden_schale.py` (`welle_in_frame`) |
+| `wellenerkennung_offline.py` | Wellenerkennung in der Schale mit klassischer Bildverarbeitung (ohne KI; im Gesamtzyklus wahlweise statt YOLO11-seg): Stabanpassung, Kopfseite aus Breitenprofil und Markierungsringen, Körper- und Streifenfarbe, Bewertung 0–100 je Kandidat | 5.3.3, 5.8.2, 5.9.1 | `quellcode/tools/test_welle_finden.py` → `welle_finden_schale.py` (`welle_in_frame`) |
 | `yolo_offline.py` | Instanzsegmentierung mit dem trainierten YOLO11l-seg-Modell, Mittelpunkt und Längsachse je Maske per PCA | 5.3.2, 5.4.1, 5.4.4 | `quellcode/src/wellenerkennung/wellenerkennung/erkennung.py` (`wellen_erkennen`, `get_mask_orientation`, `kopf_bewusster_griff`) |
 | `vergleich_offline.py` | **Demo 3 (11.10.2026):** beide Verfahren mit **derselben** Geometrie (Stab, Kopfseite, Farben, Bewertung 0–100); nur die Segmentierung unterscheidet sich (klassisch bzw. YOLO-Instanzmasken im Ausschnitt um die Schale) | – (Erweiterung) | `erweiterung_erkennung/tools/test_welle_finden.py` → `welle_finden_schale.py` (`welle_in_frame`) + `yolo_segmentierung.py` |
 
