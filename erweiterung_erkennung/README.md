@@ -38,10 +38,10 @@ Beim Messen wurde ein Fehler gefunden, der YOLO auf dem Jetson lahmlegte: `model
 | `tools/erkennung_dienst.py` | **neu.** Hält das Modell geladen; Unix-Socket `~/ros2_ws/.erkennung.sock`, Zustand in `~/ros2_ws/.erkennung_status.json` (nur Linux) |
 | `tools/erkennung_diagnose.py` | **neu.** Zeitzerlegung des YOLO-Starts je Variante (Abschnitt 2 des Berichts) |
 | `tools/erkennung_messreihe.py` | **neu.** N Wellensuchen je Verfahren am Aufbau, ohne Roboterbewegung |
-| `tools/welle_finden_schale.py` | geändert: `--verfahren klassisch|yolo`, `--ki-direkt` |
+| `tools/welle_finden_schale.py` | geändert: `--verfahren klassisch\|yolo`, `--ki-direkt` |
 | `tools/kamera_pruefung.py` | geändert: `--verfahren yolo` für Kopf- und Trichterkontrolle |
 | `tools/zyklus_gui.py` | geändert: Verfahrens- und RViz-Wahl, Dienststeuerung, Zeiten im Protokoll |
-| `tools/test_welle_finden.py` | geändert: `--verfahren klassisch|yolo|beide` (Vergleichsmosaike); behebt, dass Kommandozeilenargumente ignoriert wurden |
+| `tools/test_welle_finden.py` | geändert: `--verfahren klassisch\|yolo\|beide` (Vergleichsmosaike); behebt, dass Kommandozeilenargumente ignoriert wurden |
 | `start_mycobot.sh` | geändert: RViz-Frage |
 | `ERKENNUNG_BENCHMARK.md` | Messbericht |
 | `messdaten/` | Rohdaten der Messungen (JSON) |
@@ -52,8 +52,11 @@ Die Unterschiede zum Abgabestand: `git diff --no-index quellcode/tools/zyklus_gu
 ## Einsetzen auf dem Roboter
 
 ```bash
-cp erweiterung_erkennung/tools/*.py ~/ros2_ws/tools/
-cp erweiterung_erkennung/start_mycobot.sh ~/ros2_ws/
+# Repository wie in README Abschnitt 6.2 nach ~/bachelorarbeit-ros2-code geklont, Workspace in ~/ros2_ws
+cp ~/bachelorarbeit-ros2-code/erweiterung_erkennung/tools/*.py ~/ros2_ws/tools/
+cp ~/bachelorarbeit-ros2-code/erweiterung_erkennung/start_mycobot.sh ~/ros2_ws/
+chmod +x ~/ros2_ws/start_mycobot.sh ~/ros2_ws/tools/*.py
+cd ~/ros2_ws
 MIT_RVIZ=0 SCHALE_MONTIERT=1 TRICHTER_MONTIERT=1 ABLAGEPLATTE_MONTIERT=1 KAMERA_PROFIL=848 ./start_mycobot.sh
 source ros_umgebung.sh && python3 tools/zyklus_gui.py          # zuerst Verfahren + RViz, dann Modus
 ```

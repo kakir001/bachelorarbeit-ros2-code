@@ -269,11 +269,33 @@ Die folgenden Dateien waren im Stand vom 28.09.2026 nicht im Repository. In `que
 | Datei | Beschreibung |
 |---|---|
 | `README.md` | Anleitung, erwartete Ergebnisse und Stand der Prüfung |
-| `START_WINDOWS.bat`, `start.sh` | legt eine virtuelle Umgebung an, installiert die Pakete und startet beide Demos |
+| `START_WINDOWS.bat`, `start.sh` | legt eine virtuelle Umgebung an, installiert die Pakete und startet die drei Demos |
 | `requirements-offline.txt` | Python-Pakete der Offline-Demo |
 | `wellenerkennung_offline.py` | führt `quellcode/tools/test_welle_finden.py` ohne ROS 2 auf den Szenen in `quellcode/testdaten/` aus |
 | `yolo_offline.py` | YOLO11l-seg-Inferenz mit `welle_gross.pt` und Auswertung mit `wellenerkennung/erkennung.py` |
+| `vergleich_offline.py` | Demo 3 (11.10.2026): klassische Bildverarbeitung und YOLO11-seg auf denselben Szenen mit derselben Geometrie, Ergebnis nebeneinander (`<szene>_vergleich.png`, `vergleich_beide.json`) |
 | `ros_stubs/` | Platzhalter für `rclpy`, `tf2_ros` und Nachrichtenpakete, damit sich die Module in `quellcode/tools/` ohne ROS 2 importieren lassen |
+
+### `erweiterung_erkennung/` (neu, 11.10.2026)
+
+Geänderte Fassungen der Werkzeuge liegen hier, damit `quellcode/` unverändert bleibt; Unterschiede zum Abgabestand mit `git diff --no-index quellcode/tools/<datei> erweiterung_erkennung/tools/<datei>`.
+
+| Datei | Beschreibung |
+|---|---|
+| `README.md` | Beschreibung der Erweiterung: Verfahrenswahl, Messergebnisse, Einsetzen auf dem Roboter |
+| `ERKENNUNG_BENCHMARK.md` | Messbericht: Bereitschaft, Suchzeit, Segmentierung, Kandidaten, Speicher, Diagnose des YOLO-Starts |
+| `start_mycobot.sh` (191 Zeilen) | Startskript mit RViz-Abfrage (`MIT_RVIZ`) |
+| `tools/yolo_segmentierung.py` (261 Zeilen) | YOLO11-seg-Segmentierung ohne ROS: eigener GPU-Weg (Fusion auf der GPU, NaN-Prüfung), Ausschnitt um die Schale, Client des Dienstes |
+| `tools/erkennung_dienst.py` (138 Zeilen) | Erkennungsdienst: lädt das Modell einmal je Sitzung, Anfragen über Unix-Socket, Austausch über `/dev/shm` |
+| `tools/erkennung_diagnose.py` (138 Zeilen) | Zeitzerlegung des YOLO-Starts je Variante (torch, CUDA, cuDNN, Laden, erste Inferenz) |
+| `tools/erkennung_messreihe.py` (105 Zeilen) | Messreihe klassisch/KI abwechselnd (Suchzeit, Segmentierung, Kandidaten, Speicher, Temperatur) |
+| `tools/welle_finden_schale.py` (960 Zeilen) | Wellensuche mit `--verfahren yolo` oder `klassisch`, danach dieselbe Geometrie |
+| `tools/zyklus_gui.py` (800 Zeilen) | Ablaufsteuerung: fragt beim Start Erkennungsverfahren und RViz, dann AUTOMATIK/MANUELL |
+| `tools/kamera_pruefung.py` (184 Zeilen) | Kopf- und Trichterkontrolle, mit `--verfahren yolo` über das Modell |
+| `tools/test_welle_finden.py` (245 Zeilen) | Offline-Test auf aufgezeichneten Szenen, `--verfahren klassisch`, `yolo` oder `beide` (Vergleichsmosaike) |
+| `messdaten/` | Rohdaten der Messungen vom 11.10.2026 (JSON) |
+| `bilder/` | Vergleichsbilder klassisch / KI |
+| `testdaten/live_schale_2026-10-11.npz` | aufgezeichnete Szene der vollen Schale (848 × 480) |
 
 ### `upstream_patches/` (neu)
 

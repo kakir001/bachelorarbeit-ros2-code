@@ -1,6 +1,6 @@
 # Erkennung der Wellen: klassische Bildverarbeitung oder KI (YOLO11-seg) – Messbericht
 
-Stand: 11.10.2026 · Jetson Nano 4 GB (MAXN, ohne `jetson_clocks`), Ubuntu 20.04, Python 3.8, torch 1.13 (NVIDIA-Build, CUDA 10.2, cuDNN 8.2), Ultralytics 8.4.33, Modell `welle_gross.pt` (YOLO11l-seg, 27,6 Mio. Parameter), `conf` 0,70, `imgsz` 640, FP32 · Kamera D435i 848 × 480 · RViz **aus** · Roboter **nicht bewegt**.
+Stand: 11.10.2026 · Jetson Nano 4 GB (MAXN, ohne `jetson_clocks`), Ubuntu 20.04, Python 3.8, torch 1.13 (NVIDIA-Build, CUDA 10.2, cuDNN 8.2), Ultralytics 8.4.33, Modell `welle_gross.pt` (YOLO11l-seg, 27,6 Mio. Parameter), `conf` 0,70, `imgsz` 640, FP32 · Kamera D435if 848 × 480 · RViz **aus** · Roboter **nicht bewegt**.
 
 Alle Zahlen sind auf diesem Jetson gemessen. Rohdaten: `erkennung_diagnose_2026-10-11.json`, `erkennung_messreihe_2026-10-11_1242.json` (Endstand), frühere Reihen `…_1144.json`, `…_1217.json`, `…_1226.json`. Im Repository liegen sie in `erweiterung_erkennung/messdaten/`.
 
@@ -10,8 +10,8 @@ Alle Zahlen sind auf diesem Jetson gemessen. Rohdaten: `erkennung_diagnose_2026-
 |---|---:|---:|
 | Bereitschaft je Sitzung (Laden + Aufwärmen, einmal) | sofort | 54–83 s (Median der vier Starts ≈ 78 s) |
 | Wellensuche je Welle, wie Schritt 1 im Zyklus (Median, n = 10, abwechselnd) | **20,5 s** (12,6–37,6) | **22,9 s** (15,7–40,1) |
-| davon Segmentierung (Median) | 0,54 s | 0,94 s (Inferenz ≈ 0,65–0,75 s) |
-| gefundene Kandidaten in der vollen Schale (Median; tatsächlich ≈ 20 Wellen, Teile vom Greifer verdeckt) | 18 (4–25) | 12 (10–13) |
+| davon Segmentierung (Median) | 0,54 s | 0,94 s (Inferenz im Median ≈ 0,76 s, einzelne bis 2,3 s) |
+| gefundene Kandidaten in der vollen Schale (Median; tatsächlich ≈ 20 Wellen, Teile vom Greifer verdeckt) | 18 (4–21; frühere Reihe 4–25) | 12 (10–13) |
 | häufigste gewählte Welle in 10 Suchen (Lage ± 12 mm) | 4/10 (6 verschiedene Wellen) | 7/10 (2 verschiedene Wellen) |
 | kleinster freier Arbeitsspeicher während der Reihe | 350 MB | 352 MB (Dienst ≈ 2 GB geladen) |
 | höchste Temperatur | 66 °C | 70 °C |

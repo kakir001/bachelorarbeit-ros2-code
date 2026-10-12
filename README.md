@@ -34,7 +34,7 @@ Dieses Repository enthält den **gesamten selbst geschriebenen Quellcode** des V
 
 ## 2. Was das System tut
 
-Sechsachsiger myCobot 280 JN (Jetson Nano, ROS 2 Galactic) mit stationärer RGB-D-Kamera Intel RealSense D435if (Eye-to-Hand). Ein Handhabungszyklus (`tools/zyklus_gui.py`, Abschnitt 5.10 der Arbeit):
+Sechsachsiger myCobot 280 JN (Jetson Nano, ROS 2 Galactic) mit stationärer RGB-D-Kamera Intel RealSense D435if (Eye-to-Hand). Die D435if ist die Variante der D435i mit IR-Passfilter; Treiber und Beschreibungspakete (`realsense2_camera`, Makro `sensor_d435i`) und die Kommentare im Code nennen sie daher „D435i“. Ein Handhabungszyklus (`tools/zyklus_gui.py`, Abschnitt 5.10 der Arbeit):
 
 1. Kamerapose prüfen (`tools/kamera_pruefung.py`, `tools/measure_camera_pose.py`)
 2. Zielwelle in der Bereitstellungsschale bestimmen – **Wellenerkennung mit YOLO11-seg** (Abschnitte 5.3–5.4): Das trainierte YOLO11l-seg-Modell (`src/wellenerkennung`, Gewichte `welle_gross.pt`) liefert je Welle eine Instanzmaske, die Klasse ist die Körperfarbe. Daraus werden Lage, Achse, Kopfseite, Streifenfarbe und eine Bewertung 0–100 je Kandidat berechnet (Wandabstand, Nachbarabstand, Form, Kopfseite, Farbsicherheit, Lage). Im Gesamtzyklus (`erweiterung_erkennung/tools/zyklus_gui.py`) lädt ein Erkennungsdienst das Modell einmal je Sitzung; auch die Kopf- und die Trichterkontrolle laufen dann über YOLO. Die erste Pick-Kette mit dem ROS-2-Detektorknoten (`run_pick_preview.sh`, Juli 2026) arbeitet ebenfalls mit YOLO11-seg.
@@ -47,7 +47,7 @@ Sechsachsiger myCobot 280 JN (Jetson Nano, ROS 2 Galactic) mit stationärer RGB-
    | Bereitschaft je Sitzung | einmal ≈ 78 s (Laden + Aufwärmen) | sofort |
    | Wellensuche je Welle (Median, n = 10) | 22,9 s | 20,5 s |
    | davon Segmentierung | 0,94 s | 0,54 s |
-   | gefundene Wellen in der vollen Schale | 10–13, stabil | 4–25, schwankend (Bruchstücke) |
+   | gefundene Wellen in der vollen Schale | 10–13, stabil | 4–21 (frühere Reihe 4–25), schwankend (Bruchstücke) |
    | gleiche Welle in 10 Suchen gewählt | 7/10 | 4/10 |
    | Speicher | ≈ 2 GB (Dienst) | gering |
    | Stärken | trennt sich berührende Wellen selbst (Instanzen), unabhängig von Referenzbild und Schwellwerten, stabile Auswahl | keine Ladezeit, kein Training, kaum Speicher, jeder Schritt nachvollziehbar |
@@ -112,7 +112,8 @@ Weitere Werkzeuge und alle Daten-/Konfigurationsdateien sind in `DATEIEN.md` bes
 | `gelenk_nullpunkte.json` | Encoder-Nullpunktversatz je Gelenk `[0, 2.29, 0.29, −0.29, 0, 0]°`, von der Brücke kompensiert |
 | `farbplan.json`, `farbklassen.json` | Zuordnung Farbe → Nest; gelernte HSV-Referenzen |
 | `platte_belegung.json` | aktuelle Belegung der Nester |
-| `kamera_modell_platte.json`, `src/mycobot_world/urdf/camera_pose.xacro` | plattenbasiert bestimmte Kamerapose |
+| `src/mycobot_world/urdf/camera_pose.xacro` | plattenbasiert bestimmte Kamerapose (`robot_base` → Kamera) |
+| `kamera_modell_platte.json` | Abbildung Kamera → Robotermodell aus 16 angelernten Nestern (Ähnlichkeit: Maßstab ≈ 1,06, Drehung ≈ −1,5°, Verschiebung; zusätzlich affin und radial), von `tools/hole_aus_schale.py` verwendet (Abschnitt 7) |
 | `src/mycobot_moveit_config/config/*.yaml`, `mycobot.srdf` | IK, Planer, Controller, erlaubte Kollisionspaare |
 
 ## 6. Installation und Ausführung
@@ -188,8 +189,10 @@ RViz 2 zeigt den modellierten Versuchsaufbau (Abbildung 5-6 der Arbeit); über d
 
 ```bash
 # einmalig: Fassung mit Wahl des Erkennungsverfahrens (YOLO11-seg / klassisch) einsetzen
-cp erweiterung_erkennung/tools/*.py ~/ros2_ws/tools/
-cp erweiterung_erkennung/start_mycobot.sh ~/ros2_ws/
+cp ~/bachelorarbeit-ros2-code/erweiterung_erkennung/tools/*.py ~/ros2_ws/tools/
+cp ~/bachelorarbeit-ros2-code/erweiterung_erkennung/start_mycobot.sh ~/ros2_ws/
+chmod +x ~/ros2_ws/start_mycobot.sh ~/ros2_ws/tools/*.py
+cd ~/ros2_ws
 # Terminal 1 – Stack (Roboter, MoveIt 2, RViz 2, Kamera, Brücke, NOT-AUS; fragt nach RViz, MIT_RVIZ=0/1 überspringt die Frage)
 SCHALE_MONTIERT=1 TRICHTER_MONTIERT=1 ABLAGEPLATTE_MONTIERT=1 KAMERA_PROFIL=848 ./start_mycobot.sh
 # Terminal 2 – Umgebung + Ablaufsteuerung
@@ -225,6 +228,7 @@ ROS 2 Galactic steht für Windows nicht als fertige Installation zur Verfügung.
 * Abweichung Arbeit ↔ Code, Geschwindigkeit: Freie MoveIt-Fahrten verwenden den Faktor 0,15 × `--tempo`; der Standardwert `--tempo 2` ergibt 0,30 (Arbeit, Abschnitt 7.10: 0,10 bis 0,15). Die kartesischen Absenk- und Hubbahnen werden über ihre Dauer zeitparametriert.
 * Abweichung Arbeit ↔ Code, Bewertung 0–100 (Abschnitt 5.3.3): Im Code erreicht der Wandabstand die vollen 30 Punkte ab 30 mm (Arbeit: 40 mm); der Nachbarabstand ergibt 0 Punkte ab 3 mm und volle 20 Punkte ab Öffnung/2 + 13 mm (Arbeit: Öffnung/2 + 5,5 mm bzw. + 20 mm).
 * Abweichung Arbeit ↔ Modelldatei: Die Arbeit nennt eine Precision von 0,96 (Box); in den Trainingsmetriken der Gewichtsdatei `welle_gross.pt` steht 0,944.
+* Maintainer-Angaben in `package.xml` / `setup.py` der eigenen Pakete (Name „Orhan“ bzw. „er“ und die zugehörige E-Mail-Adresse): Das YOLO11-seg-Modell wurde auf einem zweiten Rechner des Verfassers trainiert (Benutzerkonto „orhan“) und per USB auf den Jetson übertragen; die Maintainer-Felder sind Vorgabewerte dieser Rechnerkonten. Verfasser des Codes ist Kaan Kirac.
 * Kopfseitenbestimmung (Abschnitt 5.8.2, „in allen Fällen richtig“): Die Aussage gilt für die als greifbar freigegebenen Kandidaten. Unter den verworfenen Kandidaten der aufgezeichneten Szenen finden sich Maskenbruchstücke und in der Szene mit 12 Wellen ein Kandidat mit umgekehrter Kopfseite; die Offline-Demo zeigt das nachvollziehbar.
 
 ## 8. Zugriff
@@ -248,5 +252,6 @@ Das Repository ist **öffentlich** lesbar (kein Sperrvermerk). Der vollständige
 | 10.10.2026 | README und `DATEIEN.md`: Herkunft der Daten in Tabelle 6-2 klargestellt (handschriftliches Laborbuch, die Protokolldateien enthalten nur Läufe über die Bedienoberfläche); Wellenerkennung im Gesamtzyklus ausdrücklich als klassische Bildverarbeitung ohne KI bezeichnet (vorher „modellbasiert“; Stand vor der Erweiterung vom 11.10.2026); weitere Abweichungen zwischen Arbeit und Code in Abschnitt 7 ergänzt. Quellcode unverändert |
 | 11.10.2026 | `erweiterung_erkennung/` ergänzt (Wahl klassisch/KI im Gesamtzyklus, RViz-Abfrage, Erkennungsdienst, Messbericht und Messdaten), `offline_demo/vergleich_offline.py` als Demo 3, Startdateien der Offline-Demo erweitert; README Abschnitte 1, 2, 6.5 und 7 entsprechend ergänzt. `quellcode/` unverändert |
 | 12.10.2026 | README: Wellenerkennung mit YOLO11-seg als Verfahren des Gesamtzyklus beschrieben, klassische Bildverarbeitung als wählbare Alternative (Abschnitte 1, 2, 4, 7); Abschnitt 6.4 startet die Fassung mit Verfahrenswahl; zeitlicher Ablauf der Wellenerkennung, Vergleich und Zeitbilanz beider Verfahren ergänzt; Docstring von `erweiterung_erkennung/tools/welle_finden_schale.py` und `DATEIEN.md` angepasst. `quellcode/` unverändert |
+| 12.10.2026 | Durchsicht des Repositorys: Pfade der Einsetz-Befehle in Abschnitt 6.4 und `erweiterung_erkennung/README.md` berichtigt, Tabellenzellen mit `\|` repariert, Beschreibung von `kamera_modell_platte.json` berichtigt (Abbildung Kamera → Modell, nicht Kamerapose), `DATEIEN.md` um Demo 3 und `erweiterung_erkennung/` ergänzt, zwei Spannweiten im Messbericht präzisiert, Hinweis zur Kamerabezeichnung D435if und zu den Maintainer-Angaben (Abschnitt 7). `quellcode/` unverändert |
 
 Alle am 28.09.2026 vorhandenen Dateien in `quellcode/` sowie `ALLE_CODES.txt` sind **unverändert**; in `quellcode/` sind ausschließlich Dateien hinzugekommen. Nachprüfbar mit `git diff --stat 45b43a0 HEAD -- quellcode ALLE_CODES.txt` (zeigt nur neue Dateien, keine geänderten).
